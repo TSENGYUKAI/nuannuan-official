@@ -243,7 +243,7 @@
                         <h4 class="text-xl font-black text-gray-800 mb-6">雲端檔案發佈管理</h4>
                         <div class="overflow-x-auto custom-scrollbar">
                             <table class="custom-table w-full">
-                                <thead><tr><th>名稱</th><th>建立日期</th><th>發佈狀態</th><th>操作</th></tr></thead>
+                                <thead><tr><th>名稱</th><th>建立日期</th><th>發佈權限設定 (對象)</th></tr></thead>
                                 <tbody id="manage-files-tbody"></tbody>
                             </table>
                         </div>
@@ -431,14 +431,32 @@
             const b = document.getElementById(id); if(!b) return;
             b.innerHTML = '';
             if(!rows || rows.length === 0) { b.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-stone-300">目前無數據</td></tr>'; return; }
+            
             rows.forEach(r => {
                 let tr = document.createElement('tr');
                 cols.forEach(c => {
-                    let td = document.createElement('td'), val = r[c] || '-';
-                    if(c.includes('金額') || c.includes('支出') || c.includes('撥入') || c === '目前結餘') {
-                        let n = Number(String(val).replace(/,/g,''));
-                        td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
-                    } else { td.innerText = val; }
+                    let td = document.createElement('td');
+                    let val = r[c];
+                    
+                    // 處理空值、未定義、或純空白
+                    if (val === undefined || val === null || String(val).trim() === '') {
+                        td.innerText = '-';
+                    } else if (c.includes('金額') || c.includes('支出') || c.includes('撥入') || c === '目前結餘') {
+                        // 處理數值欄位，過濾掉無法計算的值避免出現 NaN / $非數值
+                        let cleanStr = String(val).replace(/,/g, '').trim();
+                        let n = Number(cleanStr);
+                        
+                        if (isNaN(n) || cleanStr === '') {
+                            td.innerText = '-';
+                        } else {
+                            td.innerHTML = n < 0 
+                                ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` 
+                                : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
+                        }
+                    } else {
+                        // 一般文字欄位正常顯示
+                        td.innerText = val;
+                    }
                     tr.appendChild(td);
                 });
                 b.appendChild(tr);
@@ -457,11 +475,34 @@
                 });
                 for(let sn in subFolderMap) {
                     let h = document.createElement('tr');
-                    h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`;
+                    h.innerHTML = `<td colspan="3" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`;
                     b.appendChild(h);
                     subFolderMap[sn].forEach(f => {
                         let tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="pl-8">${f.name}</td><td>${f.date}</td><td><span class="${f.isPublished?'text-green-600':'text-stone-400'}">${f.isPublished?'已發佈':'待發佈'}</span></td><td><button onclick="togglePublish('${f.id}')" class="text-blue-500 underline hover:text-orange-500">切換</button></td>`;
+                        
+                        // 向下相容邏輯：如果之前只有「已發佈」，自動轉為該資料夾對應的對象
+                        let currentTarget = f.publishTarget;
+                        if (currentTarget === 'none' && f.isPublished) {
+                            currentTarget = cat.includes("股東") ? 'shareholder' : 'staff';
+                        }
+                        
+                        // 設計下拉選單讓管理員選擇
+                        let selectHtml = `
+                            <select onchange="updatePublishTarget('${f.id}', this.value)" 
+                                    class="text-xs font-bold px-3 py-2 rounded-xl border-2 transition-colors outline-none cursor-pointer w-full max-w-[200px]
+                                    ${currentTarget !== 'none' ? 'border-green-400 bg-green-50 text-green-700 hover:border-green-500' : 'border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-300'}">
+                                <option value="none" ${currentTarget === 'none' ? 'selected' : ''}>🚫 不公開 (隱藏)</option>
+                                <option value="staff" ${currentTarget === 'staff' ? 'selected' : ''}>🧑‍⚕️ 僅居服員可見</option>
+                                <option value="shareholder" ${currentTarget === 'shareholder' ? 'selected' : ''}>💼 僅股東可見</option>
+                                <option value="both" ${currentTarget === 'both' ? 'selected' : ''}>🌍 所有人皆可見</option>
+                            </select>
+                        `;
+
+                        tr.innerHTML = `
+                            <td class="pl-8">${f.name}</td>
+                            <td>${f.date}</td>
+                            <td>${selectHtml}</td>
+                        `;
                         b.appendChild(tr);
                     });
                 }
@@ -471,19 +512,42 @@
         function renderPublicFiles() {
             const pc = document.getElementById('policy-files-container'); if(pc) pc.innerHTML = '';
             const fc = document.getElementById('finance-files-container'); if(fc) fc.innerHTML = '';
+            
             for(let cat in allDriveFiles) {
-                (allDriveFiles[cat] || []).filter(f => f.isPublished).forEach(f => {
-                    const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${cat.includes('股東')?'ph-file-xls text-green-500':'ph-file-pdf text-red-400'} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
-                    if(cat.includes("規章") || cat.includes("機構")) if(pc) pc.innerHTML += html;
-                    if(cat.includes("股東")) if(fc) fc.innerHTML += html;
+                (allDriveFiles[cat] || []).forEach(f => {
+                    // 向下相容判斷
+                    let target = f.publishTarget;
+                    if (target === 'none' && f.isPublished) {
+                        target = cat.includes("股東") ? 'shareholder' : 'staff';
+                    }
+
+                    if (target !== 'none') {
+                        const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${cat.includes('股東')?'ph-file-xls text-green-500':'ph-file-pdf text-red-400'} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
+                        
+                        // 發佈給居服員 (渲染至 機構制度規章 區)
+                        if ((target === 'staff' || target === 'both') && pc) {
+                            pc.innerHTML += html;
+                        }
+                        
+                        // 發佈給股東 (渲染至 財務系統的股東專區)
+                        if ((target === 'shareholder' || target === 'both') && fc) {
+                            fc.innerHTML += html;
+                        }
+                    }
                 });
             }
         }
 
-        function togglePublish(id) {
-            showToast("正在更新發佈狀態...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'togglePublish', fileId: id }) })
-            .then(() => triggerSync(true));
+        // 新增的方法：傳送帶有對象(target)的參數給後端
+        function updatePublishTarget(id, targetValue) {
+            showToast("正在更新發佈對象設定...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'setPublishTarget', fileId: id, target: targetValue }) 
+            })
+            .then(res => res.json())
+            .then(() => triggerSync(true))
+            .catch(() => showToast("設定失敗，請確認後端是否已更新", "error"));
         }
 
         function handleLogout() { location.reload(); }

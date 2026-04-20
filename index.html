@@ -7,6 +7,8 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- 引入 Google 登入 API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
@@ -107,9 +109,17 @@
 
         .progress-bar-bg { background-color: #ffedd5; }
         .progress-bar-fill { background-color: #f97316; }
+
+        /* Toast Animation */
+        .toast-enter { transform: translateX(100%); opacity: 0; }
+        .toast-enter-active { transform: translateX(0); opacity: 1; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .toast-exit { transform: translateX(100%); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-4 md:p-8">
+<body class="min-h-screen flex flex-col p-4 md:p-8 relative">
+
+    <!-- 全域通知容器 -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- ==================== 1. 登入畫面 ==================== -->
     <div id="login-view" class="w-full max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page relative overflow-hidden">
@@ -120,12 +130,41 @@
             <i class="ph-bold ph-buildings text-4xl"></i>
         </div>
         <h1 class="text-2xl font-black text-gray-800 mb-2 tracking-tight">內部營運管理系統</h1>
-        <p class="text-stone-400 text-sm mb-10 font-bold">暖暖居家長照機構 專屬授權</p>
-        <button onclick="handleLogin()" class="w-full flex items-center justify-center gap-3 bg-white border-2 border-stone-200 text-stone-700 py-4 rounded-full font-black shadow-sm hover:border-orange-500 hover:bg-orange-50 hover:text-orange-600 transition-all active:scale-95 mb-2">
-            <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
-            Google 授權登入
-        </button>
-        <p class="text-[10px] text-stone-300 font-black tracking-widest mt-6 uppercase">NUAN NUAN OPERATIONS PORTAL</p>
+        <p class="text-stone-400 text-sm mb-8 font-bold">暖暖居家長照機構 專屬授權</p>
+        
+        <div class="mb-6 text-left relative z-10 flex flex-col items-center">
+            <label class="block text-[10px] font-black text-stone-400 mb-4 uppercase tracking-widest text-center">請使用機構綁定之 Google 帳號登入</label>
+            
+            <!-- 🚨 【Google OAuth 設定區】🚨 -->
+            <div id="g_id_onload"
+                 data-client_id="98650990659-f82m5s5tgs1vtgujjh4dv11jua962qep.apps.googleusercontent.com" 
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleLogin"
+                 data-auto_prompt="false">
+            </div>
+            
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="pill"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
+
+            <!-- 開發者測試區：當 Google 登入還未設定完成時，可暫時用這個手動登入 -->
+            <div class="mt-8 pt-4 w-full border-t border-stone-100 flex flex-col items-center">
+                <p class="text-[10px] font-black text-stone-300 mb-3 tracking-widest uppercase">Developer Testing Only</p>
+                <div class="flex w-full gap-2">
+                    <input type="email" id="login-email" placeholder="輸入信箱測試" onkeydown="if(event.key === 'Enter') handleManualLogin()" class="w-full p-2 bg-stone-50 border-2 border-stone-200 rounded-xl text-xs font-bold focus:border-orange-500 outline-none text-center text-stone-700" />
+                    <button onclick="handleManualLogin()" class="bg-stone-800 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm hover:bg-orange-500 transition-colors shrink-0">
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <p class="text-[10px] text-stone-300 font-black tracking-widest mt-4 uppercase relative z-10">NUAN NUAN OPERATIONS PORTAL</p>
     </div>
 
     <!-- ==================== 2. 主控台畫面 ==================== -->
@@ -178,11 +217,11 @@
                 </nav>
                 
                 <div class="mt-8 pt-6 border-t-2 border-stone-50 flex items-center justify-between bg-stone-50 p-4 rounded-[25px]">
-                    <div>
-                        <div id="user-name" class="text-sm font-black text-gray-800">載入中...</div>
+                    <div class="overflow-hidden">
+                        <div id="user-name" class="text-sm font-black text-gray-800 truncate max-w-[150px]">載入中...</div>
                         <div id="user-role-label" class="text-[10px] font-black text-white bg-stone-400 px-2 py-0.5 rounded-full mt-1 inline-block">系統身分</div>
                     </div>
-                    <button onclick="handleLogout()" class="text-stone-400 hover:text-red-500 transition-colors bg-white p-2 rounded-full shadow-sm hover:shadow-md">
+                    <button onclick="handleLogout()" class="text-stone-400 hover:text-red-500 transition-colors bg-white p-2 rounded-full shadow-sm hover:shadow-md shrink-0">
                         <i class="ph-bold ph-sign-out text-lg"></i>
                     </button>
                 </div>
@@ -276,7 +315,6 @@
                         <button id="tab-fin-petty" onclick="switchFinanceTab('petty')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100 hover:border-orange-200 hover:text-orange-500">零用金管理</button>
                     </div>
                     
-                    <!-- 1. 財務總覽看板 (Data from 0_財務總覽看板) -->
                     <div id="fin-overview" class="fin-section animate-page">
                         <div class="flex justify-between items-center mb-4">
                             <span id="display-month" class="text-xs font-black text-stone-400 bg-stone-100 px-3 py-1 rounded-full">查詢月份：--</span>
@@ -297,7 +335,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. 收入流水帳 -->
                     <div id="fin-income" class="fin-section hidden-section animate-page">
                         <div class="overflow-x-auto custom-scrollbar rounded-[20px] border-2 border-stone-100">
                             <table class="custom-table w-full whitespace-nowrap">
@@ -318,7 +355,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. 支出流水帳 -->
                     <div id="fin-expense" class="fin-section hidden-section animate-page">
                         <div class="overflow-x-auto custom-scrollbar rounded-[20px] border-2 border-stone-100">
                             <table class="custom-table w-full whitespace-nowrap">
@@ -338,7 +374,6 @@
                         </div>
                     </div>
                     
-                    <!-- 4. 月結損益表 -->
                     <div id="fin-pnl" class="fin-section hidden-section animate-page">
                         <div class="bg-stone-50 border-2 border-dashed border-stone-200 rounded-[30px] p-12 text-center text-stone-400 font-bold">
                             <i class="ph-bold ph-file-xls text-5xl mb-4 text-green-500"></i>
@@ -347,7 +382,6 @@
                         </div>
                     </div>
 
-                    <!-- 5. 零用金管理表 -->
                     <div id="fin-petty" class="fin-section hidden-section animate-page">
                         <div class="overflow-x-auto custom-scrollbar rounded-[20px] border-2 border-stone-100">
                             <table class="custom-table w-full whitespace-nowrap">
@@ -428,59 +462,158 @@
                                 <div class="text-5xl font-black text-gray-800">$42,500</div>
                             </div>
                         </div>
+                        <div class="space-y-4 text-sm font-black">
+                            <div class="flex justify-between text-stone-500"><span>AA碼拆帳 (60%)</span> <span class="text-gray-800">$38,000</span></div>
+                            <div class="flex justify-between text-stone-500"><span>BA碼加給</span> <span class="text-gray-800">$5,500</span></div>
+                            <div class="flex justify-between text-stone-500"><span>勞健保代扣額</span> <span class="text-red-500">-$1,000</span></div>
+                        </div>
                     </div>
                 </section>
             </div>
         </main>
     </div>
 
-    <!-- ==================== 系統核心邏輯與 Google 串接區 ==================== -->
+    <!-- ==================== 系統核心邏輯與 Email 權限驗證區 ==================== -->
     <script>
         // 🚨 【負責人設定區】🚨 
-        // 因為我們把 Google Sheets 和 Google Drive 的功能寫在同一個 GAS 裡，所以兩個網址共用同一個！
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFEphc4tt7mFIgTu7RusChyu2dD7bNt4cdEgzJf-99hzOXeLAbgO4OCc_p_OlNeoDd/exec"; 
 
-        const mockUserFromDatabase = { name: "曾負責人 (管理員)", role: "admin", email: "dick19921014@gmail.com" };
+        // 授權名單
+        const ADMIN_EMAILS = [
+            "dick19921014@gmail.com"
+        ];
+        
+        const SHAREHOLDER_EMAILS = [
+            "e0934148629@gmail.com",
+            "sy020430@gmail.com",
+            "cherrychue0515@gmail.com",
+            "wen67810@gmail.com"
+        ];
 
-        function handleLogin() {
+        // 提示訊息功能
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-stone-800';
+            let iconClass = 'ph-info';
+            
+            if (type === 'error') { bgClass = 'bg-red-500'; iconClass = 'ph-warning-circle'; }
+            else if (type === 'success') { bgClass = 'bg-green-500'; iconClass = 'ph-check-circle'; }
+            else if (type === 'warning') { bgClass = 'bg-orange-500'; iconClass = 'ph-warning'; }
+
+            toast.className = `flex items-center gap-3 text-white px-6 py-4 rounded-2xl shadow-xl font-black toast-enter pointer-events-auto ${bgClass}`;
+            toast.innerHTML = `<i class="ph-bold ${iconClass} text-2xl"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-enter-active');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // --- Google OAuth 登入相關邏輯 ---
+
+        // 解析 Google 回傳的 JWT Token 取得信箱
+        function decodeJwtResponse(token) {
+            let base64Url = token.split('.')[1];
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // 當 Google 登入成功時觸發
+        function handleGoogleLogin(response) {
+            try {
+                const responsePayload = decodeJwtResponse(response.credential);
+                const userEmail = responsePayload.email;
+                showToast("✅ Google 驗證成功，正在登入系統...", "success");
+                executeLogin(userEmail);
+            } catch (e) {
+                showToast("❌ 登入解析發生錯誤，請聯絡管理員", "error");
+            }
+        }
+
+        // 開發測試用：手動輸入信箱登入
+        function handleManualLogin() {
+            const emailInput = document.getElementById('login-email').value.trim().toLowerCase();
+            if (!emailInput) {
+                showToast("⚠️ 請先輸入測試信箱！", "warning");
+                return;
+            }
+            executeLogin(emailInput);
+        }
+
+        // --- 核心系統登入判斷邏輯 ---
+        function executeLogin(emailInput) {
+            let userRole = 'staff'; 
+            let userName = emailInput.split('@')[0]; 
+            let roleLabelStr = '居服員';
+            let roleBadgeClass = 'bg-orange-500';
+
+            if (ADMIN_EMAILS.includes(emailInput)) {
+                userRole = 'admin';
+                userName = "曾負責人";
+                roleLabelStr = '最高管理員';
+                roleBadgeClass = 'bg-red-500';
+            } else if (SHAREHOLDER_EMAILS.includes(emailInput)) {
+                userRole = 'shareholder';
+                userName = "股東夥伴";
+                roleLabelStr = '股東授權帳號';
+                roleBadgeClass = 'bg-stone-800';
+            }
+
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('dashboard-view').classList.remove('hidden-section');
-            document.getElementById('user-name').innerText = mockUserFromDatabase.name;
             
+            document.getElementById('user-name').innerText = userName;
             const roleLabel = document.getElementById('user-role-label');
+            roleLabel.innerText = roleLabelStr;
+            roleLabel.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block shadow-sm ${roleBadgeClass}`;
+
             const menuSuperadmin = document.getElementById('menu-superadmin');
             const menuShareholder = document.getElementById('menu-shareholder');
             const menuStaff = document.getElementById('menu-staff');
 
-            if (mockUserFromDatabase.role === 'admin') {
-                roleLabel.innerText = '最高管理員';
-                roleLabel.className = 'text-[10px] font-black text-white bg-red-500 px-3 py-1 rounded-full mt-1 inline-block shadow-sm';
+            if (userRole === 'admin') {
                 menuSuperadmin.classList.remove('hidden-section');
                 menuShareholder.classList.remove('hidden-section');
                 menuStaff.classList.remove('hidden-section');
                 switchTab('manage'); 
-            } else if (mockUserFromDatabase.role === 'shareholder') {
-                roleLabel.innerText = '股東授權帳號';
-                roleLabel.className = 'text-[10px] font-black text-white bg-stone-800 px-3 py-1 rounded-full mt-1 inline-block shadow-sm';
+                showToast(`✅ 歡迎，${userName} (管理員登入)`, "success");
+            } else if (userRole === 'shareholder') {
                 menuShareholder.classList.remove('hidden-section');
                 switchTab('finance'); 
-                if(GOOGLE_APPS_SCRIPT_URL && GOOGLE_APPS_SCRIPT_URL !== "請將您取得的 Google Apps Script 網址貼在這裡") {
-                    triggerSheetSync(true); // 自動同步
-                }
+                showToast(`✅ 歡迎，${userName} (股東登入)`, "success");
+                if(GOOGLE_APPS_SCRIPT_URL) triggerSheetSync(true); 
             } else {
-                roleLabel.innerText = '居服員';
-                roleLabel.className = 'text-[10px] font-black text-white bg-orange-500 px-3 py-1 rounded-full mt-1 inline-block shadow-sm';
                 menuStaff.classList.remove('hidden-section');
                 switchTab('announcement');
+                showToast(`✅ 歡迎登入，${userName}`, "success");
             }
         }
 
         function handleLogout() {
+            document.getElementById('login-email').value = '';
             document.getElementById('dashboard-view').classList.add('hidden-section');
             document.getElementById('login-view').classList.remove('hidden-section');
             document.getElementById('menu-superadmin').classList.add('hidden-section');
             document.getElementById('menu-shareholder').classList.add('hidden-section');
             document.getElementById('menu-staff').classList.add('hidden-section');
+            showToast("已登出系統", "info");
         }
 
         function switchTab(tabId) {
@@ -525,12 +658,12 @@
         });
 
         function triggerFileUpload() {
-            if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === "請將您取得的 Google Apps Script 網址貼在這裡") {
-                alert("目前為展示模式。\n請在程式碼中填入您的 Google Apps Script 網址，即可真實上傳檔案至您的雲端資料夾！");
+            if (!GOOGLE_APPS_SCRIPT_URL) {
+                showToast("請填寫您的 Google Apps Script 網址！", "error");
                 return;
             }
             if (!selectedFileBase64) {
-                alert("請先點擊上方虛線框選擇檔案！");
+                showToast("請先點擊上方虛線框選擇檔案！", "warning");
                 return;
             }
 
@@ -550,25 +683,25 @@
             .then(res => res.json())
             .then(result => {
                 if(result.status === "success") {
-                    alert("✅ 檔案已成功同步至您指定的 Google Drive 資料夾！");
+                    showToast("✅ 檔案已成功同步至您指定的 Google Drive 資料夾！", "success");
                     document.getElementById('uploadIcon').className = "ph-bold ph-cloud-arrow-up text-4xl text-stone-400 mb-2";
                     document.getElementById('uploadText').innerText = "點擊選擇檔案 (PDF/JPG)";
                     selectedFileBase64 = null;
                 } else {
-                    alert("❌ 上傳失敗：" + result.message);
+                    showToast("❌ 上傳失敗：" + result.message, "error");
                 }
             })
-            .catch(() => alert("❌ 連線異常，請確認 GAS API 設定。"))
+            .catch(() => showToast("❌ 連線異常，請確認 GAS API 設定。", "error"))
             .finally(() => {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="ph-bold ph-upload-simple"></i> 確認上傳並發佈`;
             });
         }
 
-        // ==================== Google Sheets API (解析不同分頁資料) ====================
+        // ==================== Google Sheets API ====================
         function triggerSheetSync(isSilent = false) {
-            if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === "請將您取得的 Google Apps Script 網址貼在這裡") {
-                if(!isSilent) alert("尚未填寫 Google Apps Script 網址，無法同步資料。");
+            if (!GOOGLE_APPS_SCRIPT_URL) {
+                if(!isSilent) showToast("尚未填寫 Google Apps Script 網址，無法同步資料。", "warning");
                 return;
             }
 
@@ -583,7 +716,6 @@
             .then(data => {
                 if(data.status === "error") throw new Error(data.message);
 
-                // 1. 總覽看板
                 const ov = data.overview;
                 document.getElementById('display-month').innerText = '查詢月份：' + (ov.month || '--');
                 document.getElementById('display-revenue').innerText = '$ ' + Number(ov.revenue.toString().replace(/,/g,'')).toLocaleString();
@@ -596,7 +728,6 @@
                 netEl.innerText = (netNum < 0 ? '-$ ' : '$ ') + Math.abs(netNum).toLocaleString();
                 netEl.className = netNum < 0 ? "text-4xl md:text-5xl font-black text-red-400 tracking-tighter" : "text-4xl md:text-5xl font-black tracking-tighter";
 
-                // 2. 渲染收入、支出、零用金表格 (與您的 CSV 表頭精準對應)
                 renderTable('income-tbody', data.income, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
                 renderTable('expense-tbody', data.expense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額']);
                 renderTable('petty-tbody', data.petty, ['日期', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
@@ -605,11 +736,11 @@
                 if(document.getElementById('lastSyncTime')) {
                     document.getElementById('lastSyncTime').innerText = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
                 }
-                if(!isSilent) alert("✅ 已成功從 Google Sheets 載入最新帳務！");
+                if(!isSilent) showToast("✅ 已成功從 Google Sheets 載入最新帳務！", "success");
             })
             .catch(err => {
                 console.error(err);
-                if(!isSilent) alert("❌ 讀取報表失敗：" + err.message);
+                if(!isSilent) showToast("❌ 讀取報表失敗：" + err.message, "error");
             })
             .finally(() => {
                 if(btn) {
@@ -619,7 +750,6 @@
             });
         }
 
-        // 動態生成表格的輔助函數
         function renderTable(tbodyId, rows, columns) {
             const tbody = document.getElementById(tbodyId);
             if(!tbody) return;

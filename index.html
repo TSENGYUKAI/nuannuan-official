@@ -292,7 +292,10 @@
                         </table>
                     </div>
 
-                    <div id="fin-pnl" class="fin-section hidden-section grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
+                    <div id="fin-pnl" class="fin-section hidden-section">
+                        <h4 class="text-xl font-black text-gray-800 mb-6">股東專區雲端檔案</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
+                    </div>
 
                     <div id="fin-petty" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
@@ -335,7 +338,11 @@
     </div>
 
     <script>
+        // ==========================================
+        // 👇 已設定為正式部署的 Apps Script API 網址 👇
+        // ==========================================
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
+
         const ADMIN_EMAILS = ["dick19921014@gmail.com"];
         const SHAREHOLDER_EMAILS = ["e0934148629@gmail.com", "sy020430@gmail.com", "cherrychue0515@gmail.com", "wen67810@gmail.com"];
         
@@ -393,21 +400,27 @@
         function triggerSync(silent = false) {
             const btn = document.getElementById('btnSyncFiles');
             if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
-            
+
             fetch(GOOGLE_APPS_SCRIPT_URL)
                 .then(r => r.json())
                 .then(d => {
                     if(d.status === "error") throw new Error(d.message);
+                    
+                    // 財務總覽數字
                     document.getElementById('display-revenue').innerText = '$' + Number(d.overview.revenue || 0).toLocaleString();
                     document.getElementById('display-expense').innerText = '-$' + Math.abs(Number(d.overview.expense || 0)).toLocaleString();
                     document.getElementById('display-net').innerText = '$' + Number(d.overview.totalNet || 0).toLocaleString();
                     
+                    // 渲染流水帳與零用金表單
                     renderTable('income-tbody', d.income, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
                     renderTable('expense-tbody', d.expense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
                     renderTable('petty-tbody', d.petty, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
                     
+                    // 處理並渲染雲端硬碟檔案 (規章與股東專區等檔案同步)
                     allDriveFiles = d.driveFiles || {};
-                    renderManageTable(); renderPublicFiles();
+                    renderManageTable(); 
+                    renderPublicFiles();
+                    
                     if(!silent) showToast("✅ 同步成功！", "success");
                 })
                 .catch(err => { if(!silent) showToast("同步失敗：" + err.message, "error"); })
@@ -448,7 +461,7 @@
                     b.appendChild(h);
                     subFolderMap[sn].forEach(f => {
                         let tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="pl-8">${f.name}</td><td>${f.date}</td><td><span class="${f.isPublished?'text-green-600':'text-stone-400'}">${f.isPublished?'已發佈':'待發佈'}</span></td><td><button onclick="togglePublish('${f.id}')" class="text-blue-500 underline">切換</button></td>`;
+                        tr.innerHTML = `<td class="pl-8">${f.name}</td><td>${f.date}</td><td><span class="${f.isPublished?'text-green-600':'text-stone-400'}">${f.isPublished?'已發佈':'待發佈'}</span></td><td><button onclick="togglePublish('${f.id}')" class="text-blue-500 underline hover:text-orange-500">切換</button></td>`;
                         b.appendChild(tr);
                     });
                 }
@@ -461,18 +474,20 @@
             for(let cat in allDriveFiles) {
                 (allDriveFiles[cat] || []).filter(f => f.isPublished).forEach(f => {
                     const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${cat.includes('股東')?'ph-file-xls text-green-500':'ph-file-pdf text-red-400'} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
-                    if(cat.includes("規章") || cat.includes("機構")) pc.innerHTML += html;
-                    if(cat.includes("股東")) fc.innerHTML += html;
+                    if(cat.includes("規章") || cat.includes("機構")) if(pc) pc.innerHTML += html;
+                    if(cat.includes("股東")) if(fc) fc.innerHTML += html;
                 });
             }
         }
 
         function togglePublish(id) {
+            showToast("正在更新發佈狀態...", "info");
             fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'togglePublish', fileId: id }) })
             .then(() => triggerSync(true));
         }
 
         function handleLogout() { location.reload(); }
+        
         function switchTab(id) {
             document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -481,6 +496,7 @@
             const a = document.getElementById('tab-' + id);
             if(a) a.classList.add('active');
         }
+        
         function switchFinanceTab(id) {
             document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
             document.querySelectorAll('.finance-tab').forEach(el => {
@@ -499,7 +515,7 @@
                 showToast("正在上傳檔案...", "info");
                 fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
                 .then(res => res.json())
-                .then(res => { if(res.status === "success") { showToast("✅ 檔案已傳至雲端", "success"); triggerSync(true); } });
+                .then(res => { if(res.status === "success") { showToast("✅ 檔案已傳至雲端", "success"); triggerSync(true); } else { showToast("上傳失敗", "error"); } });
             }; 
             r.readAsDataURL(f);
         });

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>暖暖居家長照機構 | 內部營運管理系統</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #FFF9F2;
+            color: #44403c;
+            font-family: 'Noto Sans TC', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        
+        .q-card {
+            background: white;
+            border-radius: 40px;
+            border: 4px solid #FDE6D2;
+            box-shadow: 0 15px 30px -10px rgba(237, 125, 49, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .content-card {
+            background-color: #fafaf9;
+            border: 2px solid #f5f5f4;
+            border-radius: 30px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            border-color: #fbd38d;
+            box-shadow: 0 10px 25px -5px rgba(237, 125, 49, 0.1);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fade-in-down {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes sun-shine {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.05) rotate(10deg); opacity: 0.8; }
+        }
+        .animate-page { animation: fade-in-down 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-sun { animation: sun-shine 5s ease-in-out infinite; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .nav-item {
+            color: #a8a29e;
+            border-radius: 20px;
+            padding: 14px 20px;
+            font-weight: 900;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        
+        .nav-item:hover {
+            background-color: #fff7ed;
+            color: #ea580c;
+        }
+        
+        .nav-item.active {
+            background-color: #f97316;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+        }
+
+        .finance-tab {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 14px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .hidden-section {
+            display: none !important;
+        }
+
+        .custom-table { width: 100%; min-width: 600px; border-collapse: separate; border-spacing: 0; }
+        .custom-table th { background-color: #fff7ed; color: #ea580c; padding: 16px; font-weight: 900; text-align: left; }
+        .custom-table th:first-child { border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
+        .custom-table th:last-child { border-top-right-radius: 20px; border-bottom-right-radius: 20px; }
+        .custom-table td { padding: 16px; border-bottom: 2px solid #f5f5f4; color: #57534e; font-weight: 700; }
+        .custom-table tr:hover td { background-color: #fafaf9; }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 10px; }
+
+        .progress-bar-bg { background-color: #ffedd5; }
+        .progress-bar-fill { background-color: #f97316; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <!-- ==================== 1. 登入畫面 ==================== -->
+    <div id="login-view" class="w-full max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 text-orange-500 opacity-10 animate-sun pointer-events-none">
+            <i class="ph-fill ph-sun" style="font-size: 150px;"></i>
+        </div>
+        <div class="bg-orange-50 text-orange-500 w-20 h-20 rounded-[30px] flex items-center justify-center mx-auto mb-6 shadow-inner animate-sun">
+            <i class="ph-bold ph-buildings text-4xl"></i>
+        </div>
+        <h1 class="text-2xl font-black text-gray-800 mb-2 tracking-tight">內部營運管理系統</h1>
+        <p class="text-stone-400 text-sm mb-10 font-bold">暖暖居家長照機構 專屬授權</p>
+        <button onclick="handleLogin()" class="w-full flex items-center justify-center gap-3 bg-white border-2 border-stone-200 text-stone-700 py-4 rounded-full font-black shadow-sm hover:border-orange-500 hover:bg-orange-50 hover:text-orange-600 transition-all active:scale-95 mb-2">
+            <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
+            Google 授權登入
+        </button>
+        <p class="text-[10px] text-stone-300 font-black tracking-widest mt-6 uppercase">NUAN NUAN OPERATIONS PORTAL</p>
+    </div>
+
+    <!-- ==================== 2. 主控台畫面 ==================== -->
+    <div id="dashboard-view" class="hidden-section max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
+        
+        <!-- 左側導覽列 -->
+        <aside class="w-full md:w-72 shrink-0 space-y-4">
+            <div class="bg-white q-card p-8 h-full flex flex-col">
+                <div class="flex items-center gap-3 mb-10 pb-6 border-b-2 border-stone-50">
+                    <div class="bg-orange-500 p-2.5 rounded-[20px] text-white shadow-lg animate-sun">
+                        <i class="ph-bold ph-sun text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-gray-800 tracking-tight">暖暖居家</h2>
+                        <div class="text-[10px] font-black text-orange-500 tracking-widest uppercase">Operations Portal</div>
+                    </div>
+                </div>
+                
+                <nav class="space-y-2 flex-1">
+                    <div id="menu-superadmin" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
+                        <div class="text-[10px] font-black text-orange-500 tracking-widest mb-3 uppercase px-4">Admin Only</div>
+                        <button onclick="switchTab('manage')" id="tab-manage" class="nav-item">
+                            <i class="ph-bold ph-sliders text-xl"></i> 資料維護中心
+                        </button>
+                    </div>
+
+                    <button onclick="switchTab('announcement')" id="tab-announcement" class="nav-item active">
+                        <i class="ph-bold ph-megaphone text-xl"></i> 最新公告
+                    </button>
+                    <button onclick="switchTab('policies')" id="tab-policies" class="nav-item">
+                        <i class="ph-bold ph-bank text-xl"></i> 機構制度規章
+                    </button>
+                    
+                    <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
+                        <div class="text-[10px] font-black text-stone-300 tracking-widest mb-3 uppercase px-4">Personnel & Salary</div>
+                        <button onclick="switchTab('contract')" id="tab-contract" class="nav-item">
+                            <i class="ph-bold ph-file-signature text-xl"></i> 勞動契約
+                        </button>
+                        <button onclick="switchTab('salary')" id="tab-salary" class="nav-item">
+                            <i class="ph-bold ph-wallet text-xl"></i> 薪資明細
+                        </button>
+                    </div>
+
+                    <div id="menu-shareholder" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
+                        <div class="text-[10px] font-black text-stone-300 tracking-widest mb-3 uppercase px-4">Financial</div>
+                        <button onclick="switchTab('finance')" id="tab-finance" class="nav-item">
+                            <i class="ph-bold ph-calculator text-xl"></i> 會計與財務系統
+                        </button>
+                    </div>
+                </nav>
+                
+                <div class="mt-8 pt-6 border-t-2 border-stone-50 flex items-center justify-between bg-stone-50 p-4 rounded-[25px]">
+                    <div>
+                        <div id="user-name" class="text-sm font-black text-gray-800">載入中...</div>
+                        <div id="user-role-label" class="text-[10px] font-black text-white bg-stone-400 px-2 py-0.5 rounded-full mt-1 inline-block">系統身分</div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-stone-400 hover:text-red-500 transition-colors bg-white p-2 rounded-full shadow-sm hover:shadow-md">
+                        <i class="ph-bold ph-sign-out text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右側內容顯示區 -->
+        <main class="flex-1 min-w-0">
+            <div class="bg-white q-card p-8 md:p-12 min-h-full relative overflow-hidden">
+                
+                <!-- ==================== 內容：資料維護中心 ==================== -->
+                <section id="content-manage" class="content-section hidden-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-sliders text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 資料維護中心
+                        <span class="text-[10px] bg-red-100 text-red-600 px-3 py-1 rounded-full font-black ml-auto border border-red-200">最高權限</span>
+                    </h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100 relative">
+                            <h4 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
+                                <i class="ph-fill ph-google-drive-logo text-blue-500"></i> 同步至指定的 Google Drive
+                            </h4>
+                            <div class="space-y-4">
+                                <select id="uploadFolder" class="w-full p-4 bg-white border-2 border-stone-200 rounded-2xl font-bold focus:border-orange-500 outline-none">
+                                    <option value="policies">上傳至：機構制度規章</option>
+                                    <option value="contracts">上傳至：員工合約區</option>
+                                </select>
+                                
+                                <input type="file" id="fileUploader" class="hidden" accept=".pdf,image/*,.xlsx,.csv">
+                                
+                                <div id="dropzone" onclick="document.getElementById('fileUploader').click()" class="border-2 border-dashed border-stone-300 rounded-2xl p-8 text-center bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                                    <i class="ph-bold ph-cloud-arrow-up text-4xl text-stone-400 mb-2" id="uploadIcon"></i>
+                                    <p class="text-sm font-bold text-stone-500" id="uploadText">點擊選擇檔案 (PDF/JPG)</p>
+                                    <p class="text-[10px] text-stone-400 mt-2">將自動儲存至您指定的 Google Drive 雲端資料夾</p>
+                                </div>
+                                <input type="text" id="uploadFilename" placeholder="(選填) 檔案顯示名稱，留空則用原檔名" class="w-full p-4 bg-white border-2 border-stone-200 rounded-2xl font-bold focus:border-orange-500 outline-none">
+                                
+                                <button onclick="triggerFileUpload()" id="btnUpload" class="w-full bg-blue-500 text-white py-4 rounded-2xl font-black shadow-md hover:bg-blue-600 transition-colors flex justify-center items-center gap-2 disabled:bg-stone-300">
+                                    <i class="ph-bold ph-upload-simple"></i> 確認上傳並發佈
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 帳務與薪資同步區 -->
+                        <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100">
+                            <h4 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
+                                <i class="ph-fill ph-microsoft-excel-logo text-green-600"></i> 同步 Google Sheets 會計系統
+                            </h4>
+                            <p class="text-xs text-stone-500 font-bold mb-4 leading-relaxed">
+                                系統已與「2026_暖暖居家會計系統」完成串接。點擊下方按鈕，系統將自動從您的試算表抓取最新流水帳與損益數據，呈現給股東。
+                            </p>
+                            <div class="space-y-4 bg-white p-6 rounded-2xl border border-stone-200 mb-6">
+                                <div class="flex justify-between items-center text-sm font-black border-b border-stone-100 pb-2">
+                                    <span class="text-stone-500">串接表單：</span>
+                                    <span class="text-green-600 flex items-center gap-1"><i class="ph-bold ph-link"></i> 2026_暖暖會計系統</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm font-black border-b border-stone-100 pb-2">
+                                    <span class="text-stone-500">最後同步：</span>
+                                    <span class="text-gray-800" id="lastSyncTime">從未同步</span>
+                                </div>
+                            </div>
+                            <button onclick="triggerSheetSync()" id="btnSync" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-md hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-arrows-clockwise" id="syncIcon"></i> 從 Google Sheets 抓取最新數據
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== 內容：會計與財務系統 (股東專屬) ==================== -->
+                <section id="content-finance" class="content-section hidden-section">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 border-b-2 border-orange-50 pb-4 gap-4">
+                        <h3 class="text-3xl font-black text-gray-800 flex items-center gap-3">
+                            <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 會計與財務系統
+                        </h3>
+                        <div class="flex gap-2">
+                            <span class="text-[10px] bg-green-100 text-green-700 px-3 py-1.5 rounded-full font-black tracking-widest flex items-center gap-1 shadow-sm">
+                                <i class="ph-bold ph-plugs-connected"></i> 已連線 Sheets
+                            </span>
+                            <span class="text-[10px] bg-stone-800 text-white px-3 py-1.5 rounded-full font-black tracking-widest flex items-center gap-1 shadow-sm">
+                                <i class="ph-bold ph-eye"></i> 股東唯讀
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 帳務子選單 (Tab) -->
+                    <div class="flex gap-2 mb-8 overflow-x-auto custom-scrollbar pb-2">
+                        <button id="tab-fin-overview" onclick="switchFinanceTab('overview')" class="finance-tab bg-orange-500 text-white shadow-md border-2 border-orange-500">財務總覽看板</button>
+                        <button id="tab-fin-income" onclick="switchFinanceTab('income')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100 hover:border-orange-200 hover:text-orange-500">收入流水帳</button>
+                        <button id="tab-fin-expense" onclick="switchFinanceTab('expense')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100 hover:border-orange-200 hover:text-orange-500">支出流水帳</button>
+                        <button id="tab-fin-pnl" onclick="switchFinanceTab('pnl')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100 hover:border-orange-200 hover:text-orange-500">月結損益表</button>
+                        <button id="tab-fin-petty" onclick="switchFinanceTab('petty')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100 hover:border-orange-200 hover:text-orange-500">零用金管理</button>
+                    </div>
+                    
+                    <!-- 1. 財務總覽看板 (Data from 0_財務總覽看板) -->
+                    <div id="fin-overview" class="fin-section animate-page">
+                        <div class="flex justify-between items-center mb-4">
+                            <span id="display-month" class="text-xs font-black text-stone-400 bg-stone-100 px-3 py-1 rounded-full">查詢月份：--</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="content-card relative overflow-hidden bg-orange-50 border-orange-200">
+                                <div class="text-xs font-black text-orange-600 mb-2 uppercase">該月總收入</div>
+                                <div id="display-revenue" class="text-4xl md:text-5xl font-black text-gray-800 tracking-tighter">$0</div>
+                            </div>
+                            <div class="content-card bg-stone-50">
+                                <div class="text-xs font-black text-stone-500 mb-2 uppercase">該月總支出</div>
+                                <div id="display-expense" class="text-4xl md:text-5xl font-black text-red-500 tracking-tighter">-$0</div>
+                            </div>
+                            <div class="content-card bg-stone-800 text-white border-stone-700">
+                                <div class="text-xs font-black text-orange-400 mb-2 uppercase">目前年度累計淨利</div>
+                                <div id="display-net" class="text-4xl md:text-5xl font-black text-red-400 tracking-tighter">$0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 收入流水帳 -->
+                    <div id="fin-income" class="fin-section hidden-section animate-page">
+                        <div class="overflow-x-auto custom-scrollbar rounded-[20px] border-2 border-stone-100">
+                            <table class="custom-table w-full whitespace-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>會計科目</th>
+                                        <th>服務項目</th>
+                                        <th>摘要/對象</th>
+                                        <th>金額</th>
+                                        <th>備註</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="income-tbody">
+                                    <tr><td colspan="6" class="text-center text-stone-400 font-bold py-10">請點擊上方【從 Google Sheets 抓取最新數據】</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 3. 支出流水帳 -->
+                    <div id="fin-expense" class="fin-section hidden-section animate-page">
+                        <div class="overflow-x-auto custom-scrollbar rounded-[20px] border-2 border-stone-100">
+                            <table class="custom-table w-full whitespace-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>會計科目</th>
+                                        <th>摘要/用品</th>
+                                        <th>支付方式</th>
+                                        <th>金額</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expense-tbody">
+                                    <tr><td colspan="5" class="text-center text-stone-400 font-bold py-10">請點擊上方【從 Google Sheets 抓取最新數據】</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- 4. 月結損益表 -->
+                    <div id="fin-pnl" class="fin-section hidden-section animate-page">
+                        <div class="bg-stone-50 border-2 border-dashed border-stone-200 rounded-[30px] p-12 text-center text-stone-400 font-bold">
+                            <i class="ph-bold ph-file-xls text-5xl mb-4 text-green-500"></i>
+                            <p class="text-lg text-gray-800 font-black mb-2">損益表查閱</p>
+                            <p class="text-sm">系統已連動 Google Sheets，詳細多月份比較損益表請查閱您的原始「4_月結損益表_按月」分頁。</p>
+                        </div>
+                    </div>
+
+                    <!-- 5. 零用金管理表 -->
+                    <div id="fin-petty" class="fin-section hidden-section animate-page">
+                        <div class="overflow-x-auto custom-scrollbar rounded-[20px] border-2 border-stone-100">
+                            <table class="custom-table w-full whitespace-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>摘要/用途</th>
+                                        <th>會計科目</th>
+                                        <th>撥入</th>
+                                        <th>支出</th>
+                                        <th>目前結餘</th>
+                                        <th>經手人</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="petty-tbody">
+                                    <tr><td colspan="7" class="text-center text-stone-400 font-bold py-10">請點擊上方【從 Google Sheets 抓取最新數據】</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== 其他公用區塊 ==================== -->
+                <section id="content-announcement" class="content-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告
+                    </h3>
+                    <div class="content-card">
+                        <div class="flex justify-between items-center mb-3 border-b border-stone-200 pb-3">
+                            <h4 class="text-xl font-black text-gray-800">5/1 正式開幕與營運提醒</h4>
+                            <div class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-black">2026.04.20</div>
+                        </div>
+                        <p class="text-stone-500 leading-relaxed font-bold">
+                            暖暖居家將於 5/1 正式投入營運。請所有同仁確認居服系統帳號已開通。
+                        </p>
+                    </div>
+                </section>
+
+                <section id="content-policies" class="content-section hidden-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構制度規章
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="content-card flex items-start gap-4 cursor-pointer">
+                            <i class="ph-fill ph-file-pdf text-4xl text-red-400 shrink-0"></i>
+                            <div>
+                                <h4 class="text-lg font-black text-gray-800 mb-1">暖暖居家 員工手冊</h4>
+                                <p class="text-xs text-stone-400 font-bold mb-3">包含機構理念、服務規範與工作守則</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="content-contract" class="content-section hidden-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-file-signature text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約
+                    </h3>
+                    <div class="bg-stone-50 border-2 border-dashed border-stone-200 rounded-[30px] p-12 text-center flex flex-col items-center">
+                        <div class="bg-white w-20 h-20 rounded-full shadow-sm flex items-center justify-center mb-6 text-stone-300">
+                            <i class="ph-bold ph-file-text text-4xl"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-gray-700 mb-2">電子勞動契約已歸檔</h4>
+                        <p class="text-stone-500 font-bold mb-6">您的到職勞動契約與保密協定已由人資部門確認建檔。</p>
+                        <button class="bg-orange-500 text-white px-8 py-3 rounded-full font-black shadow-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+                            <i class="ph-bold ph-download-simple"></i> 點擊下載副本
+                        </button>
+                    </div>
+                </section>
+
+                <section id="content-salary" class="content-section hidden-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細
+                    </h3>
+                    <div class="content-card mb-6 bg-orange-50/30 border-orange-100">
+                        <div class="flex justify-between items-center border-b-2 border-orange-100 pb-6 mb-6">
+                            <div>
+                                <div class="text-xs font-black text-orange-500 mb-2">2026年 5月 預估入帳</div>
+                                <div class="text-5xl font-black text-gray-800">$42,500</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== 系統核心邏輯與 Google 串接區 ==================== -->
+    <script>
+        // 🚨 【負責人設定區】🚨 
+        // 因為我們把 Google Sheets 和 Google Drive 的功能寫在同一個 GAS 裡，所以兩個網址共用同一個！
+        const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFEphc4tt7mFIgTu7RusChyu2dD7bNt4cdEgzJf-99hzOXeLAbgO4OCc_p_OlNeoDd/exec"; 
+
+        const mockUserFromDatabase = { name: "曾負責人 (管理員)", role: "admin", email: "dick19921014@gmail.com" };
+
+        function handleLogin() {
+            document.getElementById('login-view').classList.add('hidden-section');
+            document.getElementById('dashboard-view').classList.remove('hidden-section');
+            document.getElementById('user-name').innerText = mockUserFromDatabase.name;
+            
+            const roleLabel = document.getElementById('user-role-label');
+            const menuSuperadmin = document.getElementById('menu-superadmin');
+            const menuShareholder = document.getElementById('menu-shareholder');
+            const menuStaff = document.getElementById('menu-staff');
+
+            if (mockUserFromDatabase.role === 'admin') {
+                roleLabel.innerText = '最高管理員';
+                roleLabel.className = 'text-[10px] font-black text-white bg-red-500 px-3 py-1 rounded-full mt-1 inline-block shadow-sm';
+                menuSuperadmin.classList.remove('hidden-section');
+                menuShareholder.classList.remove('hidden-section');
+                menuStaff.classList.remove('hidden-section');
+                switchTab('manage'); 
+            } else if (mockUserFromDatabase.role === 'shareholder') {
+                roleLabel.innerText = '股東授權帳號';
+                roleLabel.className = 'text-[10px] font-black text-white bg-stone-800 px-3 py-1 rounded-full mt-1 inline-block shadow-sm';
+                menuShareholder.classList.remove('hidden-section');
+                switchTab('finance'); 
+                if(GOOGLE_APPS_SCRIPT_URL && GOOGLE_APPS_SCRIPT_URL !== "請將您取得的 Google Apps Script 網址貼在這裡") {
+                    triggerSheetSync(true); // 自動同步
+                }
+            } else {
+                roleLabel.innerText = '居服員';
+                roleLabel.className = 'text-[10px] font-black text-white bg-orange-500 px-3 py-1 rounded-full mt-1 inline-block shadow-sm';
+                menuStaff.classList.remove('hidden-section');
+                switchTab('announcement');
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('dashboard-view').classList.add('hidden-section');
+            document.getElementById('login-view').classList.remove('hidden-section');
+            document.getElementById('menu-superadmin').classList.add('hidden-section');
+            document.getElementById('menu-shareholder').classList.add('hidden-section');
+            document.getElementById('menu-staff').classList.add('hidden-section');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.content-section').forEach(section => section.classList.add('hidden-section'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const targetSection = document.getElementById('content-' + tabId);
+            if(targetSection) targetSection.classList.remove('hidden-section');
+            const activeTab = document.getElementById('tab-' + tabId);
+            if(activeTab) activeTab.classList.add('active');
+        }
+
+        function switchFinanceTab(finTabId) {
+            document.querySelectorAll('.fin-section').forEach(el => el.classList.add('hidden-section'));
+            document.querySelectorAll('.finance-tab').forEach(el => {
+                el.classList.remove('bg-orange-500', 'text-white', 'border-orange-500', 'shadow-md');
+                el.classList.add('bg-stone-50', 'text-stone-500', 'border-stone-100');
+            });
+            document.getElementById('fin-' + finTabId).classList.remove('hidden-section');
+            const activeBtn = document.getElementById('tab-fin-' + finTabId);
+            activeBtn.classList.remove('bg-stone-50', 'text-stone-500', 'border-stone-100');
+            activeBtn.classList.add('bg-orange-500', 'text-white', 'border-orange-500', 'shadow-md');
+        }
+
+        // ==================== Google Drive API ====================
+        const fileUploader = document.getElementById('fileUploader');
+        let selectedFileBase64 = null;
+        let selectedFileName = "";
+
+        fileUploader.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            document.getElementById('uploadIcon').className = "ph-bold ph-file-text text-4xl text-orange-500 mb-2";
+            document.getElementById('uploadText').innerText = "已選擇檔案: " + file.name;
+            selectedFileName = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(f) {
+                selectedFileBase64 = f.target.result.split(',')[1];
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function triggerFileUpload() {
+            if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === "請將您取得的 Google Apps Script 網址貼在這裡") {
+                alert("目前為展示模式。\n請在程式碼中填入您的 Google Apps Script 網址，即可真實上傳檔案至您的雲端資料夾！");
+                return;
+            }
+            if (!selectedFileBase64) {
+                alert("請先點擊上方虛線框選擇檔案！");
+                return;
+            }
+
+            const btn = document.getElementById('btnUpload');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 正在安全上傳至 Google Drive...`;
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    fileName: document.getElementById('uploadFilename').value || selectedFileName,
+                    mimeType: fileUploader.files[0].type,
+                    fileData: selectedFileBase64,
+                    folderType: document.getElementById('uploadFolder').value
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if(result.status === "success") {
+                    alert("✅ 檔案已成功同步至您指定的 Google Drive 資料夾！");
+                    document.getElementById('uploadIcon').className = "ph-bold ph-cloud-arrow-up text-4xl text-stone-400 mb-2";
+                    document.getElementById('uploadText').innerText = "點擊選擇檔案 (PDF/JPG)";
+                    selectedFileBase64 = null;
+                } else {
+                    alert("❌ 上傳失敗：" + result.message);
+                }
+            })
+            .catch(() => alert("❌ 連線異常，請確認 GAS API 設定。"))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="ph-bold ph-upload-simple"></i> 確認上傳並發佈`;
+            });
+        }
+
+        // ==================== Google Sheets API (解析不同分頁資料) ====================
+        function triggerSheetSync(isSilent = false) {
+            if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL === "請將您取得的 Google Apps Script 網址貼在這裡") {
+                if(!isSilent) alert("尚未填寫 Google Apps Script 網址，無法同步資料。");
+                return;
+            }
+
+            const btn = document.getElementById('btnSync');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 正在安全連線並讀取「暖暖會計系統」...`;
+            }
+
+            fetch(GOOGLE_APPS_SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "error") throw new Error(data.message);
+
+                // 1. 總覽看板
+                const ov = data.overview;
+                document.getElementById('display-month').innerText = '查詢月份：' + (ov.month || '--');
+                document.getElementById('display-revenue').innerText = '$ ' + Number(ov.revenue.toString().replace(/,/g,'')).toLocaleString();
+                
+                let expNum = Number(ov.expense.toString().replace(/,/g,''));
+                document.getElementById('display-expense').innerText = (expNum > 0 ? '-$ ' : '$ ') + Math.abs(expNum).toLocaleString();
+                
+                let netNum = Number(ov.totalNet.toString().replace(/,/g,''));
+                const netEl = document.getElementById('display-net');
+                netEl.innerText = (netNum < 0 ? '-$ ' : '$ ') + Math.abs(netNum).toLocaleString();
+                netEl.className = netNum < 0 ? "text-4xl md:text-5xl font-black text-red-400 tracking-tighter" : "text-4xl md:text-5xl font-black tracking-tighter";
+
+                // 2. 渲染收入、支出、零用金表格 (與您的 CSV 表頭精準對應)
+                renderTable('income-tbody', data.income, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
+                renderTable('expense-tbody', data.expense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額']);
+                renderTable('petty-tbody', data.petty, ['日期', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+
+                const now = new Date();
+                if(document.getElementById('lastSyncTime')) {
+                    document.getElementById('lastSyncTime').innerText = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+                }
+                if(!isSilent) alert("✅ 已成功從 Google Sheets 載入最新帳務！");
+            })
+            .catch(err => {
+                console.error(err);
+                if(!isSilent) alert("❌ 讀取報表失敗：" + err.message);
+            })
+            .finally(() => {
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 從 Google Sheets 抓取最新數據`;
+                }
+            });
+        }
+
+        // 動態生成表格的輔助函數
+        function renderTable(tbodyId, rows, columns) {
+            const tbody = document.getElementById(tbodyId);
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if(!rows || rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${columns.length}" class="text-center text-stone-400 font-bold py-10">目前無資料</td></tr>`;
+                return;
+            }
+
+            rows.forEach(row => {
+                let tr = document.createElement('tr');
+                columns.forEach(col => {
+                    let td = document.createElement('td');
+                    let val = row[col] || '';
+
+                    if (col === '日期' && val) {
+                        try {
+                            let d = new Date(val);
+                            if (!isNaN(d.getTime())) val = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+                        } catch(e){}
+                    }
+
+                    if(col === '會計科目' && val) {
+                        td.innerHTML = `<span class="bg-stone-200 text-stone-700 px-2 py-1 rounded text-xs font-black">${val}</span>`;
+                    } else if(col === '金額' || col === '支出(報帳扣除)' || col === '撥入(補充零用金)' || col === '目前結餘') {
+                        if (val) {
+                           let numVal = Number(String(val).replace(/,/g,''));
+                           if(!isNaN(numVal)) {
+                               if((col === '金額' && tbodyId === 'expense-tbody') || col === '支出(報帳扣除)') {
+                                   td.innerHTML = `<span class="text-red-500 font-black">-$${Math.abs(numVal).toLocaleString()}</span>`;
+                               } else if(col === '金額' && tbodyId === 'income-tbody') {
+                                   td.innerHTML = `<span class="text-green-600 font-black">+$${Math.abs(numVal).toLocaleString()}</span>`;
+                               } else {
+                                   td.innerHTML = `<span class="font-black text-gray-800">$${numVal.toLocaleString()}</span>`;
+                               }
+                           } else {
+                               td.innerText = val;
+                           }
+                        }
+                    } else {
+                        td.innerText = val;
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>

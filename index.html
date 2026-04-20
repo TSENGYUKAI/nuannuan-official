@@ -280,7 +280,7 @@
                                     <option value="股東專區">股東專區</option>
                                     <option value="薪資明細區">薪資明細區</option>
                                 </select>
-                                <button onclick="document.getElementById('fileUploader').click()" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">選擇檔案</button>
+                                <button onclick="document.getElementById('fileUploader').click()" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">選擇檔案並上傳</button>
                                 <input type="file" id="fileUploader" class="hidden">
                             </div>
                         </div>
@@ -371,7 +371,7 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
                         <button id="btn-edit-announcement" onclick="toggleEdit('announcement')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">5/1 正式營運，請夥伴們確認居服系統狀態。</div>
+                    <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="announcement-files-container"></div>
                 </section>
 
@@ -380,7 +380,7 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構規章</div>
                         <button id="btn-edit-policies" onclick="toggleEdit('policies')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">機構內部各項規定與指導原則。</div>
+                    <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
 
@@ -389,7 +389,7 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約</div>
                         <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的勞動契約檔案。</div>
+                    <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
 
@@ -398,7 +398,7 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細</div>
                         <button id="btn-edit-salary" onclick="toggleEdit('salary')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的薪資單檔案。</div>
+                    <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="salary-files-container"></div>
                 </section>
             </div>
@@ -412,7 +412,6 @@
             <p id="modal-filename" class="text-sm font-bold text-orange-500 mb-6 bg-orange-50 px-3 py-2 rounded-lg truncate"></p>
             
             <div class="space-y-3 mb-8">
-                <!-- 選項：不公開 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-stone-50">
                     <input type="radio" name="publish_target" value="none" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -420,8 +419,6 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">將檔案從前端隱藏</span>
                     </div>
                 </label>
-
-                <!-- 選項：最新公告 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="announcement" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -429,8 +426,6 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">首頁公告區，所有人可見</span>
                     </div>
                 </label>
-
-                <!-- 選項：機構規章 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="policies" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -438,8 +433,6 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">員工守則與作業辦法</span>
                     </div>
                 </label>
-
-                <!-- 選項：勞動契約區 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="contract" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -447,8 +440,6 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">專屬個人檔案 (檔名需含員工信箱帳號)</span>
                     </div>
                 </label>
-
-                <!-- 選項：股東專區 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="shareholder" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -456,8 +447,6 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">僅限股東權限可檢視之財報</span>
                     </div>
                 </label>
-
-                <!-- 選項：薪資明細 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="salary" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -474,10 +463,28 @@
         </div>
     </div>
 
+    <!-- ==================== 確認刪除 Modal (新增) ==================== -->
+    <div id="delete-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[30px] p-8 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 text-center" id="delete-modal-box">
+            <div class="bg-red-50 text-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="ph-bold ph-trash text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-black text-gray-800 mb-2">確定要刪除檔案嗎？</h3>
+            <p id="delete-modal-filename" class="text-xs font-bold text-stone-500 mb-6 truncate"></p>
+            <p class="text-xs text-red-500 font-bold mb-8">此操作將會把檔案從雲端硬碟移至垃圾桶，刪除後將無法從系統恢復。</p>
+            <div class="flex gap-4">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
+                <button onclick="confirmDeleteFile()" class="flex-1 py-3 rounded-xl font-black text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all">確認刪除</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
         
-        let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false, currentPublishFileId = null;
+        let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
+        let currentPublishFileId = null;
+        let currentDeleteFileId = null; // 用來記錄要刪除的檔案 ID
         let financeDataRaw = { income: [], expense: [], petty: [] };
 
         function showToast(msg, type = 'info') {
@@ -492,15 +499,12 @@
 
         async function handleGoogleLogin(res) {
             try {
-                // 更安全的 JWT 解析方式，確保您的「中文姓名」能正確解碼，不會產生亂碼或報錯
                 const base64Url = res.credential.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 }).join(''));
                 const payload = JSON.parse(jsonPayload);
-                
-                // 成功抓取！傳遞信箱與 Google 帳號真實姓名 (payload.name)
                 executeLogin(payload.email, payload.name);
             } catch (e) { 
                 showToast("授權失敗或解析錯誤", "error"); 
@@ -520,7 +524,7 @@
             isFirstLogin = true;
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('loading-view').classList.remove('hidden-section');
-            loadEditableContents();
+            // 我們先不立刻 loadEditableContents (本機暫存)，改為等待 triggerSync 抓取雲端版本
             triggerSync(false);
         }
 
@@ -528,28 +532,36 @@
             const contentDiv = document.getElementById('text-' + sectionId);
             const btn = document.getElementById('btn-edit-' + sectionId);
             const isEditing = contentDiv.isContentEditable;
+            
             if (isEditing) {
                 contentDiv.contentEditable = false;
                 contentDiv.classList.remove('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文';
-                localStorage.setItem('content_' + sectionId, contentDiv.innerHTML);
-                showToast('已儲存內容 (本機暫存)', 'success');
+                
+                const newContent = contentDiv.innerHTML;
+                
+                // 本機備份
+                localStorage.setItem('content_' + sectionId, newContent);
+                showToast('正在同步內文至雲端...', 'info');
+
+                // === 新增：將內文儲存到雲端試算表 ===
+                fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'saveContent', sectionId: sectionId, content: newContent }) 
+                })
+                .then(res => res.json())
+                .then(res => { 
+                    if(res.status === 'success') showToast('✅ 內文已儲存至雲端', 'success'); 
+                    else showToast('雲端儲存失敗', 'error'); 
+                })
+                .catch(() => showToast("連線異常，已暫存於本機", "error"));
+
             } else {
                 contentDiv.contentEditable = true;
                 contentDiv.focus();
                 contentDiv.classList.add('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-check text-lg"></i> 完成儲存';
             }
-        }
-
-        function loadEditableContents() {
-            ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
-                const saved = localStorage.getItem('content_' + id);
-                if (saved) {
-                    const el = document.getElementById('text-' + id);
-                    if(el) el.innerHTML = saved;
-                }
-            });
         }
 
         function getMonthStr(row) {
@@ -580,6 +592,7 @@
                         document.getElementById('unauthorized-view').classList.remove('hidden-section');
                         return;
                     }
+                    
                     document.getElementById('dashboard-view').classList.remove('hidden-section');
                     document.getElementById('user-name').innerText = currentUserDisplayName;
                     const lb = document.getElementById('user-role-label');
@@ -600,6 +613,19 @@
                     if (isFirstLogin) {
                         switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement'));
                         isFirstLogin = false;
+                    }
+
+                    // === 新增：讀取雲端存檔的內文 ===
+                    if (d.contents) {
+                        ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
+                            if (d.contents[id]) {
+                                const el = document.getElementById('text-' + id);
+                                // 如果正在編輯中，就不要覆蓋畫面
+                                if(el && !el.isContentEditable) el.innerHTML = d.contents[id];
+                                // 更新本機備份
+                                localStorage.setItem('content_' + id, d.contents[id]); 
+                            }
+                        });
                     }
                     
                     financeDataRaw.income = d.income || [];
@@ -691,12 +717,73 @@
                         if (curT === 'none' && f.isPublished) curT = cat.includes("股東") ? 'shareholder' : 'policies';
                         let style = curT !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
                         let tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td><td>${f.date}</td><td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td><td><button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button></td>`;
+                        // === 新增：操作欄位加上「刪除」按鈕 ===
+                        tr.innerHTML = `
+                            <td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td>
+                            <td>${f.date}</td>
+                            <td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button>
+                                    <button onclick="openDeleteModal('${f.id}', '${f.name}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button>
+                                </div>
+                            </td>
+                        `;
                         b.appendChild(tr);
                     });
                 }
             }
         }
+
+        // ==================== 刪除檔案模組 (新增) ====================
+        function openDeleteModal(fileId, fileName) {
+            currentDeleteFileId = fileId;
+            document.getElementById('delete-modal-filename').innerText = fileName;
+            const modal = document.getElementById('delete-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { 
+                modal.classList.remove('opacity-0'); 
+                document.getElementById('delete-modal-box').classList.remove('scale-95'); 
+            });
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('delete-modal'); 
+            document.getElementById('delete-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); 
+            setTimeout(() => { modal.classList.add('hidden'); currentDeleteFileId = null; }, 300);
+        }
+
+        function confirmDeleteFile() {
+            if(!currentDeleteFileId) return;
+            const idToDel = currentDeleteFileId;
+            showToast("正在刪除檔案...", "info");
+            
+            // 樂觀更新：從前端立刻移除
+            for(let cat in allDriveFiles) {
+                allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== idToDel);
+            }
+            renderManageTable(); 
+            renderPublicFiles(); 
+            closeDeleteModal();
+            
+            fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'deleteFile', fileId: idToDel }) 
+            })
+            .then(res => res.json())
+            .then(res => { 
+                if(res.status === 'success') {
+                    showToast("✅ 檔案已移至垃圾桶", "success");
+                    // 背景悄悄再同步一次確保資料一致性
+                    setTimeout(() => triggerSync(true), 2000); 
+                } else {
+                    showToast("刪除失敗", "error");
+                }
+            })
+            .catch(() => showToast("刪除異常，請檢查網路連線", "error"));
+        }
+        // ============================================================
 
         function openPublishModal(fileId, fileName, currentTarget) {
             currentPublishFileId = fileId; 

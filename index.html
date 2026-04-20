@@ -175,7 +175,6 @@
         <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4">
             <div class="bg-white q-card p-8 h-full flex flex-col">
-                <!-- 調整了下方的 mb-10 為 mb-6 以縮減間距，容納新區塊 -->
                 <div class="flex items-center gap-3 mb-6 pb-6 border-b-2 border-stone-50">
                     <div class="bg-orange-500 p-2.5 rounded-[20px] text-white shadow-lg animate-sun">
                         <i class="ph-bold ph-sun text-2xl"></i>
@@ -186,7 +185,7 @@
                     </div>
                 </div>
 
-                <!-- 新增：營業登記資訊區塊 -->
+                <!-- 營業登記資訊區塊 -->
                 <div class="mb-6 space-y-3">
                     <div class="bg-stone-50 rounded-2xl p-3 border border-stone-100 hover:border-orange-200 transition-colors">
                         <div class="flex items-center justify-between mb-1">
@@ -477,7 +476,8 @@
 
     <script>
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
-        let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', isFirstLogin = false, currentPublishFileId = null;
+        
+        let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false, currentPublishFileId = null;
         let financeDataRaw = { income: [], expense: [], petty: [] };
 
         function showToast(msg, type = 'info') {
@@ -492,9 +492,20 @@
 
         async function handleGoogleLogin(res) {
             try {
-                const payload = JSON.parse(decodeURIComponent(atob(res.credential.split('.')[1]).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-                executeLogin(payload.email);
-            } catch (e) { showToast("授權失敗", "error"); }
+                // 更安全的 JWT 解析方式，確保您的「中文姓名」能正確解碼，不會產生亂碼或報錯
+                const base64Url = res.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                const payload = JSON.parse(jsonPayload);
+                
+                // 成功抓取！傳遞信箱與 Google 帳號真實姓名 (payload.name)
+                executeLogin(payload.email, payload.name);
+            } catch (e) { 
+                showToast("授權失敗或解析錯誤", "error"); 
+                console.error(e);
+            }
         }
 
         function handleManualLogin() {
@@ -502,9 +513,10 @@
             if(email) executeLogin(email);
         }
 
-        function executeLogin(email) {
+        function executeLogin(email, name = null) {
             currentUserEmail = email;
             currentUserName = email.split('@')[0];
+            currentUserDisplayName = name || currentUserName;
             isFirstLogin = true;
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('loading-view').classList.remove('hidden-section');
@@ -568,9 +580,8 @@
                         document.getElementById('unauthorized-view').classList.remove('hidden-section');
                         return;
                     }
-                    
                     document.getElementById('dashboard-view').classList.remove('hidden-section');
-                    document.getElementById('user-name').innerText = currentUserName;
+                    document.getElementById('user-name').innerText = currentUserDisplayName;
                     const lb = document.getElementById('user-role-label');
                     lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
                     lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
@@ -727,6 +738,7 @@
                     if (t !== 'none' && containers[t]) {
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
                         const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group animate-page"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400 font-bold">${f.date}</p></div></div>`;
+                        // 過濾時依然使用 currentUserName (信箱前綴)
                         if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
                         containers[t].innerHTML += html;
                     }
@@ -751,11 +763,17 @@
 
         function switchFinanceTab(id) {
             document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
+            document.querySelectorAll('.finance-tab').forEach(el => {
+                el.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+                el.classList.add('bg-stone-50', 'text-stone-500');
+            });
             const target = document.getElementById('fin-' + id);
             if(target) target.classList.remove('hidden-section');
             const btn = document.getElementById('tab-fin-' + id);
-            if(btn) btn.classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            if(btn) {
+                btn.classList.remove('bg-stone-50', 'text-stone-500');
+                btn.classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            }
         }
 
         const uploader = document.getElementById('fileUploader');

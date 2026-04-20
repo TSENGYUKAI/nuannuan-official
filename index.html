@@ -175,13 +175,38 @@
         <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4">
             <div class="bg-white q-card p-8 h-full flex flex-col">
-                <div class="flex items-center gap-3 mb-10 pb-6 border-b-2 border-stone-50">
+                <!-- 調整了下方的 mb-10 為 mb-6 以縮減間距，容納新區塊 -->
+                <div class="flex items-center gap-3 mb-6 pb-6 border-b-2 border-stone-50">
                     <div class="bg-orange-500 p-2.5 rounded-[20px] text-white shadow-lg animate-sun">
                         <i class="ph-bold ph-sun text-2xl"></i>
                     </div>
                     <div>
                         <h2 class="text-xl font-black text-gray-800 tracking-tight">暖暖居家</h2>
                         <div class="text-[10px] font-black text-orange-500 tracking-widest">Operations Portal</div>
+                    </div>
+                </div>
+
+                <!-- 新增：營業登記資訊區塊 -->
+                <div class="mb-6 space-y-3">
+                    <div class="bg-stone-50 rounded-2xl p-3 border border-stone-100 hover:border-orange-200 transition-colors">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] font-black text-orange-600 bg-orange-100 px-2 py-0.5 rounded-lg">總機構</span>
+                            <span class="text-[10px] font-bold text-green-600 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>營業中</span>
+                        </div>
+                        <div class="text-xs font-bold text-gray-800 truncate" title="暖暖有限公司">暖暖有限公司</div>
+                        <div class="text-[10px] text-stone-500 font-bold mt-1 flex items-center gap-1">
+                            <i class="ph-bold ph-identification-card text-orange-400"></i> 統編：62193376
+                        </div>
+                    </div>
+                    <div class="bg-stone-50 rounded-2xl p-3 border border-stone-100 hover:border-orange-200 transition-colors">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] font-black text-stone-500 bg-stone-200 px-2 py-0.5 rounded-lg">分支機構</span>
+                            <span class="text-[10px] font-bold text-green-600 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>營業中</span>
+                        </div>
+                        <div class="text-xs font-bold text-gray-800 truncate" title="暖暖有限公司附設彰化縣私立暖暖居家長照機構">暖暖有限公司附設居家長照機構</div>
+                        <div class="text-[10px] text-stone-500 font-bold mt-1 flex items-center gap-1">
+                            <i class="ph-bold ph-identification-card text-stone-400"></i> 統編：61005869
+                        </div>
                     </div>
                 </div>
                 

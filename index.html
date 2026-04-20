@@ -353,6 +353,7 @@
                             <h4 class="text-xl font-black text-gray-800">股東專區雲端檔案</h4>
                             <button id="btn-edit-finance" onclick="toggleEdit('finance')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                         </div>
+                        <!-- 預設文字 -->
                         <div id="text-finance" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">股東專屬檔案與財務報表皆存放於此。</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
                     </div>
@@ -371,7 +372,8 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
                         <button id="btn-edit-announcement" onclick="toggleEdit('announcement')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
+                    <!-- 預設文字 -->
+                    <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">5/1 正式營運，請夥伴們確認居服系統狀態。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="announcement-files-container"></div>
                 </section>
 
@@ -380,7 +382,8 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構規章</div>
                         <button id="btn-edit-policies" onclick="toggleEdit('policies')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
+                    <!-- 預設文字 -->
+                    <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">機構內部各項規定與指導原則。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
 
@@ -389,7 +392,8 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約</div>
                         <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
+                    <!-- 預設文字 -->
+                    <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的勞動契約檔案。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
 
@@ -398,7 +402,8 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細</div>
                         <button id="btn-edit-salary" onclick="toggleEdit('salary')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">載入中...</div>
+                    <!-- 預設文字 -->
+                    <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的薪資單檔案。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="salary-files-container"></div>
                 </section>
             </div>
@@ -463,7 +468,7 @@
         </div>
     </div>
 
-    <!-- ==================== 確認刪除 Modal (新增) ==================== -->
+    <!-- ==================== 確認刪除 Modal ==================== -->
     <div id="delete-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 text-center" id="delete-modal-box">
             <div class="bg-red-50 text-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -484,8 +489,17 @@
         
         let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
         let currentPublishFileId = null;
-        let currentDeleteFileId = null; // 用來記錄要刪除的檔案 ID
+        let currentDeleteFileId = null; 
         let financeDataRaw = { income: [], expense: [], petty: [] };
+
+        // 定義各區塊預設文字防呆
+        const defaultTexts = {
+            'announcement': '5/1 正式營運，請夥伴們確認居服系統狀態。',
+            'policies': '機構內部各項規定與指導原則。',
+            'contract': '顯示專屬於您的勞動契約檔案。',
+            'salary': '顯示專屬於您的薪資單檔案。',
+            'finance': '股東專屬檔案與財務報表皆存放於此。'
+        };
 
         function showToast(msg, type = 'info') {
             const c = document.getElementById('toast-container'), t = document.createElement('div');
@@ -524,7 +538,6 @@
             isFirstLogin = true;
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('loading-view').classList.remove('hidden-section');
-            // 我們先不立刻 loadEditableContents (本機暫存)，改為等待 triggerSync 抓取雲端版本
             triggerSync(false);
         }
 
@@ -540,11 +553,9 @@
                 
                 const newContent = contentDiv.innerHTML;
                 
-                // 本機備份
                 localStorage.setItem('content_' + sectionId, newContent);
                 showToast('正在同步內文至雲端...', 'info');
 
-                // === 新增：將內文儲存到雲端試算表 ===
                 fetch(GOOGLE_APPS_SCRIPT_URL, { 
                     method: 'POST', 
                     body: JSON.stringify({ action: 'saveContent', sectionId: sectionId, content: newContent }) 
@@ -615,18 +626,16 @@
                         isFirstLogin = false;
                     }
 
-                    // === 新增：讀取雲端存檔的內文 ===
-                    if (d.contents) {
-                        ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
-                            if (d.contents[id]) {
-                                const el = document.getElementById('text-' + id);
-                                // 如果正在編輯中，就不要覆蓋畫面
-                                if(el && !el.isContentEditable) el.innerHTML = d.contents[id];
-                                // 更新本機備份
-                                localStorage.setItem('content_' + id, d.contents[id]); 
-                            }
-                        });
-                    }
+                    // === 修改：讀取雲端存檔內文，若無則顯示預設文字防呆 ===
+                    ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
+                        const el = document.getElementById('text-' + id);
+                        if (el && !el.isContentEditable) {
+                            // 如果雲端有資料就用雲端，沒有就用 defaultTexts
+                            const newContent = (d.contents && d.contents[id]) ? d.contents[id] : defaultTexts[id];
+                            el.innerHTML = newContent;
+                            localStorage.setItem('content_' + id, newContent);
+                        }
+                    });
                     
                     financeDataRaw.income = d.income || [];
                     financeDataRaw.expense = d.expense || [];
@@ -717,7 +726,6 @@
                         if (curT === 'none' && f.isPublished) curT = cat.includes("股東") ? 'shareholder' : 'policies';
                         let style = curT !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
                         let tr = document.createElement('tr');
-                        // === 新增：操作欄位加上「刪除」按鈕 ===
                         tr.innerHTML = `
                             <td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td>
                             <td>${f.date}</td>
@@ -735,7 +743,6 @@
             }
         }
 
-        // ==================== 刪除檔案模組 (新增) ====================
         function openDeleteModal(fileId, fileName) {
             currentDeleteFileId = fileId;
             document.getElementById('delete-modal-filename').innerText = fileName;
@@ -759,7 +766,6 @@
             const idToDel = currentDeleteFileId;
             showToast("正在刪除檔案...", "info");
             
-            // 樂觀更新：從前端立刻移除
             for(let cat in allDriveFiles) {
                 allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== idToDel);
             }
@@ -775,7 +781,6 @@
             .then(res => { 
                 if(res.status === 'success') {
                     showToast("✅ 檔案已移至垃圾桶", "success");
-                    // 背景悄悄再同步一次確保資料一致性
                     setTimeout(() => triggerSync(true), 2000); 
                 } else {
                     showToast("刪除失敗", "error");
@@ -783,7 +788,6 @@
             })
             .catch(() => showToast("刪除異常，請檢查網路連線", "error"));
         }
-        // ============================================================
 
         function openPublishModal(fileId, fileName, currentTarget) {
             currentPublishFileId = fileId; 
@@ -825,7 +829,6 @@
                     if (t !== 'none' && containers[t]) {
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
                         const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group animate-page"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400 font-bold">${f.date}</p></div></div>`;
-                        // 過濾時依然使用 currentUserName (信箱前綴)
                         if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
                         containers[t].innerHTML += html;
                     }

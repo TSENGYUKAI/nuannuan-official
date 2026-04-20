@@ -267,7 +267,7 @@
                         <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100">
                             <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-arrows-clockwise text-blue-500"></i> 雲端數據同步</h4>
                             <p class="text-xs text-stone-500 font-bold mb-6">同步 Google Drive 檔案與試算表數據。</p>
-                            <button onclick="triggerSync()" id="btnSyncFiles" class="w-full bg-blue-500 text-white py-4 rounded-2xl font-black shadow-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
+                            <button onclick="triggerSync(false)" id="btnSyncFiles" class="w-full bg-blue-500 text-white py-4 rounded-2xl font-black shadow-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
                                 <i class="ph-bold ph-arrows-clockwise" id="syncIconFiles"></i> 立即同步資料
                             </button>
                         </div>
@@ -282,6 +282,9 @@
                                 </select>
                                 <button onclick="document.getElementById('fileUploader').click()" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">選擇檔案並上傳</button>
                                 <input type="file" id="fileUploader" class="hidden">
+                                <p class="text-[10px] text-orange-500 font-bold mt-2 pt-1 border-t border-stone-200 border-dashed">
+                                    <i class="ph-bold ph-info"></i> 提示：上傳成功後檔案預設為「不公開」，請至下方表格手動設定發佈位置。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -300,9 +303,10 @@
                     <!-- 員工權限管理 -->
                     <div class="bg-stone-50 rounded-[30px] border-2 border-stone-100 p-8">
                         <h4 class="text-xl font-black text-gray-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-users-three text-orange-500"></i> 員工權限管理</h4>
-                        <p class="text-xs text-stone-500 font-bold mb-6">直接新增員工 Google 信箱，授權其登入內部營運系統。</p>
+                        <p class="text-xs text-stone-500 font-bold mb-6">直接新增員工 Google 信箱與姓名，授權其登入內部營運系統。</p>
                         
                         <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <input type="text" id="new-user-name" placeholder="輸入員工姓名" class="w-full md:w-32 p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
                             <input type="email" id="new-user-email" placeholder="輸入員工 Google 信箱" class="flex-1 p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
                             <select id="new-user-role" class="p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
                                 <option value="staff">居服員 / 一般員工</option>
@@ -314,7 +318,7 @@
 
                         <div class="overflow-x-auto custom-scrollbar">
                             <table class="custom-table w-full bg-white rounded-2xl overflow-hidden">
-                                <thead><tr><th>Google 登入信箱</th><th>系統權限身分</th><th>操作</th></tr></thead>
+                                <thead><tr><th>Google 登入信箱</th><th>員工姓名</th><th>系統權限身分</th><th>操作</th></tr></thead>
                                 <tbody id="users-tbody"></tbody>
                             </table>
                         </div>
@@ -657,7 +661,7 @@
             if(!tbody) return;
             tbody.innerHTML = '';
             if(allUsersList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-stone-400 font-bold">目前無員工資料</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-stone-400 font-bold">目前無員工資料</td></tr>';
                 return;
             }
             allUsersList.forEach(u => {
@@ -666,6 +670,7 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="font-bold text-gray-700 tracking-wide">${u.email}</td>
+                    <td class="font-black text-gray-800">${u.name || '<span class="text-stone-300">未填寫</span>'}</td>
                     <td><span class="px-3 py-1 rounded-md text-[10px] font-black ${roleStyle}">${roleText}</span></td>
                     <td>
                         <button onclick="handleDeleteUser('${u.email}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors" title="移除存取權限"><i class="ph-bold ph-trash"></i> 移除</button>
@@ -676,21 +681,30 @@
         }
 
         function handleAddUser() {
+            const name = document.getElementById('new-user-name').value.trim();
             const email = document.getElementById('new-user-email').value.trim().toLowerCase();
             const role = document.getElementById('new-user-role').value;
+            
+            if(!name) return showToast("請輸入員工姓名", "error");
             if(!email) return showToast("請輸入員工 Google 信箱", "error");
             if(!email.includes('@')) return showToast("信箱格式錯誤", "error");
             
             showToast("正在更新權限...", "info");
             
             let existing = allUsersList.find(u => u.email === email);
-            if(existing) existing.role = role; else allUsersList.push({email, role});
+            if(existing) {
+                existing.role = role;
+                existing.name = name;
+            } else {
+                allUsersList.push({email, name, role});
+            }
             renderUsersTable();
             document.getElementById('new-user-email').value = '';
+            document.getElementById('new-user-name').value = '';
 
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'updateUserRole', email: email, role: role })
+                body: JSON.stringify({ action: 'updateUserRole', email: email, name: name, role: role })
             }).then(r => r.json()).then(res => {
                 if(res.status === 'success') showToast("✅ 權限已生效", "success");
                 else showToast("更新失敗", "error");
@@ -852,6 +866,33 @@
             .then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); }).catch(() => showToast("同步異常", "error"));
         }
 
+        // === 新增：自動隱藏檔名中的帳號前綴 ===
+        function formatDisplayName(originalName) {
+            let name = originalName;
+            // 抓取名單內所有員工的信箱前綴
+            let prefixes = allUsersList.map(u => u.email.split('@')[0]);
+            if (currentUserName && !prefixes.includes(currentUserName)) prefixes.push(currentUserName);
+
+            prefixes.forEach(prefix => {
+                if (!prefix || prefix.length < 2) return; 
+                
+                // 1. 移除帶括號的帳號 (例如: (chuan5198hot) 或 [chuan5198hot])
+                const regexBracket = new RegExp(`[\\(\\[【]${prefix}[\\)\\]】]`, 'gi');
+                name = name.replace(regexBracket, '');
+                
+                // 2. 移除單獨的帳號字串
+                const regexRaw = new RegExp(prefix, 'gi');
+                name = name.replace(regexRaw, '');
+            });
+
+            // 3. 清理多餘的底線與符號 (避免變成 陳素娟__勞動契約.pdf)
+            name = name.replace(/_+/g, '_');          // 雙底線變單底線
+            name = name.replace(/^_|_+(?=\.)/g, '');   // 去除開頭或副檔名前的底線
+            name = name.replace(/\(\)/g, '');          // 移除空括號
+
+            return name;
+        }
+
         function renderPublicFiles() {
             const containers = { 'announcement': document.getElementById('announcement-files-container'), 'policies': document.getElementById('policy-files-container'), 'contract': document.getElementById('contract-files-container'), 'shareholder': document.getElementById('finance-files-container'), 'salary': document.getElementById('salary-files-container') };
             Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
@@ -870,13 +911,16 @@
                             ? `<button disabled class="mt-4 px-3 py-1.5 bg-green-50 border border-green-200 text-green-600 rounded-lg text-[10px] font-black flex items-center gap-1 w-max"><i class="ph-bold ph-check-circle text-sm"></i> ✅ 已詳閱簽收</button>`
                             : `<button onclick="event.stopPropagation(); signDocument('${f.id}')" class="mt-4 px-3 py-1.5 bg-stone-100 border border-stone-200 text-stone-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-lg text-[10px] font-black transition-colors flex items-center gap-1 w-max shadow-sm"><i class="ph-bold ph-pen text-sm"></i> 📝 我已詳閱並同意</button>`;
 
-                        // 卡片結構調整，把簽收按鈕放在最下方
+                        // === 套用隱藏帳號的乾淨檔名 ===
+                        const cleanDisplayName = formatDisplayName(f.name);
+
+                        // 卡片結構調整，把簽收按鈕放在最下方 (加入 title 屬性讓滑鼠懸停時可看見原檔名)
                         const html = `
                         <div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative">
                             <div class="flex items-start gap-4">
                                 <i class="ph-fill ${icon} text-4xl group-hover:scale-110 transition-transform"></i>
                                 <div>
-                                    <h4 class="font-black text-gray-800 leading-tight">${f.name}</h4>
+                                    <h4 class="font-black text-gray-800 leading-tight" title="${f.name}">${cleanDisplayName}</h4>
                                     <p class="text-[10px] text-stone-400 font-bold mt-1">${f.date}</p>
                                 </div>
                             </div>
@@ -924,7 +968,15 @@
             r.onload = ev => {
                 showToast("正在上傳至雲端...", "info");
                 fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
-                .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); triggerSync(true); } else { showToast("上傳失敗", "error"); } });
+                .then(res => res.json()).then(res => { 
+                    if(res.status === "success") { 
+                        showToast("✅ 上傳成功，正在重整資料...", "success"); 
+                        // 給 Google 雲端 1.5 秒的處理時間後，觸發顯性同步
+                        setTimeout(() => triggerSync(false), 1500); 
+                    } else { 
+                        showToast("上傳失敗", "error"); 
+                    } 
+                }).catch(() => showToast("上傳連線異常", "error"));
             }; 
             r.readAsDataURL(f);
             

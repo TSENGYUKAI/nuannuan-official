@@ -7,8 +7,16 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <!-- 引入 Google 登入 API -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- 引入 Firebase SDK (使用相容版本以配合一般 HTML 寫法) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics-compat.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
@@ -475,8 +483,29 @@
 
     <!-- ==================== 系統核心邏輯與 Email 權限驗證區 ==================== -->
     <script>
-        // 🚨 【負責人設定區】🚨 
+        // 🚨 【負責人與 Firebase 設定區】🚨 
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFEphc4tt7mFIgTu7RusChyu2dD7bNt4cdEgzJf-99hzOXeLAbgO4OCc_p_OlNeoDd/exec"; 
+
+        // 🚨 已填入您的 Firebase 專案設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAedXdcekXTC-vzybidtSvoOY91k9sreAU",
+            authDomain: "nuannuan-5ee91.firebaseapp.com",
+            databaseURL: "https://nuannuan-5ee91-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "nuannuan-5ee91",
+            storageBucket: "nuannuan-5ee91.firebasestorage.app",
+            messagingSenderId: "961966504941",
+            appId: "1:961966504941:web:2687b9b57293d025ca85e4",
+            measurementId: "G-WWBZZE9XHL"
+        };
+        
+        // 初始化 Firebase
+        let auth = null;
+        let analytics = null;
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            analytics = firebase.analytics();
+        }
 
         // 授權名單
         const ADMIN_EMAILS = [
@@ -523,9 +552,7 @@
             }, 3000);
         }
 
-        // --- Google OAuth 登入相關邏輯 ---
-
-        // 解析 Google 回傳的 JWT Token 取得信箱
+        // 解析 Google 回傳的 JWT Token 取得信箱 (備用/開發方案)
         function decodeJwtResponse(token) {
             let base64Url = token.split('.')[1];
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -535,15 +562,22 @@
             return JSON.parse(jsonPayload);
         }
 
-        // 當 Google 登入成功時觸發
-        function handleGoogleLogin(response) {
+        // --- Google OAuth 登入相關邏輯 ---
+        async function handleGoogleLogin(response) {
             try {
-                const responsePayload = decodeJwtResponse(response.credential);
-                const userEmail = responsePayload.email;
-                showToast("✅ Google 驗證成功，正在登入系統...", "success");
-                executeLogin(userEmail);
+                // 1. 將 Google GSI 回傳的 JWT 轉換為 Firebase 憑證
+                const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+                
+                // 2. 正式登入 Firebase Authentication
+                const userCredential = await auth.signInWithCredential(credential);
+                const userEmail = userCredential.user.email;
+                const uid = userCredential.user.uid;
+                
+                showToast("✅ Firebase 驗證成功...", "success");
+                executeLogin(userEmail, uid);
             } catch (e) {
-                showToast("❌ 登入解析發生錯誤，請聯絡管理員", "error");
+                console.error("Firebase 登入失敗：", e);
+                showToast("❌ 登入發生錯誤，請聯絡管理員", "error");
             }
         }
 
@@ -554,15 +588,18 @@
                 showToast("⚠️ 請先輸入測試信箱！", "warning");
                 return;
             }
-            executeLogin(emailInput);
+            executeLogin(emailInput, "manual-test-uid");
         }
 
         // --- 核心系統登入判斷邏輯 ---
-        function executeLogin(emailInput) {
+        function executeLogin(emailInput, userUid) {
             let userRole = 'staff'; 
             let userName = emailInput.split('@')[0]; 
             let roleLabelStr = '居服員';
             let roleBadgeClass = 'bg-orange-500';
+
+            // 將 UID 存入全域變數
+            window.currentUserUid = userUid;
 
             if (ADMIN_EMAILS.includes(emailInput)) {
                 userRole = 'admin';
@@ -607,6 +644,9 @@
         }
 
         function handleLogout() {
+            if (auth) auth.signOut();
+            window.currentUserUid = null;
+            
             document.getElementById('login-email').value = '';
             document.getElementById('dashboard-view').classList.add('hidden-section');
             document.getElementById('login-view').classList.remove('hidden-section');

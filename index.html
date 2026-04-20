@@ -99,7 +99,6 @@
             text-transform: uppercase;
         }
 
-        /* 編輯模式樣式 */
         .editable-active {
             background-color: white !important;
             border: 2px dashed #f97316 !important;
@@ -115,7 +114,7 @@
         .toast-exit { transform: translateX(100%); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-4 md:p-8 relative">
+<body class="min-h-screen flex flex-col p-4 md:p-8 relative text-stone-700">
 
     <div id="toast-container"></div>
 
@@ -151,6 +150,23 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ==================== 載入中畫面 ==================== -->
+    <div id="loading-view" class="hidden-section w-full flex flex-col items-center justify-center mt-40 animate-page">
+        <i class="ph-bold ph-spinner animate-spin text-5xl text-orange-500 mb-4"></i>
+        <h2 class="text-xl font-black text-gray-800 mb-2">正在驗證您的機構權限</h2>
+        <p class="text-stone-500 font-bold tracking-widest text-sm animate-pulse">連線至資料庫同步中，請稍候...</p>
+    </div>
+
+    <!-- ==================== 拒絕存取畫面 ==================== -->
+    <div id="unauthorized-view" class="hidden-section w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page">
+        <div class="bg-red-50 text-red-500 w-20 h-20 rounded-[30px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <i class="ph-bold ph-shield-warning text-4xl"></i>
+        </div>
+        <h2 class="text-2xl font-black text-gray-800 mb-2">無存取權限</h2>
+        <p class="text-stone-500 text-sm mb-8 font-bold leading-relaxed">您登入的信箱未在機構白名單中。</p>
+        <button onclick="location.reload()" class="bg-stone-800 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors w-full">返回登入頁</button>
     </div>
 
     <!-- ==================== 主控台 ==================== -->
@@ -205,7 +221,7 @@
                 <div class="mt-8 pt-6 border-t-2 border-stone-50 flex items-center justify-between bg-stone-50 p-4 rounded-[25px]">
                     <div class="overflow-hidden">
                         <div id="user-name" class="text-sm font-black text-gray-800 truncate">使用者名稱</div>
-                        <div id="user-role-label" class="text-[10px] font-black text-white bg-stone-400 px-2 py-0.5 rounded-full mt-1 inline-block">身分標籤</div>
+                        <div id="user-role-label" class="text-[10px] font-black text-white bg-stone-400 px-2 py-0.5 rounded-full mt-1 inline-block tracking-widest uppercase">驗證中</div>
                     </div>
                     <button onclick="handleLogout()" class="text-stone-400 hover:text-red-500 transition-colors">
                         <i class="ph-bold ph-sign-out text-lg"></i>
@@ -225,18 +241,14 @@
                     </h3>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
                         <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100">
-                            <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
-                                <i class="ph-fill ph-arrows-clockwise text-blue-500"></i> 雲端數據同步
-                            </h4>
-                            <p class="text-xs text-stone-500 font-bold mb-6">同步 Google Drive 檔案並拉取試算表中的財務流水帳數據。</p>
+                            <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-arrows-clockwise text-blue-500"></i> 雲端數據同步</h4>
+                            <p class="text-xs text-stone-500 font-bold mb-6">同步 Google Drive 檔案與試算表數據。</p>
                             <button onclick="triggerSync()" id="btnSyncFiles" class="w-full bg-blue-500 text-white py-4 rounded-2xl font-black shadow-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
-                                <i class="ph-bold ph-arrows-clockwise" id="syncIconFiles"></i> 立即同步所有資料
+                                <i class="ph-bold ph-arrows-clockwise" id="syncIconFiles"></i> 立即同步資料
                             </button>
                         </div>
                         <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100">
-                            <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
-                                <i class="ph-fill ph-upload-simple text-orange-500"></i> 管理端快速上傳
-                            </h4>
+                            <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-upload-simple text-orange-500"></i> 管理端快速上傳</h4>
                             <div class="space-y-3">
                                 <select id="uploadFolder" class="w-full p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none text-xs">
                                     <option value="機構制度規章">機構規章</option>
@@ -244,7 +256,7 @@
                                     <option value="股東專區">股東專區</option>
                                     <option value="薪資明細區">薪資明細區</option>
                                 </select>
-                                <button onclick="document.getElementById('fileUploader').click()" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">選擇並上傳檔案</button>
+                                <button onclick="document.getElementById('fileUploader').click()" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">選擇檔案</button>
                                 <input type="file" id="fileUploader" class="hidden">
                             </div>
                         </div>
@@ -260,7 +272,7 @@
                     </div>
                 </section>
 
-                <!-- 2. 財務系統 (新增月份篩選) -->
+                <!-- 2. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -315,9 +327,7 @@
                     <div id="fin-pnl" class="fin-section hidden-section">
                         <div class="flex items-center justify-between mb-4">
                             <h4 class="text-xl font-black text-gray-800">股東專區雲端檔案</h4>
-                            <button id="btn-edit-finance" onclick="toggleEdit('finance')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
-                                <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
-                            </button>
+                            <button id="btn-edit-finance" onclick="toggleEdit('finance')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                         </div>
                         <div id="text-finance" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">股東專屬檔案與財務報表皆存放於此。</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
@@ -331,15 +341,11 @@
                     </div>
                 </section>
 
-                <!-- 3. 公告/規章/薪資/合約 -->
+                <!-- 3. 業務頁面 -->
                 <section id="content-announcement" class="content-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告
-                        </div>
-                        <button id="btn-edit-announcement" onclick="toggleEdit('announcement')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
-                            <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
-                        </button>
+                        <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
+                        <button id="btn-edit-announcement" onclick="toggleEdit('announcement')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
                     <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">5/1 正式營運，請夥伴們確認居服系統狀態。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="announcement-files-container"></div>
@@ -347,12 +353,8 @@
 
                 <section id="content-policies" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構規章
-                        </div>
-                        <button id="btn-edit-policies" onclick="toggleEdit('policies')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
-                            <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
-                        </button>
+                        <div class="flex items-center gap-3"><i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構規章</div>
+                        <button id="btn-edit-policies" onclick="toggleEdit('policies')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
                     <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">機構內部各項規定與指導原則。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
@@ -360,40 +362,33 @@
 
                 <section id="content-contract" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約
-                        </div>
-                        <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
-                            <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
-                        </button>
+                        <div class="flex items-center gap-3"><i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約</div>
+                        <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">此區塊將根據您的登入帳號，顯示專屬於您的勞動契約檔案。</div>
+                    <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的勞動契約檔案。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
 
                 <section id="content-salary" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細
-                        </div>
-                        <button id="btn-edit-salary" onclick="toggleEdit('salary')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
-                            <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
-                        </button>
+                        <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細</div>
+                        <button id="btn-edit-salary" onclick="toggleEdit('salary')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">此區塊將根據您的登入帳號，顯示專屬於您的薪資單檔案。</div>
+                    <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的薪資單檔案。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="salary-files-container"></div>
                 </section>
             </div>
         </main>
     </div>
 
-    <!-- ==================== 發佈設定 Modal (彈出視窗) ==================== -->
+    <!-- ==================== 發佈設定 Modal ==================== -->
     <div id="publish-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="publish-modal-box">
             <h3 class="text-2xl font-black text-gray-800 mb-2">發佈位置設定</h3>
             <p id="modal-filename" class="text-sm font-bold text-orange-500 mb-6 bg-orange-50 px-3 py-2 rounded-lg truncate"></p>
             
             <div class="space-y-3 mb-8">
+                <!-- 選項：不公開 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-stone-50">
                     <input type="radio" name="publish_target" value="none" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -401,6 +396,8 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">將檔案從前端隱藏</span>
                     </div>
                 </label>
+
+                <!-- 選項：最新公告 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="announcement" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -408,6 +405,8 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">首頁公告區，所有人可見</span>
                     </div>
                 </label>
+
+                <!-- 選項：機構規章 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="policies" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -415,6 +414,8 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">員工守則與作業辦法</span>
                     </div>
                 </label>
+
+                <!-- 選項：勞動契約區 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="contract" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -422,6 +423,8 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">專屬個人檔案 (檔名需含員工信箱帳號)</span>
                     </div>
                 </label>
+
+                <!-- 選項：股東專區 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="shareholder" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -429,6 +432,8 @@
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">僅限股東權限可檢視之財報</span>
                     </div>
                 </label>
+
+                <!-- 選項：薪資明細 -->
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="salary" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
@@ -446,21 +451,8 @@
     </div>
 
     <script>
-        // ==========================================
-        // 👇 已設定為正式部署的 Apps Script API 網址 👇
-        // ==========================================
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
-
-        const ADMIN_EMAILS = ["dick19921014@gmail.com"];
-        const SHAREHOLDER_EMAILS = ["e0934148629@gmail.com", "sy020430@gmail.com", "cherrychue0515@gmail.com", "wen67810@gmail.com"];
-        
-        let allDriveFiles = {}, currentRole = 'staff';
-        let currentPublishFileId = null;
-        let currentUserName = '';
-        let currentUserEmail = ''; 
-        let isFirstLogin = false;  
-
-        // 新增：財務原始數據暫存區，供月份篩選使用
+        let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', isFirstLogin = false, currentPublishFileId = null;
         let financeDataRaw = { income: [], expense: [], petty: [] };
 
         function showToast(msg, type = 'info') {
@@ -470,14 +462,14 @@
             t.innerHTML = `<span>${msg}</span>`;
             c.appendChild(t);
             requestAnimationFrame(() => t.classList.add('toast-enter-active'));
-            setTimeout(() => { t.classList.add('toast-exit'); setTimeout(() => c.removeChild(t), 300); }, 3000);
+            setTimeout(() => { t.classList.add('toast-exit'); if(c.contains(t)) c.removeChild(t); }, 3000);
         }
 
         async function handleGoogleLogin(res) {
             try {
                 const payload = JSON.parse(decodeURIComponent(atob(res.credential.split('.')[1]).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
                 executeLogin(payload.email);
-            } catch (e) { showToast("登入授權失敗", "error"); }
+            } catch (e) { showToast("授權失敗", "error"); }
         }
 
         function handleManualLogin() {
@@ -489,18 +481,9 @@
             currentUserEmail = email;
             currentUserName = email.split('@')[0];
             isFirstLogin = true;
-
             document.getElementById('login-view').classList.add('hidden-section');
-            document.getElementById('dashboard-view').classList.remove('hidden-section');
-            document.getElementById('user-name').innerText = currentUserName;
-            
-            const lb = document.getElementById('user-role-label');
-            lb.innerText = "驗證權限中...";
-            lb.className = `text-[10px] font-black text-stone-500 bg-stone-200 px-3 py-1 rounded-full mt-1 inline-block`;
-
+            document.getElementById('loading-view').classList.remove('hidden-section');
             loadEditableContents();
-
-            // 觸發同步，將信箱交給後端驗證真實權限
             triggerSync(false);
         }
 
@@ -508,75 +491,65 @@
             const contentDiv = document.getElementById('text-' + sectionId);
             const btn = document.getElementById('btn-edit-' + sectionId);
             const isEditing = contentDiv.isContentEditable;
-
             if (isEditing) {
                 contentDiv.contentEditable = false;
                 contentDiv.classList.remove('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文';
-                btn.classList.remove('text-green-600', 'bg-green-50');
-                btn.classList.add('text-stone-400', 'bg-stone-50');
-                
                 localStorage.setItem('content_' + sectionId, contentDiv.innerHTML);
-                showToast('已儲存更新內容 (本機暫存)', 'success');
+                showToast('已儲存內容 (本機暫存)', 'success');
             } else {
                 contentDiv.contentEditable = true;
                 contentDiv.focus();
                 contentDiv.classList.add('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-check text-lg"></i> 完成儲存';
-                btn.classList.remove('text-stone-400', 'bg-stone-50');
-                btn.classList.add('text-green-600', 'bg-green-50');
             }
         }
 
         function loadEditableContents() {
             ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
                 const saved = localStorage.getItem('content_' + id);
-                if (saved) document.getElementById('text-' + id).innerHTML = saved;
+                if (saved) {
+                    const el = document.getElementById('text-' + id);
+                    if(el) el.innerHTML = saved;
+                }
             });
         }
 
-        // 新增：優先讀取試算表 H 欄 (標題需為「月份」) 的 yyyy-mm 格式
         function getMonthStr(row) {
-            // 如果試算表有現成的「月份」欄位，直接抓取並把 yyyy-mm 轉成 yyyy/mm 以便閱讀
             let monthVal = row['月份'];
             if (monthVal && String(monthVal).trim() !== '') {
-                let val = String(monthVal).trim();
-                // 替換連字號為斜線，例如 2024-04 變成 2024/04
-                return val.replace('-', '/');
+                return String(monthVal).trim().replace('-', '/');
             }
-
-            // 如果找不到月份欄位，作為防呆，退回原本自動解析日期的機制
             let dateStr = row['日期'];
             if (!dateStr) return '未知';
-            let str = String(dateStr).trim();
-            let m = str.match(/^(\d{4})[-/年](\d{1,2})/);
-            if (m) {
-                let year = m[1];
-                let month = m[2].padStart(2, '0');
-                return `${year}/${month}`;
-            }
-            return '其他';
+            let m = String(dateStr).match(/^(\d{4})[-/年](\d{1,2})/);
+            return m ? `${m[1]}/${m[2].padStart(2, '0')}` : '其他';
         }
 
         function triggerSync(silent = false) {
             const btn = document.getElementById('btnSyncFiles');
             if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
-
-            // 強制防快取 + 傳送使用者信箱
+            
             const fetchUrl = GOOGLE_APPS_SCRIPT_URL + "?email=" + encodeURIComponent(currentUserEmail) + "&t=" + new Date().getTime();
-
+            
             fetch(fetchUrl)
                 .then(r => r.json())
                 .then(d => {
                     if(d.status === "error") throw new Error(d.message);
+                    currentRole = d.role || 'unauthorized';
+                    document.getElementById('loading-view').classList.add('hidden-section');
                     
-                    // 接收後端回傳的安全權限
-                    currentRole = d.role || 'staff';
+                    if (currentRole === 'unauthorized') {
+                        document.getElementById('unauthorized-view').classList.remove('hidden-section');
+                        return;
+                    }
+                    
+                    document.getElementById('dashboard-view').classList.remove('hidden-section');
+                    document.getElementById('user-name').innerText = currentUserName;
                     const lb = document.getElementById('user-role-label');
                     lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
                     lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
-                    // 動態顯示對應選單
                     if (currentRole === 'admin') {
                         document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
                         document.getElementById('menu-superadmin').classList.remove('hidden-section');
@@ -588,135 +561,81 @@
                         document.getElementById('menu-staff').classList.remove('hidden-section');
                     }
 
-                    // 首次登入跳轉首頁
                     if (isFirstLogin) {
-                        if(currentRole === 'admin') switchTab('manage');
-                        else if(currentRole === 'shareholder') switchTab('finance');
-                        else switchTab('announcement');
+                        switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement'));
                         isFirstLogin = false;
                     }
                     
-                    // 寫入財務原始數據暫存區
                     financeDataRaw.income = d.income || [];
                     financeDataRaw.expense = d.expense || [];
                     financeDataRaw.petty = d.petty || [];
 
-                    // 動態產生月份篩選選單
                     let months = new Set();
-                    const addMonth = (row) => {
-                        let m = getMonthStr(row); // 傳入整列資料
-                        if (m !== '其他' && m !== '未知') months.add(m);
-                    };
-                    financeDataRaw.income.forEach(addMonth);
-                    financeDataRaw.expense.forEach(addMonth);
-                    financeDataRaw.petty.forEach(addMonth);
+                    const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
+                    financeDataRaw.income.forEach(addM); financeDataRaw.expense.forEach(addM); financeDataRaw.petty.forEach(addM);
 
-                    let monthArr = Array.from(months).sort().reverse();
                     let filterSelect = document.getElementById('finance-month-filter');
-                    let currentVal = filterSelect.value;
-                    
+                    let prevVal = filterSelect.value;
                     filterSelect.innerHTML = '<option value="all">全部月份</option>';
-                    monthArr.forEach(m => {
-                        let opt = document.createElement('option');
-                        opt.value = m;
-                        opt.innerText = m;
-                        filterSelect.appendChild(opt);
+                    Array.from(months).sort().reverse().forEach(m => {
+                        let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
                     });
-
-                    // 保持使用者原先的篩選選項
-                    if (monthArr.includes(currentVal)) {
-                        filterSelect.value = currentVal;
-                    } else {
-                        filterSelect.value = 'all';
-                    }
-
-                    // 套用篩選器並渲染表格/總覽數據
+                    filterSelect.value = prevVal || 'all';
                     applyFinanceFilter();
                     
                     allDriveFiles = d.driveFiles || {};
-                    renderManageTable(); 
-                    renderPublicFiles();
-                    
+                    renderManageTable(); renderPublicFiles();
                     if(!silent) showToast("✅ 同步成功！", "success");
                 })
-                .catch(err => { if(!silent) showToast("同步失敗：" + err.message, "error"); })
-                .finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步所有資料`; } });
+                .catch(err => { 
+                    showToast("同步失敗：" + err.message, "error"); 
+                    document.getElementById('loading-view').classList.add('hidden-section');
+                    if(currentRole === 'unauthorized') document.getElementById('login-view').classList.remove('hidden-section');
+                })
+                .finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
 
-        // 新增：套用財務月份篩選器
         function applyFinanceFilter() {
-            let selectedMonth = document.getElementById('finance-month-filter').value;
-            
-            let filteredIncome = financeDataRaw.income;
-            let filteredExpense = financeDataRaw.expense;
-            let filteredPetty = financeDataRaw.petty;
+            let selM = document.getElementById('finance-month-filter').value;
+            let fI = financeDataRaw.income, fE = financeDataRaw.expense, fP = financeDataRaw.petty;
+            if (selM !== 'all') {
+                fI = financeDataRaw.income.filter(r => getMonthStr(r) === selM);
+                fE = financeDataRaw.expense.filter(r => getMonthStr(r) === selM);
+                fP = financeDataRaw.petty.filter(r => getMonthStr(r) === selM);
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selM})`);
+            } else { document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); }
 
-            // 針對指定月份過濾
-            if (selectedMonth !== 'all') {
-                filteredIncome = financeDataRaw.income.filter(r => getMonthStr(r) === selectedMonth);
-                filteredExpense = financeDataRaw.expense.filter(r => getMonthStr(r) === selectedMonth);
-                filteredPetty = financeDataRaw.petty.filter(r => getMonthStr(r) === selectedMonth);
-                
-                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selectedMonth})`);
-            } else {
-                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`);
-            }
+            let totalR = 0; fI.forEach(r => totalR += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
+            let totalE = 0; fE.forEach(r => totalE += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
+            document.getElementById('display-revenue').innerText = '$' + totalR.toLocaleString();
+            document.getElementById('display-expense').innerText = '-$' + Math.abs(totalE).toLocaleString();
+            document.getElementById('display-net').innerText = '$' + (totalR - totalE).toLocaleString();
 
-            // 重新計算總覽數據
-            let totalRevenue = 0;
-            filteredIncome.forEach(row => {
-                let amt = parseFloat(String(row['金額'] || 0).replace(/,/g, '')) || 0;
-                totalRevenue += amt;
-            });
-
-            let totalExpense = 0;
-            filteredExpense.forEach(row => {
-                let amt = parseFloat(String(row['金額'] || 0).replace(/,/g, '')) || 0;
-                totalExpense += amt;
-            });
-
-            // 更新 UI 數字
-            document.getElementById('display-revenue').innerText = '$' + totalRevenue.toLocaleString();
-            document.getElementById('display-expense').innerText = '-$' + Math.abs(totalExpense).toLocaleString();
-            document.getElementById('display-net').innerText = '$' + (totalRevenue - totalExpense).toLocaleString();
-
-            // 渲染過濾後的表格
-            renderTable('income-tbody', filteredIncome, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
-            renderTable('expense-tbody', filteredExpense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
-            renderTable('petty-tbody', filteredPetty, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+            renderTable('income-tbody', fI, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
+            renderTable('expense-tbody', fE, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
+            renderTable('petty-tbody', fP, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
         }
 
         function renderTable(id, rows, cols) {
             const b = document.getElementById(id); if(!b) return;
-            b.innerHTML = '';
-            if(!rows || rows.length === 0) { b.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-stone-300">該月份無相關數據</td></tr>'; return; }
-            
+            b.innerHTML = rows.length === 0 ? '<tr><td colspan="6" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>' : '';
             rows.forEach(r => {
                 let tr = document.createElement('tr');
                 cols.forEach(c => {
-                    let td = document.createElement('td');
-                    let val = r[c];
-                    if (val === undefined || val === null || String(val).trim() === '') { td.innerText = '-'; } 
+                    let td = document.createElement('td'), v = r[c];
+                    if (v === undefined || v === null || String(v).trim() === '') { td.innerText = '-'; } 
                     else if (c.includes('金額') || c.includes('支出') || c.includes('撥入') || c === '目前結餘') {
-                        let cleanStr = String(val).replace(/,/g, '').trim();
-                        let n = Number(cleanStr);
-                        if (isNaN(n) || cleanStr === '') { td.innerText = '-'; } 
-                        else { td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`; }
-                    } else { td.innerText = val; }
+                        let n = Number(String(v).replace(/,/g, '').trim());
+                        if (isNaN(n)) td.innerText = '-';
+                        else td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
+                    } else { td.innerText = v; }
                     tr.appendChild(td);
                 });
                 b.appendChild(tr);
             });
         }
 
-        const targetNames = {
-            'none': '🚫 不公開',
-            'announcement': '📢 最新公告',
-            'policies': '🏦 機構規章',
-            'contract': '📝 勞動契約',
-            'shareholder': '💼 股東專區',
-            'salary': '💰 薪資明細'
-        };
+        const targetNames = { 'none': '🚫 不公開', 'announcement': '📢 最新公告', 'policies': '🏦 機構規章', 'contract': '📝 勞動契約', 'shareholder': '💼 股東專區', 'salary': '💰 薪資明細' };
 
         function renderManageTable() {
             const b = document.getElementById('manage-files-tbody'); if(!b) return;
@@ -729,32 +648,14 @@
                     subFolderMap[fn].push(f);
                 });
                 for(let sn in subFolderMap) {
-                    let h = document.createElement('tr');
-                    h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`;
+                    let h = document.createElement('tr'); h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`;
                     b.appendChild(h);
-                    
                     subFolderMap[sn].forEach(f => {
+                        let curT = f.publishTarget;
+                        if (curT === 'none' && f.isPublished) curT = cat.includes("股東") ? 'shareholder' : 'policies';
+                        let style = curT !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
                         let tr = document.createElement('tr');
-                        
-                        let currentTarget = f.publishTarget;
-                        if (currentTarget === 'none' && f.isPublished) {
-                            currentTarget = cat.includes("股東") ? 'shareholder' : 'policies';
-                        }
-                        if(currentTarget === 'staff') currentTarget = 'policies';
-                        
-                        let targetText = targetNames[currentTarget] || '🚫 不公開';
-                        let targetStyle = currentTarget !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
-
-                        tr.innerHTML = `
-                            <td class="pl-8 max-w-[200px] truncate" title="${f.name}">${f.name}</td>
-                            <td>${f.date}</td>
-                            <td><span class="px-2 py-1 border rounded-md text-xs font-bold ${targetStyle}">${targetText}</span></td>
-                            <td>
-                                <button onclick="openPublishModal('${f.id}', '${f.name}', '${currentTarget}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-bold hover:bg-orange-500 transition-colors shadow-sm flex items-center gap-1">
-                                    <i class="ph-bold ph-sliders-horizontal"></i> 發佈設定
-                                </button>
-                            </td>
-                        `;
+                        tr.innerHTML = `<td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td><td>${f.date}</td><td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td><td><button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button></td>`;
                         b.appendChild(tr);
                     });
                 }
@@ -762,116 +663,59 @@
         }
 
         function openPublishModal(fileId, fileName, currentTarget) {
-            currentPublishFileId = fileId;
+            currentPublishFileId = fileId; 
             document.getElementById('modal-filename').innerText = fileName;
-            
-            const radios = document.getElementsByName('publish_target');
-            radios.forEach(r => {
-                if(r.value === currentTarget) r.checked = true;
-            });
-
-            const modal = document.getElementById('publish-modal');
-            const box = document.getElementById('publish-modal-box');
-            modal.classList.remove('hidden');
-            
-            requestAnimationFrame(() => {
-                modal.classList.remove('opacity-0');
-                box.classList.remove('scale-95');
-            });
+            document.getElementsByName('publish_target').forEach(r => { if(r.value === currentTarget) r.checked = true; });
+            const modal = document.getElementById('publish-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('publish-modal-box').classList.remove('scale-95'); });
         }
 
         function closePublishModal() {
-            const modal = document.getElementById('publish-modal');
-            const box = document.getElementById('publish-modal-box');
-            
-            modal.classList.add('opacity-0');
-            box.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                currentPublishFileId = null;
-            }, 300);
+            const modal = document.getElementById('publish-modal'); 
+            document.getElementById('publish-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); 
+            setTimeout(() => { modal.classList.add('hidden'); currentPublishFileId = null; }, 300);
         }
 
         function confirmPublishTarget() {
             if(!currentPublishFileId) return;
-            const checkedRadio = document.querySelector('input[name="publish_target"]:checked');
-            if(!checkedRadio) return;
-
-            const targetValue = checkedRadio.value;
-            showToast("正在更新發佈對象設定...", "info");
+            const targetValue = document.querySelector('input[name="publish_target"]:checked').value;
+            showToast("正在同步發佈狀態...", "info");
             
-            // === 樂觀更新 (Optimistic UI Update) 解決彈回舊資料問題 ===
             for(let cat in allDriveFiles) {
-                allDriveFiles[cat].forEach(fileObj => {
-                    if(fileObj.id === currentPublishFileId) {
-                        fileObj.publishTarget = targetValue;
-                        fileObj.isPublished = (targetValue !== 'none');
-                    }
-                });
+                allDriveFiles[cat].forEach(f => { if(f.id === currentPublishFileId) { f.publishTarget = targetValue; f.isPublished = (targetValue !== 'none'); } });
             }
-            renderManageTable();
-            renderPublicFiles();
-            closePublishModal();
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: 'setPublishTarget', fileId: currentPublishFileId, target: targetValue }) 
-            })
-            .then(res => res.json())
-            .then(() => { 
-                // 延長至 2.5 秒，確保試算表已徹底寫入
-                setTimeout(() => { triggerSync(true); }, 2500); 
-            })
-            .catch(() => showToast("設定可能未完全同步，請檢查網路連線", "error"));
+            renderManageTable(); renderPublicFiles(); closePublishModal();
+            
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'setPublishTarget', fileId: currentPublishFileId, target: targetValue }) })
+            .then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); })
+            .catch(() => showToast("同步異常，請重新同步資料", "error"));
         }
 
         function renderPublicFiles() {
-            const containers = {
-                'announcement': document.getElementById('announcement-files-container'),
-                'policies': document.getElementById('policy-files-container'),
-                'contract': document.getElementById('contract-files-container'),
-                'shareholder': document.getElementById('finance-files-container'),
-                'salary': document.getElementById('salary-files-container')
-            };
-
+            const containers = { 'announcement': document.getElementById('announcement-files-container'), 'policies': document.getElementById('policy-files-container'), 'contract': document.getElementById('contract-files-container'), 'shareholder': document.getElementById('finance-files-container'), 'salary': document.getElementById('salary-files-container') };
             Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
-            
             for(let cat in allDriveFiles) {
                 (allDriveFiles[cat] || []).forEach(f => {
-                    let target = f.publishTarget;
-                    
-                    if (target === 'none' && f.isPublished) target = cat.includes("股東") ? 'shareholder' : 'policies';
-                    if (target === 'staff') target = 'policies';
-
-                    if (target !== 'none' && containers[target]) {
+                    let t = f.publishTarget;
+                    if (t === 'none' && f.isPublished) t = cat.includes("股東") ? 'shareholder' : 'policies';
+                    if (t !== 'none' && containers[t]) {
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
-                        const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
-                        
-                        if (target === 'salary' || target === 'contract') {
-                            if (currentRole === 'admin' || f.name.toLowerCase().includes(currentUserName.toLowerCase())) {
-                                containers[target].innerHTML += html;
-                            }
-                        } else {
-                            containers[target].innerHTML += html;
-                        }
+                        const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group animate-page"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400 font-bold">${f.date}</p></div></div>`;
+                        if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
+                        containers[t].innerHTML += html;
                     }
                 });
             }
         }
 
         function handleLogout() { location.reload(); }
-        
-        function switchTab(id) {
-            if (currentRole === 'staff' && (id === 'manage' || id === 'finance')) {
-                showToast('您沒有權限訪問此頁面', 'error');
-                return;
-            }
-            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary')) {
-                showToast('您沒有權限訪問此頁面', 'error');
-                return;
-            }
 
+        function switchTab(id) {
+            if (currentRole === 'unauthorized') return;
+            if (currentRole === 'staff' && (id === 'manage' || id === 'finance')) { showToast('僅限管理員或股東存取', 'error'); return; }
+            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary')) { showToast('僅限管理員或居服員存取', 'error'); return; }
+            
             document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             const target = document.getElementById('content-' + id);
@@ -879,15 +723,14 @@
             const a = document.getElementById('tab-' + id);
             if(a) a.classList.add('active');
         }
-        
+
         function switchFinanceTab(id) {
             document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.finance-tab').forEach(el => {
-                el.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
-                el.classList.add('bg-stone-50', 'text-stone-500');
-            });
-            document.getElementById('fin-' + id).classList.remove('hidden-section');
-            document.getElementById('tab-fin-' + id).classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
+            const target = document.getElementById('fin-' + id);
+            if(target) target.classList.remove('hidden-section');
+            const btn = document.getElementById('tab-fin-' + id);
+            if(btn) btn.classList.add('bg-orange-500', 'text-white', 'shadow-md');
         }
 
         const uploader = document.getElementById('fileUploader');
@@ -895,10 +738,9 @@
             const f = e.target.files[0]; if(!f) return;
             const r = new FileReader(); 
             r.onload = ev => {
-                showToast("正在上傳檔案...", "info");
+                showToast("正在上傳至雲端...", "info");
                 fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
-                .then(res => res.json())
-                .then(res => { if(res.status === "success") { showToast("✅ 檔案已傳至雲端", "success"); triggerSync(true); } else { showToast("上傳失敗", "error"); } });
+                .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); triggerSync(true); } else { showToast("上傳失敗", "error"); } });
             }; 
             r.readAsDataURL(f);
         });

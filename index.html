@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>暖暖居家長照機構 | 內部營運管理系統</title>
     
+    <!-- 引入外部資源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
-    <!-- Firebase SDK (Compat 版本) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,8 +42,7 @@
         }
         
         .content-card:hover {
-            border-color: #fbd38d;
-            box-shadow: 0 10px 25px -5px rgba(237, 125, 49, 0.1);
+            border-color: #f97316;
             transform: translateY(-2px);
         }
 
@@ -53,14 +50,12 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .animate-page { animation: fade-in-down 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-sun { animation: sun-shine 5s ease-in-out infinite; }
         @keyframes sun-shine {
             0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
             50% { transform: scale(1.05) rotate(10deg); opacity: 0.8; }
         }
-        .animate-page { animation: fade-in-down 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-        .animate-sun { animation: sun-shine 5s ease-in-out infinite; }
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .nav-item {
             color: #a8a29e;
@@ -72,22 +67,11 @@
             align-items: center;
             gap: 12px;
             width: 100%;
-            text-align: left;
             cursor: pointer;
-            border: none;
-            background: transparent;
         }
         
-        .nav-item:hover {
-            background-color: #fff7ed;
-            color: #ea580c;
-        }
-        
-        .nav-item.active {
-            background-color: #f97316;
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
-        }
+        .nav-item:hover { background-color: #fff7ed; color: #ea580c; }
+        .nav-item.active { background-color: #f97316; color: white; box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3); }
 
         .finance-tab {
             padding: 10px 20px;
@@ -96,21 +80,26 @@
             font-size: 14px;
             transition: all 0.3s;
             white-space: nowrap;
+            border: 2px solid transparent;
         }
         
-        .hidden-section {
-            display: none !important;
-        }
+        .hidden-section { display: none !important; }
 
-        .custom-table { width: 100%; min-width: 600px; border-collapse: separate; border-spacing: 0; }
-        .custom-table th { background-color: #fff7ed; color: #ea580c; padding: 16px; font-weight: 900; text-align: left; }
+        .custom-table { width: 100%; min-width: 800px; border-collapse: separate; border-spacing: 0; }
+        .custom-table th { background-color: #fff7ed; color: #ea580c; padding: 16px; font-weight: 900; text-align: left; font-size: 13px; }
         .custom-table th:first-child { border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
         .custom-table th:last-child { border-top-right-radius: 20px; border-bottom-right-radius: 20px; }
-        .custom-table td { padding: 16px; border-bottom: 2px solid #f5f5f4; color: #57534e; font-weight: 700; }
-        .custom-table tr:hover td { background-color: #fafaf9; }
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 10px; }
+        .custom-table td { padding: 16px; border-bottom: 2px solid #f5f5f4; color: #57534e; font-weight: 700; font-size: 13px; }
+        
+        .folder-group-header {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+        }
 
         #toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
         .toast-item { pointer-events: auto; }
@@ -123,7 +112,7 @@
 
     <div id="toast-container"></div>
 
-    <!-- ==================== 1. 登入畫面 ==================== -->
+    <!-- ==================== 登入視窗 ==================== -->
     <div id="login-view" class="w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page relative overflow-hidden">
         <div class="absolute -top-10 -right-10 text-orange-500 opacity-10 animate-sun pointer-events-none">
             <i class="ph-fill ph-sun" style="font-size: 150px;"></i>
@@ -134,9 +123,8 @@
         <h1 class="text-2xl font-black text-gray-800 mb-2 tracking-tight">內部營運管理系統</h1>
         <p class="text-stone-400 text-sm mb-8 font-bold">暖暖居家長照機構 專屬授權</p>
         
-        <div class="mb-6 text-left relative z-10 flex flex-col items-center">
-            <label class="block text-[10px] font-black text-stone-400 mb-4 uppercase tracking-widest text-center">請使用機構綁定之 Google 帳號登入</label>
-            
+        <div class="mb-6 relative z-10 flex flex-col items-center">
+            <label class="block text-[10px] font-black text-stone-400 mb-4 uppercase tracking-widest text-center">請透過 Google 帳號授權登入</label>
             <div id="g_id_onload"
                  data-client_id="98650990659-f82m5s5tgs1vtgujjh4dv11jua962qep.apps.googleusercontent.com" 
                  data-context="signin"
@@ -144,16 +132,13 @@
                  data-callback="handleGoogleLogin"
                  data-auto_prompt="false">
             </div>
-            
-            <div class="g_id_signin"
-                 data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left">
-            </div>
+            <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="large"></div>
 
             <div class="mt-8 pt-4 w-full border-t border-stone-100 flex flex-col items-center">
-                <p class="text-[10px] font-black text-stone-300 mb-3 tracking-widest uppercase">Developer Testing Only</p>
+                <p class="text-[10px] font-black text-stone-300 mb-3 uppercase">或是使用開發者模式</p>
                 <div class="flex w-full gap-2">
-                    <input type="email" id="login-email" placeholder="輸入信箱測試" onkeydown="if(event.key === 'Enter') handleManualLogin()" class="w-full p-2 bg-stone-50 border-2 border-stone-200 rounded-xl text-xs font-bold focus:border-orange-500 outline-none text-center text-stone-700" />
-                    <button onclick="handleManualLogin()" class="bg-stone-800 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm hover:bg-orange-500 transition-colors shrink-0">
+                    <input type="email" id="login-email" placeholder="輸入信箱測試" onkeydown="if(event.key === 'Enter') handleManualLogin()" class="w-full p-2 bg-stone-50 border-2 border-stone-200 rounded-xl text-xs font-bold focus:border-orange-500 outline-none text-center" />
+                    <button onclick="handleManualLogin()" class="bg-stone-800 text-white px-4 py-2 rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">
                         <i class="ph-bold ph-arrow-right"></i>
                     </button>
                 </div>
@@ -161,9 +146,10 @@
         </div>
     </div>
 
-    <!-- ==================== 2. 主控台畫面 ==================== -->
+    <!-- ==================== 主控台 ==================== -->
     <div id="dashboard-view" class="hidden-section max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
         
+        <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4">
             <div class="bg-white q-card p-8 h-full flex flex-col">
                 <div class="flex items-center gap-3 mb-10 pb-6 border-b-2 border-stone-50">
@@ -172,78 +158,75 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-black text-gray-800 tracking-tight">暖暖居家</h2>
-                        <div class="text-[10px] font-black text-orange-500 tracking-widest uppercase">Operations Portal</div>
+                        <div class="text-[10px] font-black text-orange-500 tracking-widest">Operations Portal</div>
                     </div>
                 </div>
                 
                 <nav class="space-y-2 flex-1">
                     <div id="menu-superadmin" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
-                        <div class="text-[10px] font-black text-orange-500 tracking-widest mb-3 uppercase px-4">Admin Only</div>
-                        <button onclick="switchTab('manage')" id="tab-manage" class="nav-item">
+                        <div class="text-[10px] font-black text-orange-500 uppercase px-4 mb-2">Admin</div>
+                        <div onclick="switchTab('manage')" id="tab-manage" class="nav-item">
                             <i class="ph-bold ph-sliders text-xl"></i> 資料維護中心
-                        </button>
+                        </div>
                     </div>
 
-                    <button onclick="switchTab('announcement')" id="tab-announcement" class="nav-item active">
+                    <div onclick="switchTab('announcement')" id="tab-announcement" class="nav-item active">
                         <i class="ph-bold ph-megaphone text-xl"></i> 最新公告
-                    </button>
-                    <button onclick="switchTab('policies')" id="tab-policies" class="nav-item">
+                    </div>
+                    <div onclick="switchTab('policies')" id="tab-policies" class="nav-item">
                         <i class="ph-bold ph-bank text-xl"></i> 機構制度規章
-                    </button>
+                    </div>
                     
                     <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
-                        <div class="text-[10px] font-black text-stone-300 tracking-widest mb-3 uppercase px-4">Personnel & Salary</div>
-                        <button onclick="switchTab('contract')" id="tab-contract" class="nav-item">
+                        <div onclick="switchTab('contract')" id="tab-contract" class="nav-item">
                             <i class="ph-bold ph-file-signature text-xl"></i> 勞動契約
-                        </button>
-                        <button onclick="switchTab('salary')" id="tab-salary" class="nav-item">
+                        </div>
+                        <div onclick="switchTab('salary')" id="tab-salary" class="nav-item">
                             <i class="ph-bold ph-wallet text-xl"></i> 薪資明細
-                        </button>
+                        </div>
                     </div>
 
                     <div id="menu-shareholder" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
-                        <div class="text-[10px] font-black text-stone-300 tracking-widest mb-3 uppercase px-4">Financial</div>
-                        <button onclick="switchTab('finance')" id="tab-finance" class="nav-item">
+                        <div onclick="switchTab('finance')" id="tab-finance" class="nav-item">
                             <i class="ph-bold ph-calculator text-xl"></i> 會計與財務系統
-                        </button>
+                        </div>
                     </div>
                 </nav>
                 
                 <div class="mt-8 pt-6 border-t-2 border-stone-50 flex items-center justify-between bg-stone-50 p-4 rounded-[25px]">
                     <div class="overflow-hidden">
-                        <div id="user-name" class="text-sm font-black text-gray-800 truncate max-w-[150px]">載入中...</div>
-                        <div id="user-role-label" class="text-[10px] font-black text-white bg-stone-400 px-2 py-0.5 rounded-full mt-1 inline-block">系統身分</div>
+                        <div id="user-name" class="text-sm font-black text-gray-800 truncate">使用者名稱</div>
+                        <div id="user-role-label" class="text-[10px] font-black text-white bg-stone-400 px-2 py-0.5 rounded-full mt-1 inline-block">身分標籤</div>
                     </div>
-                    <button onclick="handleLogout()" class="text-stone-400 hover:text-red-500 transition-colors bg-white p-2 rounded-full shadow-sm hover:shadow-md shrink-0">
+                    <button onclick="handleLogout()" class="text-stone-400 hover:text-red-500 transition-colors">
                         <i class="ph-bold ph-sign-out text-lg"></i>
                     </button>
                 </div>
             </div>
         </aside>
 
+        <!-- 主內容區 -->
         <main class="flex-1 min-w-0">
             <div class="bg-white q-card p-8 md:p-12 min-h-full relative overflow-hidden">
                 
-                <!-- ==================== 內容：資料維護中心 ==================== -->
+                <!-- 1. 管理中心 -->
                 <section id="content-manage" class="content-section hidden-section">
-                    <h3 class="text-3xl font-black text-gray-800 mb-4 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                    <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-sliders text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 資料維護中心
                     </h3>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                        <!-- 同步區域 -->
                         <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100">
                             <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
                                 <i class="ph-fill ph-arrows-clockwise text-blue-500"></i> 雲端數據同步
                             </h4>
-                            <p class="text-xs text-stone-500 font-bold mb-6">點擊下方按鈕，系統將自動從雲端掃描最新檔案並更新試算表中的帳務數據。</p>
+                            <p class="text-xs text-stone-500 font-bold mb-6">同步 Google Drive 檔案並拉取試算表中的財務流水帳數據。</p>
                             <button onclick="triggerSync()" id="btnSyncFiles" class="w-full bg-blue-500 text-white py-4 rounded-2xl font-black shadow-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
                                 <i class="ph-bold ph-arrows-clockwise" id="syncIconFiles"></i> 立即同步所有資料
                             </button>
                         </div>
-                        <!-- 上傳區域 -->
                         <div class="bg-stone-50 p-8 rounded-[30px] border-2 border-stone-100">
                             <h4 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
-                                <i class="ph-fill ph-upload-simple text-orange-500"></i> 檔案快速上傳
+                                <i class="ph-fill ph-upload-simple text-orange-500"></i> 管理端快速上傳
                             </h4>
                             <div class="space-y-3">
                                 <select id="uploadFolder" class="w-full p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none text-xs">
@@ -251,145 +234,112 @@
                                     <option value="員工合約區">員工合約區</option>
                                     <option value="股東專區">股東專區</option>
                                 </select>
-                                <div onclick="document.getElementById('fileUploader').click()" class="border-2 border-dashed border-stone-300 rounded-xl p-3 text-center bg-white cursor-pointer hover:border-orange-400">
-                                    <p class="text-[10px] font-bold text-stone-500" id="uploadText">點擊選擇檔案</p>
-                                    <input type="file" id="fileUploader" class="hidden">
-                                </div>
-                                <button onclick="triggerFileUpload()" id="btnUpload" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">確認並上傳</button>
+                                <button onclick="document.getElementById('fileUploader').click()" class="w-full bg-stone-800 text-white py-3 rounded-xl font-black text-xs hover:bg-orange-600 transition-colors">選擇並上傳檔案</button>
+                                <input type="file" id="fileUploader" class="hidden">
                             </div>
                         </div>
                     </div>
-                    <!-- 管理者檔案管理表格 -->
                     <div class="bg-white rounded-[30px] border-2 border-stone-100 p-8">
-                        <h4 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
-                            <i class="ph-bold ph-list-checks text-orange-500"></i> 雲端檔案發佈管理
-                        </h4>
+                        <h4 class="text-xl font-black text-gray-800 mb-6">雲端檔案發佈管理</h4>
                         <div class="overflow-x-auto custom-scrollbar">
                             <table class="custom-table w-full">
-                                <thead>
-                                    <tr>
-                                        <th>名稱</th>
-                                        <th>所屬目錄</th>
-                                        <th>建立日期</th>
-                                        <th>發佈狀態</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="manage-files-tbody">
-                                    <tr><td colspan="5" class="text-center py-10 text-stone-400 font-bold">等待同步中...</td></tr>
-                                </tbody>
+                                <thead><tr><th>名稱</th><th>建立日期</th><th>發佈狀態</th><th>操作</th></tr></thead>
+                                <tbody id="manage-files-tbody"></tbody>
                             </table>
                         </div>
                     </div>
                 </section>
 
-                <!-- ==================== 內容：會計與財務系統 ==================== -->
+                <!-- 2. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 會計與財務系統
                     </h3>
                     <div class="flex gap-2 mb-8 overflow-x-auto custom-scrollbar pb-2">
-                        <button id="tab-fin-overview" onclick="switchFinanceTab('overview')" class="finance-tab bg-orange-500 text-white shadow-md border-2 border-orange-500">財務總覽</button>
-                        <button id="tab-fin-income" onclick="switchFinanceTab('income')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100">收入明細</button>
-                        <button id="tab-fin-expense" onclick="switchFinanceTab('expense')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100">支出明細</button>
-                        <button id="tab-fin-pnl" onclick="switchFinanceTab('pnl')" class="finance-tab bg-stone-50 text-stone-500 border-2 border-stone-100">雲端報表</button>
+                        <button onclick="switchFinanceTab('overview')" id="tab-fin-overview" class="finance-tab bg-orange-500 text-white shadow-md">財務總覽</button>
+                        <button onclick="switchFinanceTab('income')" id="tab-fin-income" class="finance-tab bg-stone-50 text-stone-500">收入流水</button>
+                        <button onclick="switchFinanceTab('expense')" id="tab-fin-expense" class="finance-tab bg-stone-50 text-stone-500">支出流水</button>
+                        <button onclick="switchFinanceTab('pnl')" id="tab-fin-pnl" class="finance-tab bg-stone-50 text-stone-500">損益報表</button>
+                        <button onclick="switchFinanceTab('petty')" id="tab-fin-petty" class="finance-tab bg-stone-50 text-stone-500">零用金管理</button>
                     </div>
                     
                     <div id="fin-overview" class="fin-section animate-page grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="content-card bg-orange-50 border-orange-200">
-                            <div class="text-xs font-black text-orange-600 mb-2 uppercase">本月營收</div>
+                            <div class="text-xs font-black text-orange-600 mb-2 uppercase">該月總收入</div>
                             <div id="display-revenue" class="text-4xl font-black text-gray-800 tracking-tighter">$0</div>
                         </div>
                         <div class="content-card bg-stone-50">
-                            <div class="text-xs font-black text-stone-500 mb-2 uppercase">本月支出</div>
+                            <div class="text-xs font-black text-stone-500 mb-2 uppercase">該月總支出</div>
                             <div id="display-expense" class="text-4xl font-black text-red-500 tracking-tighter">-$0</div>
                         </div>
                         <div class="content-card bg-stone-800 text-white border-stone-700">
-                            <div class="text-xs font-black text-orange-400 mb-2 uppercase">年度累計淨利</div>
+                            <div class="text-xs font-black text-orange-400 mb-2 uppercase">累計淨利</div>
                             <div id="display-net" class="text-4xl font-black tracking-tighter">$0</div>
                         </div>
                     </div>
 
-                    <div id="fin-pnl" class="fin-section hidden-section animate-page">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container">
-                            <div class="text-stone-400 font-bold col-span-full text-center p-10">尚無發佈之報表檔案</div>
-                        </div>
+                    <div id="fin-income" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>日期</th><th>會計科目</th><th>服務項目</th><th>摘要/對象</th><th>金額</th><th>備註</th></tr></thead>
+                            <tbody id="income-tbody"></tbody>
+                        </table>
                     </div>
 
-                    <div id="fin-income" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
-                        <table class="custom-table w-full whitespace-nowrap"><tbody id="income-tbody"></tbody></table>
-                    </div>
                     <div id="fin-expense" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
-                        <table class="custom-table w-full whitespace-nowrap"><tbody id="expense-tbody"></tbody></table>
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>日期</th><th>會計科目</th><th>摘要/用品</th><th>支付方式</th><th>金額</th><th>備註</th></tr></thead>
+                            <tbody id="expense-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="fin-pnl" class="fin-section hidden-section grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
+
+                    <div id="fin-petty" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>日期</th><th>摘要/用途</th><th>撥入</th><th>支出</th><th>結餘</th><th>經手人</th></tr></thead>
+                            <tbody id="petty-tbody"></tbody>
+                        </table>
                     </div>
                 </section>
 
-                <!-- ==================== 內容：最新公告 ==================== -->
+                <!-- 3. 公告/規章/薪資/合約 -->
                 <section id="content-announcement" class="content-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告
                     </h3>
-                    <div class="content-card mb-6">
-                        <h4 class="text-xl font-black text-gray-800 mb-2">5/1 正式營運提醒</h4>
-                        <p class="text-stone-500 font-bold">暖暖居家將於 5/1 正式投入服務，請全體同仁確認帳號狀態與居服系統權限。</p>
-                    </div>
+                    <div class="content-card">5/1 正式營運，請夥伴們確認居服系統狀態。</div>
                 </section>
 
-                <!-- ==================== 內容：機構制度規章 ==================== -->
                 <section id="content-policies" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構制度規章
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container">
-                        <div class="text-stone-400 font-bold p-10 text-center col-span-full">正在從雲端載入規章文件...</div>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
 
-                <!-- ==================== 內容：個人勞動契約 ==================== -->
                 <section id="content-contract" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-file-signature text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 個人勞動契約
                     </h3>
-                    <div class="bg-stone-50 border-2 border-dashed border-stone-200 rounded-[30px] p-12 text-center">
-                        <h4 class="text-xl font-black text-gray-700 mb-2">合約已安全備份至雲端</h4>
-                        <p class="text-stone-500 font-bold mb-6 text-sm">您的個人到職合約由系統管理者維護，不開放於此端直接下載以保隱私。</p>
-                        <button class="bg-orange-500 text-white px-8 py-3 rounded-full font-black shadow-lg">申請合約副本</button>
-                    </div>
+                    <div class="bg-stone-50 border-2 border-dashed border-stone-200 rounded-[30px] p-12 text-center">合約由系統管理者歸檔維護，不開放直接下載。</div>
                 </section>
 
-                <!-- ==================== 內容：薪資明細 ==================== -->
                 <section id="content-salary" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
-                        <i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細查詢
+                        <i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細
                     </h3>
-                    <div class="content-card mb-6 bg-orange-50/30 border-orange-100">
-                        <div class="text-xs font-black text-orange-500 mb-2">2026年 5月 預估薪資</div>
-                        <div class="text-5xl font-black text-gray-800">$42,500</div>
-                    </div>
-                    <p class="text-[10px] text-stone-400 font-bold px-4">※ 此數據為系統根據服務時數初步計算，實際金額以薪資條為準。</p>
+                    <div class="content-card mb-6 bg-orange-50/30 border-orange-100 text-5xl font-black text-gray-800">$42,500</div>
                 </section>
             </div>
         </main>
     </div>
 
     <script>
-        // 🚨 這裡已填入您提供的最新 GAS URL
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
-
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAedXdcekXTC-vzybidtSvoOY91k9sreAU", 
-            authDomain: "nuannuan-5ee91.firebaseapp.com", 
-            projectId: "nuannuan-5ee91", 
-            storageBucket: "nuannuan-5ee91.firebasestorage.app", 
-            messagingSenderId: "961966504941", 
-            appId: "1:961966504941:web:2687b9b57293d025ca85e4" 
-        };
-        
-        let auth = null, allDriveFiles = {}, currentRole = 'staff';
-        try { if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); auth = firebase.auth(); } catch (err) { console.error("Firebase Init Error"); }
-
         const ADMIN_EMAILS = ["dick19921014@gmail.com"];
         const SHAREHOLDER_EMAILS = ["e0934148629@gmail.com", "sy020430@gmail.com", "cherrychue0515@gmail.com", "wen67810@gmail.com"];
+        
+        let allDriveFiles = {}, currentRole = 'staff';
 
         function showToast(msg, type = 'info') {
             const c = document.getElementById('toast-container'), t = document.createElement('div');
@@ -403,16 +353,9 @@
 
         async function handleGoogleLogin(res) {
             try {
-                const cred = firebase.auth.GoogleAuthProvider.credential(res.credential);
-                try {
-                    const u = await auth.signInWithCredential(cred);
-                    executeLogin(u.user.email);
-                } catch (e) {
-                    // Fallback to decode JWT if Firebase fails due to domain issues
-                    const payload = JSON.parse(decodeURIComponent(atob(res.credential.split('.')[1]).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-                    executeLogin(payload.email);
-                }
-            } catch (e) { showToast("登入發生異常", "error"); }
+                const payload = JSON.parse(decodeURIComponent(atob(res.credential.split('.')[1]).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+                executeLogin(payload.email);
+            } catch (e) { showToast("登入授權失敗", "error"); }
         }
 
         function handleManualLogin() {
@@ -424,12 +367,12 @@
             currentRole = 'staff';
             if(ADMIN_EMAILS.includes(email)) currentRole = 'admin';
             else if(SHAREHOLDER_EMAILS.includes(email)) currentRole = 'shareholder';
-
+            
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('dashboard-view').classList.remove('hidden-section');
             document.getElementById('user-name').innerText = email.split('@')[0];
             const lb = document.getElementById('user-role-label');
-            lb.innerText = currentRole === 'admin' ? '系統管理員' : (currentRole === 'shareholder' ? '授權股東' : '居服人員');
+            lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
             lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
             if(currentRole === 'admin') {
@@ -459,69 +402,74 @@
                     document.getElementById('display-expense').innerText = '-$' + Math.abs(Number(d.overview.expense || 0)).toLocaleString();
                     document.getElementById('display-net').innerText = '$' + Number(d.overview.totalNet || 0).toLocaleString();
                     
+                    renderTable('income-tbody', d.income, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
+                    renderTable('expense-tbody', d.expense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
+                    renderTable('petty-tbody', d.petty, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+                    
                     allDriveFiles = d.driveFiles || {};
-                    renderManageTable();
-                    renderPublicFiles();
-                    if(!silent) showToast("✅ 雲端同步完成", "success");
+                    renderManageTable(); renderPublicFiles();
+                    if(!silent) showToast("✅ 同步成功！", "success");
                 })
                 .catch(err => { if(!silent) showToast("同步失敗：" + err.message, "error"); })
                 .finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步所有資料`; } });
         }
 
+        function renderTable(id, rows, cols) {
+            const b = document.getElementById(id); if(!b) return;
+            b.innerHTML = '';
+            if(!rows || rows.length === 0) { b.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-stone-300">目前無數據</td></tr>'; return; }
+            rows.forEach(r => {
+                let tr = document.createElement('tr');
+                cols.forEach(c => {
+                    let td = document.createElement('td'), val = r[c] || '-';
+                    if(c.includes('金額') || c.includes('支出') || c.includes('撥入') || c === '目前結餘') {
+                        let n = Number(String(val).replace(/,/g,''));
+                        td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
+                    } else { td.innerText = val; }
+                    tr.appendChild(td);
+                });
+                b.appendChild(tr);
+            });
+        }
+
         function renderManageTable() {
             const b = document.getElementById('manage-files-tbody'); if(!b) return;
             b.innerHTML = '';
-            let hasFiles = false;
             for(let cat in allDriveFiles) {
-                allDriveFiles[cat].forEach(f => {
-                    hasFiles = true;
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="text-sm font-black text-gray-800">${f.name}</td>
-                        <td class="text-xs text-stone-400 font-bold">${f.folderName}</td>
-                        <td class="text-xs text-stone-400 font-bold">${f.date}</td>
-                        <td><span class="${f.isPublished?'bg-green-100 text-green-600':'bg-stone-100 text-stone-400'} px-2 py-0.5 rounded-full text-[10px] font-black">${f.isPublished?'已發佈':'未發佈'}</span></td>
-                        <td><button onclick="togglePublish('${f.id}')" class="text-xs font-black ${f.isPublished?'text-red-500':'text-blue-500'} hover:underline">${f.isPublished?'取消發佈':'立即發佈'}</button></td>
-                    `;
-                    b.appendChild(tr);
+                const subFolderMap = {};
+                (allDriveFiles[cat] || []).forEach(f => {
+                    const fn = f.folderName || "主目錄";
+                    if(!subFolderMap[fn]) subFolderMap[fn] = [];
+                    subFolderMap[fn].push(f);
                 });
+                for(let sn in subFolderMap) {
+                    let h = document.createElement('tr');
+                    h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`;
+                    b.appendChild(h);
+                    subFolderMap[sn].forEach(f => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `<td class="pl-8">${f.name}</td><td>${f.date}</td><td><span class="${f.isPublished?'text-green-600':'text-stone-400'}">${f.isPublished?'已發佈':'待發佈'}</span></td><td><button onclick="togglePublish('${f.id}')" class="text-blue-500 underline">切換</button></td>`;
+                        b.appendChild(tr);
+                    });
+                }
             }
-            if(!hasFiles) b.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-stone-300 font-bold">雲端資料夾目前無任何檔案</td></tr>';
         }
 
         function renderPublicFiles() {
             const pc = document.getElementById('policy-files-container'); if(pc) pc.innerHTML = '';
             const fc = document.getElementById('finance-files-container'); if(fc) fc.innerHTML = '';
-            
             for(let cat in allDriveFiles) {
-                allDriveFiles[cat].filter(f => f.isPublished).forEach(f => {
-                    const html = `
-                        <div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group">
-                            <i class="ph-fill ${cat.includes('股東')?'ph-file-xls text-green-500':'ph-file-pdf text-red-400'} text-4xl group-hover:scale-110 transition-transform"></i>
-                            <div><h4 class="text-lg font-black text-gray-800 mb-1">${f.name}</h4><p class="text-[10px] text-stone-400 font-black">${f.date}</p></div>
-                        </div>
-                    `;
+                (allDriveFiles[cat] || []).filter(f => f.isPublished).forEach(f => {
+                    const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${cat.includes('股東')?'ph-file-xls text-green-500':'ph-file-pdf text-red-400'} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
                     if(cat.includes("規章") || cat.includes("機構")) pc.innerHTML += html;
                     if(cat.includes("股東")) fc.innerHTML += html;
                 });
             }
-            if(pc && pc.innerHTML === '') pc.innerHTML = '<div class="col-span-full text-center text-stone-300 font-bold p-10">目前尚無已發佈規章</div>';
         }
 
         function togglePublish(id) {
-            showToast("正在更新發佈狀態...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: 'togglePublish', fileId: id }) 
-            })
-            .then(res => res.json())
-            .then(res => {
-                if(res.status === 'success') {
-                    showToast(res.isPublished ? "✅ 已成功發佈" : "已撤回發佈", "success");
-                    triggerSync(true);
-                }
-            })
-            .catch(() => showToast("更新失敗", "error"));
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'togglePublish', fileId: id }) })
+            .then(() => triggerSync(true));
         }
 
         function handleLogout() { location.reload(); }
@@ -540,32 +488,18 @@
                 el.classList.add('bg-stone-50', 'text-stone-500');
             });
             document.getElementById('fin-' + id).classList.remove('hidden-section');
-            const target = document.getElementById('tab-fin-' + id);
-            target.classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            document.getElementById('tab-fin-' + id).classList.add('bg-orange-500', 'text-white', 'shadow-md');
         }
 
         const uploader = document.getElementById('fileUploader');
         uploader.addEventListener('change', e => {
             const f = e.target.files[0]; if(!f) return;
-            document.getElementById('uploadText').innerText = "已選取: " + f.name;
             const r = new FileReader(); 
             r.onload = ev => {
-                const btn = document.getElementById('btnUpload');
-                btn.disabled = true; btn.innerText = "上傳中...";
-                fetch(GOOGLE_APPS_SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) 
-                })
+                showToast("正在上傳檔案...", "info");
+                fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
                 .then(res => res.json())
-                .then(res => {
-                    if(res.status === "success") {
-                        showToast("✅ 上傳成功，請點擊同步更新清單", "success");
-                        document.getElementById('uploadText').innerText = "點擊選擇檔案";
-                        triggerSync(true);
-                    }
-                })
-                .catch(() => showToast("上傳失敗", "error"))
-                .finally(() => { btn.disabled = false; btn.innerText = "確認並上傳"; });
+                .then(res => { if(res.status === "success") { showToast("✅ 檔案已傳至雲端", "success"); triggerSync(true); } });
             }; 
             r.readAsDataURL(f);
         });

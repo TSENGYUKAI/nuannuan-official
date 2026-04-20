@@ -285,12 +285,37 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white rounded-[30px] border-2 border-stone-100 p-8">
+
+                    <!-- 新增：雲端檔案發佈管理 -->
+                    <div class="bg-white rounded-[30px] border-2 border-stone-100 p-8 mb-10">
                         <h4 class="text-xl font-black text-gray-800 mb-6">雲端檔案發佈管理</h4>
                         <div class="overflow-x-auto custom-scrollbar">
                             <table class="custom-table w-full">
                                 <thead><tr><th>名稱</th><th>建立日期</th><th>目前發佈位置</th><th>操作</th></tr></thead>
                                 <tbody id="manage-files-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 新增：員工權限管理 -->
+                    <div class="bg-stone-50 rounded-[30px] border-2 border-stone-100 p-8">
+                        <h4 class="text-xl font-black text-gray-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-users-three text-orange-500"></i> 員工權限管理</h4>
+                        <p class="text-xs text-stone-500 font-bold mb-6">直接新增員工 Google 信箱，授權其登入內部營運系統。</p>
+                        
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <input type="email" id="new-user-email" placeholder="輸入員工 Google 信箱" class="flex-1 p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                            <select id="new-user-role" class="p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                <option value="staff">居服員 / 一般員工</option>
+                                <option value="admin">管理員</option>
+                                <option value="shareholder">股東</option>
+                            </select>
+                            <button onclick="handleAddUser()" class="bg-stone-800 text-white px-6 py-3 rounded-xl font-black text-sm hover:bg-orange-500 transition-colors whitespace-nowrap shadow-md">新增 / 更新權限</button>
+                        </div>
+
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="custom-table w-full bg-white rounded-2xl overflow-hidden">
+                                <thead><tr><th>Google 登入信箱</th><th>系統權限身分</th><th>操作</th></tr></thead>
+                                <tbody id="users-tbody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -353,7 +378,6 @@
                             <h4 class="text-xl font-black text-gray-800">股東專區雲端檔案</h4>
                             <button id="btn-edit-finance" onclick="toggleEdit('finance')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                         </div>
-                        <!-- 預設文字 -->
                         <div id="text-finance" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">股東專屬檔案與財務報表皆存放於此。</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
                     </div>
@@ -372,7 +396,6 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
                         <button id="btn-edit-announcement" onclick="toggleEdit('announcement')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <!-- 預設文字 -->
                     <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">5/1 正式營運，請夥伴們確認居服系統狀態。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="announcement-files-container"></div>
                 </section>
@@ -382,7 +405,6 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構規章</div>
                         <button id="btn-edit-policies" onclick="toggleEdit('policies')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <!-- 預設文字 -->
                     <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">機構內部各項規定與指導原則。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
@@ -392,7 +414,6 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約</div>
                         <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <!-- 預設文字 -->
                     <div id="text-contract" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的勞動契約檔案。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
@@ -402,7 +423,6 @@
                         <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細</div>
                         <button id="btn-edit-salary" onclick="toggleEdit('salary')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
-                    <!-- 預設文字 -->
                     <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的薪資單檔案。</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="salary-files-container"></div>
                 </section>
@@ -419,45 +439,27 @@
             <div class="space-y-3 mb-8">
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-stone-50">
                     <input type="radio" name="publish_target" value="none" class="w-5 h-5 accent-orange-500">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-700">🚫 不公開 (取消發佈)</span>
-                        <span class="text-[10px] text-stone-400 font-bold mt-0.5">將檔案從前端隱藏</span>
-                    </div>
+                    <div class="flex flex-col"><span class="font-black text-gray-700">🚫 不公開 (取消發佈)</span><span class="text-[10px] text-stone-400 font-bold mt-0.5">將檔案從前端隱藏</span></div>
                 </label>
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="announcement" class="w-5 h-5 accent-orange-500">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-700">📢 發佈至：最新公告</span>
-                        <span class="text-[10px] text-stone-400 font-bold mt-0.5">首頁公告區，所有人可見</span>
-                    </div>
+                    <div class="flex flex-col"><span class="font-black text-gray-700">📢 發佈至：最新公告</span><span class="text-[10px] text-stone-400 font-bold mt-0.5">首頁公告區，所有人可見</span></div>
                 </label>
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="policies" class="w-5 h-5 accent-orange-500">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-700">🏦 發佈至：機構規章</span>
-                        <span class="text-[10px] text-stone-400 font-bold mt-0.5">員工守則與作業辦法</span>
-                    </div>
+                    <div class="flex flex-col"><span class="font-black text-gray-700">🏦 發佈至：機構規章</span><span class="text-[10px] text-stone-400 font-bold mt-0.5">員工守則與作業辦法</span></div>
                 </label>
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="contract" class="w-5 h-5 accent-orange-500">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-700">📝 發佈至：勞動契約區</span>
-                        <span class="text-[10px] text-stone-400 font-bold mt-0.5">專屬個人檔案 (檔名需含員工信箱帳號)</span>
-                    </div>
+                    <div class="flex flex-col"><span class="font-black text-gray-700">📝 發佈至：勞動契約區</span><span class="text-[10px] text-stone-400 font-bold mt-0.5">專屬個人檔案 (檔名需含員工帳號)</span></div>
                 </label>
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="shareholder" class="w-5 h-5 accent-orange-500">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-700">💼 發佈至：股東專區</span>
-                        <span class="text-[10px] text-stone-400 font-bold mt-0.5">僅限股東權限可檢視之財報</span>
-                    </div>
+                    <div class="flex flex-col"><span class="font-black text-gray-700">💼 發佈至：股東專區</span><span class="text-[10px] text-stone-400 font-bold mt-0.5">僅限股東權限可檢視之財報</span></div>
                 </label>
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="salary" class="w-5 h-5 accent-orange-500">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-700">💰 發佈至：薪資明細</span>
-                        <span class="text-[10px] text-stone-400 font-bold mt-0.5">專屬個人檔案 (檔名需含員工信箱帳號)</span>
-                    </div>
+                    <div class="flex flex-col"><span class="font-black text-gray-700">💰 發佈至：薪資明細</span><span class="text-[10px] text-stone-400 font-bold mt-0.5">專屬個人檔案 (檔名需含員工帳號)</span></div>
                 </label>
             </div>
 
@@ -485,14 +487,18 @@
     </div>
 
     <script>
+        // 👇 請確定這組是您專屬的部署網址
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
         
         let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
         let currentPublishFileId = null;
         let currentDeleteFileId = null; 
         let financeDataRaw = { income: [], expense: [], petty: [] };
+        
+        // 存放系統內所有員工名單與自己已簽收的檔案ID
+        let allUsersList = [];
+        let signedFilesList = [];
 
-        // 定義各區塊預設文字防呆
         const defaultTexts = {
             'announcement': '5/1 正式營運，請夥伴們確認居服系統狀態。',
             'policies': '機構內部各項規定與指導原則。',
@@ -520,10 +526,7 @@
                 }).join(''));
                 const payload = JSON.parse(jsonPayload);
                 executeLogin(payload.email, payload.name);
-            } catch (e) { 
-                showToast("授權失敗或解析錯誤", "error"); 
-                console.error(e);
-            }
+            } catch (e) { showToast("授權失敗", "error"); console.error(e); }
         }
 
         function handleManualLogin() {
@@ -544,42 +547,26 @@
         function toggleEdit(sectionId) {
             const contentDiv = document.getElementById('text-' + sectionId);
             const btn = document.getElementById('btn-edit-' + sectionId);
-            const isEditing = contentDiv.isContentEditable;
-            
-            if (isEditing) {
-                contentDiv.contentEditable = false;
-                contentDiv.classList.remove('editable-active');
+            if (contentDiv.isContentEditable) {
+                contentDiv.contentEditable = false; contentDiv.classList.remove('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文';
-                
                 const newContent = contentDiv.innerHTML;
-                
                 localStorage.setItem('content_' + sectionId, newContent);
                 showToast('正在同步內文至雲端...', 'info');
-
-                fetch(GOOGLE_APPS_SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'saveContent', sectionId: sectionId, content: newContent }) 
-                })
-                .then(res => res.json())
-                .then(res => { 
-                    if(res.status === 'success') showToast('✅ 內文已儲存至雲端', 'success'); 
+                fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'saveContent', sectionId: sectionId, content: newContent }) })
+                .then(res => res.json()).then(res => { 
+                    if(res.status === 'success') showToast('✅ 內文已儲存', 'success'); 
                     else showToast('雲端儲存失敗', 'error'); 
-                })
-                .catch(() => showToast("連線異常，已暫存於本機", "error"));
-
+                }).catch(() => showToast("連線異常，已暫存於本機", "error"));
             } else {
-                contentDiv.contentEditable = true;
-                contentDiv.focus();
-                contentDiv.classList.add('editable-active');
+                contentDiv.contentEditable = true; contentDiv.focus(); contentDiv.classList.add('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-check text-lg"></i> 完成儲存';
             }
         }
 
         function getMonthStr(row) {
             let monthVal = row['月份'];
-            if (monthVal && String(monthVal).trim() !== '') {
-                return String(monthVal).trim().replace('-', '/');
-            }
+            if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
             let dateStr = row['日期'];
             if (!dateStr) return '未知';
             let m = String(dateStr).match(/^(\d{4})[-/年](\d{1,2})/);
@@ -592,80 +579,157 @@
             
             const fetchUrl = GOOGLE_APPS_SCRIPT_URL + "?email=" + encodeURIComponent(currentUserEmail) + "&t=" + new Date().getTime();
             
-            fetch(fetchUrl)
-                .then(r => r.json())
-                .then(d => {
-                    if(d.status === "error") throw new Error(d.message);
-                    currentRole = d.role || 'unauthorized';
-                    document.getElementById('loading-view').classList.add('hidden-section');
-                    
-                    if (currentRole === 'unauthorized') {
-                        document.getElementById('unauthorized-view').classList.remove('hidden-section');
-                        return;
+            fetch(fetchUrl).then(r => r.json()).then(d => {
+                if(d.status === "error") throw new Error(d.message);
+                currentRole = d.role || 'unauthorized';
+                document.getElementById('loading-view').classList.add('hidden-section');
+                
+                if (currentRole === 'unauthorized') {
+                    document.getElementById('unauthorized-view').classList.remove('hidden-section'); return;
+                }
+                
+                document.getElementById('dashboard-view').classList.remove('hidden-section');
+                document.getElementById('user-name').innerText = currentUserDisplayName;
+                const lb = document.getElementById('user-role-label');
+                lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
+                lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
+
+                if (currentRole === 'admin') {
+                    document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
+                    document.getElementById('menu-superadmin').classList.remove('hidden-section');
+                    document.getElementById('menu-shareholder').classList.remove('hidden-section');
+                    document.getElementById('menu-staff').classList.remove('hidden-section');
+                } else if(currentRole === 'shareholder') {
+                    document.getElementById('menu-shareholder').classList.remove('hidden-section');
+                } else {
+                    document.getElementById('menu-staff').classList.remove('hidden-section');
+                }
+
+                if (isFirstLogin) {
+                    switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement'));
+                    isFirstLogin = false;
+                }
+
+                ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
+                    const el = document.getElementById('text-' + id);
+                    if (el && !el.isContentEditable) {
+                        const newContent = (d.contents && d.contents[id]) ? d.contents[id] : defaultTexts[id];
+                        el.innerHTML = newContent; localStorage.setItem('content_' + id, newContent);
                     }
-                    
-                    document.getElementById('dashboard-view').classList.remove('hidden-section');
-                    document.getElementById('user-name').innerText = currentUserDisplayName;
-                    const lb = document.getElementById('user-role-label');
-                    lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
-                    lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
+                });
+                
+                financeDataRaw.income = d.income || [];
+                financeDataRaw.expense = d.expense || [];
+                financeDataRaw.petty = d.petty || [];
 
-                    if (currentRole === 'admin') {
-                        document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
-                        document.getElementById('menu-superadmin').classList.remove('hidden-section');
-                        document.getElementById('menu-shareholder').classList.remove('hidden-section');
-                        document.getElementById('menu-staff').classList.remove('hidden-section');
-                    } else if(currentRole === 'shareholder') {
-                        document.getElementById('menu-shareholder').classList.remove('hidden-section');
-                    } else {
-                        document.getElementById('menu-staff').classList.remove('hidden-section');
-                    }
+                let months = new Set();
+                const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
+                financeDataRaw.income.forEach(addM); financeDataRaw.expense.forEach(addM); financeDataRaw.petty.forEach(addM);
 
-                    if (isFirstLogin) {
-                        switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement'));
-                        isFirstLogin = false;
-                    }
+                let filterSelect = document.getElementById('finance-month-filter');
+                let prevVal = filterSelect.value;
+                filterSelect.innerHTML = '<option value="all">全部月份</option>';
+                Array.from(months).sort().reverse().forEach(m => {
+                    let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
+                });
+                filterSelect.value = prevVal || 'all';
+                applyFinanceFilter();
+                
+                allDriveFiles = d.driveFiles || {};
+                allUsersList = d.users || [];
+                signedFilesList = d.signedFiles || [];
 
-                    // === 修改：讀取雲端存檔內文，若無則顯示預設文字防呆 ===
-                    ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
-                        const el = document.getElementById('text-' + id);
-                        if (el && !el.isContentEditable) {
-                            // 如果雲端有資料就用雲端，沒有就用 defaultTexts
-                            const newContent = (d.contents && d.contents[id]) ? d.contents[id] : defaultTexts[id];
-                            el.innerHTML = newContent;
-                            localStorage.setItem('content_' + id, newContent);
-                        }
-                    });
-                    
-                    financeDataRaw.income = d.income || [];
-                    financeDataRaw.expense = d.expense || [];
-                    financeDataRaw.petty = d.petty || [];
+                renderManageTable(); 
+                renderUsersTable(); // 渲染權限名單
+                renderPublicFiles(); // 渲染卡片(包含簽收按鈕)
 
-                    let months = new Set();
-                    const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
-                    financeDataRaw.income.forEach(addM); financeDataRaw.expense.forEach(addM); financeDataRaw.petty.forEach(addM);
-
-                    let filterSelect = document.getElementById('finance-month-filter');
-                    let prevVal = filterSelect.value;
-                    filterSelect.innerHTML = '<option value="all">全部月份</option>';
-                    Array.from(months).sort().reverse().forEach(m => {
-                        let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
-                    });
-                    filterSelect.value = prevVal || 'all';
-                    applyFinanceFilter();
-                    
-                    allDriveFiles = d.driveFiles || {};
-                    renderManageTable(); renderPublicFiles();
-                    if(!silent) showToast("✅ 同步成功！", "success");
-                })
-                .catch(err => { 
-                    showToast("同步失敗：" + err.message, "error"); 
-                    document.getElementById('loading-view').classList.add('hidden-section');
-                    if(currentRole === 'unauthorized') document.getElementById('login-view').classList.remove('hidden-section');
-                })
-                .finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
+                if(!silent) showToast("✅ 同步成功！", "success");
+            }).catch(err => { 
+                showToast("同步失敗：" + err.message, "error"); 
+                document.getElementById('loading-view').classList.add('hidden-section');
+                if(currentRole === 'unauthorized') document.getElementById('login-view').classList.remove('hidden-section');
+            }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
 
+        // ==================== 員工權限管理 (新增) ====================
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            if(allUsersList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-stone-400 font-bold">目前無員工資料</td></tr>';
+                return;
+            }
+            allUsersList.forEach(u => {
+                let roleText = u.role === 'admin' ? '管理員' : (u.role === 'shareholder' ? '股東' : '居服員');
+                let roleStyle = u.role === 'admin' ? 'text-red-600 bg-red-50 border border-red-200' : (u.role === 'shareholder' ? 'text-orange-600 bg-orange-50 border border-orange-200' : 'text-blue-600 bg-blue-50 border border-blue-200');
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold text-gray-700 tracking-wide">${u.email}</td>
+                    <td><span class="px-3 py-1 rounded-md text-[10px] font-black ${roleStyle}">${roleText}</span></td>
+                    <td>
+                        <button onclick="handleDeleteUser('${u.email}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors" title="移除存取權限"><i class="ph-bold ph-trash"></i> 移除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleAddUser() {
+            const email = document.getElementById('new-user-email').value.trim().toLowerCase();
+            const role = document.getElementById('new-user-role').value;
+            if(!email) return showToast("請輸入員工 Google 信箱", "error");
+            if(!email.includes('@')) return showToast("信箱格式錯誤", "error");
+            
+            showToast("正在更新權限...", "info");
+            
+            // 樂觀更新
+            let existing = allUsersList.find(u => u.email === email);
+            if(existing) existing.role = role; else allUsersList.push({email, role});
+            renderUsersTable();
+            document.getElementById('new-user-email').value = '';
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'updateUserRole', email: email, role: role })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') showToast("✅ 權限已生效", "success");
+                else showToast("更新失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        function handleDeleteUser(email) {
+            if(!confirm(`確定要移除「${email}」的系統登入權限嗎？\n移除後該帳號將無法登入系統。`)) return;
+            showToast("正在移除權限...", "info");
+            allUsersList = allUsersList.filter(u => u.email !== email);
+            renderUsersTable();
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deleteUserRole', email: email })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') showToast("✅ 權限已移除", "success");
+                else showToast("移除失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        // ==================== 檔案簽收機制 (新增) ====================
+        function signDocument(fileId) {
+            showToast("正在處理簽收...", "info");
+            if(!signedFilesList.includes(fileId)) {
+                signedFilesList.push(fileId);
+                renderPublicFiles(); // 重新渲染卡片，將按鈕轉為綠色
+            }
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'signFile', fileId: fileId, email: currentUserEmail, name: currentUserDisplayName })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') showToast("✅ 檔案已成功簽收", "success");
+                else showToast("簽收紀錄失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        // ==================== 原有財務與檔案渲染邏輯 ====================
         function applyFinanceFilter() {
             let selM = document.getElementById('finance-month-filter').value;
             let fI = financeDataRaw.income, fE = financeDataRaw.expense, fP = financeDataRaw.petty;
@@ -715,8 +779,7 @@
                 const subFolderMap = {};
                 (allDriveFiles[cat] || []).forEach(f => {
                     const fn = f.folderName || "主目錄";
-                    if(!subFolderMap[fn]) subFolderMap[fn] = [];
-                    subFolderMap[fn].push(f);
+                    if(!subFolderMap[fn]) subFolderMap[fn] = []; subFolderMap[fn].push(f);
                 });
                 for(let sn in subFolderMap) {
                     let h = document.createElement('tr'); h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`;
@@ -744,79 +807,50 @@
         }
 
         function openDeleteModal(fileId, fileName) {
-            currentDeleteFileId = fileId;
-            document.getElementById('delete-modal-filename').innerText = fileName;
-            const modal = document.getElementById('delete-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('delete-modal-box').classList.remove('scale-95'); 
-            });
+            currentDeleteFileId = fileId; document.getElementById('delete-modal-filename').innerText = fileName;
+            const modal = document.getElementById('delete-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
         }
 
         function closeDeleteModal() {
-            const modal = document.getElementById('delete-modal'); 
-            document.getElementById('delete-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); currentDeleteFileId = null; }, 300);
+            const modal = document.getElementById('delete-modal'); document.getElementById('delete-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentDeleteFileId = null; }, 300);
         }
 
         function confirmDeleteFile() {
             if(!currentDeleteFileId) return;
-            const idToDel = currentDeleteFileId;
-            showToast("正在刪除檔案...", "info");
-            
-            for(let cat in allDriveFiles) {
-                allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== idToDel);
-            }
-            renderManageTable(); 
-            renderPublicFiles(); 
-            closeDeleteModal();
-            
-            fetch(GOOGLE_APPS_SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: 'deleteFile', fileId: idToDel }) 
-            })
-            .then(res => res.json())
-            .then(res => { 
-                if(res.status === 'success') {
-                    showToast("✅ 檔案已移至垃圾桶", "success");
-                    setTimeout(() => triggerSync(true), 2000); 
-                } else {
-                    showToast("刪除失敗", "error");
-                }
-            })
-            .catch(() => showToast("刪除異常，請檢查網路連線", "error"));
+            const idToDel = currentDeleteFileId; showToast("正在刪除檔案...", "info");
+            for(let cat in allDriveFiles) allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== idToDel);
+            renderManageTable(); renderPublicFiles(); closeDeleteModal();
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteFile', fileId: idToDel }) })
+            .then(res => res.json()).then(res => { 
+                if(res.status === 'success') { showToast("✅ 檔案已移至垃圾桶", "success"); setTimeout(() => triggerSync(true), 2000); } 
+                else showToast("刪除失敗", "error");
+            }).catch(() => showToast("刪除異常，請檢查網路連線", "error"));
         }
 
         function openPublishModal(fileId, fileName, currentTarget) {
-            currentPublishFileId = fileId; 
-            document.getElementById('modal-filename').innerText = fileName;
+            currentPublishFileId = fileId; document.getElementById('modal-filename').innerText = fileName;
             document.getElementsByName('publish_target').forEach(r => { if(r.value === currentTarget) r.checked = true; });
             const modal = document.getElementById('publish-modal'); modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('publish-modal-box').classList.remove('scale-95'); });
         }
 
         function closePublishModal() {
-            const modal = document.getElementById('publish-modal'); 
-            document.getElementById('publish-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); currentPublishFileId = null; }, 300);
+            const modal = document.getElementById('publish-modal'); document.getElementById('publish-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentPublishFileId = null; }, 300);
         }
 
         function confirmPublishTarget() {
             if(!currentPublishFileId) return;
             const targetValue = document.querySelector('input[name="publish_target"]:checked').value;
             showToast("正在同步發佈狀態...", "info");
-            
             for(let cat in allDriveFiles) {
                 allDriveFiles[cat].forEach(f => { if(f.id === currentPublishFileId) { f.publishTarget = targetValue; f.isPublished = (targetValue !== 'none'); } });
             }
             renderManageTable(); renderPublicFiles(); closePublishModal();
-            
             fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'setPublishTarget', fileId: currentPublishFileId, target: targetValue }) })
-            .then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); })
-            .catch(() => showToast("同步異常，請重新同步資料", "error"));
+            .then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); }).catch(() => showToast("同步異常", "error"));
         }
 
         function renderPublicFiles() {
@@ -827,9 +861,31 @@
                     let t = f.publishTarget;
                     if (t === 'none' && f.isPublished) t = cat.includes("股東") ? 'shareholder' : 'policies';
                     if (t !== 'none' && containers[t]) {
-                        const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
-                        const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group animate-page"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400 font-bold">${f.date}</p></div></div>`;
                         if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
+                        
+                        const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
+                        const isSigned = signedFilesList.includes(f.id);
+                        
+                        // 動態生成簽收按鈕 (如果已簽收則顯示綠色且禁用)
+                        const signBtnHtml = isSigned
+                            ? `<button disabled class="mt-4 px-3 py-1.5 bg-green-50 border border-green-200 text-green-600 rounded-lg text-[10px] font-black flex items-center gap-1 w-max"><i class="ph-bold ph-check-circle text-sm"></i> ✅ 已詳閱簽收</button>`
+                            : `<button onclick="event.stopPropagation(); signDocument('${f.id}')" class="mt-4 px-3 py-1.5 bg-stone-100 border border-stone-200 text-stone-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-lg text-[10px] font-black transition-colors flex items-center gap-1 w-max shadow-sm"><i class="ph-bold ph-pen text-sm"></i> 📝 我已詳閱並同意</button>`;
+
+                        // 卡片結構調整，把簽收按鈕放在最下方
+                        const html = `
+                        <div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative">
+                            <div class="flex items-start gap-4">
+                                <i class="ph-fill ${icon} text-4xl group-hover:scale-110 transition-transform"></i>
+                                <div>
+                                    <h4 class="font-black text-gray-800 leading-tight">${f.name}</h4>
+                                    <p class="text-[10px] text-stone-400 font-bold mt-1">${f.date}</p>
+                                </div>
+                            </div>
+                            <div class="border-t border-stone-100 mt-4 pt-1 flex justify-end">
+                                ${signBtnHtml}
+                            </div>
+                        </div>`;
+                        
                         containers[t].innerHTML += html;
                     }
                 });
@@ -854,16 +910,12 @@
         function switchFinanceTab(id) {
             document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
             document.querySelectorAll('.finance-tab').forEach(el => {
-                el.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
-                el.classList.add('bg-stone-50', 'text-stone-500');
+                el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500');
             });
             const target = document.getElementById('fin-' + id);
             if(target) target.classList.remove('hidden-section');
             const btn = document.getElementById('tab-fin-' + id);
-            if(btn) {
-                btn.classList.remove('bg-stone-50', 'text-stone-500');
-                btn.classList.add('bg-orange-500', 'text-white', 'shadow-md');
-            }
+            if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
         }
 
         const uploader = document.getElementById('fileUploader');

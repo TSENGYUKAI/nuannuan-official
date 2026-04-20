@@ -188,7 +188,6 @@
                     
                     <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
                         <div onclick="switchTab('contract')" id="tab-contract" class="nav-item">
-                            <!-- 修正：將無法顯示的 icon 替換為標準的文件圖示 -->
                             <i class="ph-bold ph-file-text text-xl"></i> 勞動契約
                         </div>
                         <div onclick="switchTab('salary')" id="tab-salary" class="nav-item">
@@ -261,13 +260,21 @@
                     </div>
                 </section>
 
-                <!-- 2. 財務系統 -->
+                <!-- 2. 財務系統 (新增月份篩選) -->
                 <section id="content-finance" class="content-section hidden-section">
-                    <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center justify-between border-b-2 border-orange-50 pb-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 會計與財務系統
+                            <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
+                            <h3 class="text-3xl font-black text-gray-800">會計與財務系統</h3>
                         </div>
-                    </h3>
+                        <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border-2 border-stone-100">
+                            <i class="ph-bold ph-calendar-blank text-stone-400"></i>
+                            <select id="finance-month-filter" onchange="applyFinanceFilter()" class="bg-transparent text-stone-700 font-bold text-sm outline-none cursor-pointer">
+                                <option value="all">全部月份</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="flex gap-2 mb-8 overflow-x-auto custom-scrollbar pb-2">
                         <button onclick="switchFinanceTab('overview')" id="tab-fin-overview" class="finance-tab bg-orange-500 text-white shadow-md">財務總覽</button>
                         <button onclick="switchFinanceTab('income')" id="tab-fin-income" class="finance-tab bg-stone-50 text-stone-500">收入流水</button>
@@ -278,15 +285,15 @@
                     
                     <div id="fin-overview" class="fin-section animate-page grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="content-card bg-orange-50 border-orange-200">
-                            <div class="text-xs font-black text-orange-600 mb-2 uppercase">該月總收入</div>
+                            <div class="text-xs font-black text-orange-600 mb-2 uppercase">總收入 <span class="filter-hint text-[10px]"></span></div>
                             <div id="display-revenue" class="text-4xl font-black text-gray-800 tracking-tighter">$0</div>
                         </div>
                         <div class="content-card bg-stone-50">
-                            <div class="text-xs font-black text-stone-500 mb-2 uppercase">該月總支出</div>
+                            <div class="text-xs font-black text-stone-500 mb-2 uppercase">總支出 <span class="filter-hint text-[10px]"></span></div>
                             <div id="display-expense" class="text-4xl font-black text-red-500 tracking-tighter">-$0</div>
                         </div>
                         <div class="content-card bg-stone-800 text-white border-stone-700">
-                            <div class="text-xs font-black text-orange-400 mb-2 uppercase">累計淨利</div>
+                            <div class="text-xs font-black text-orange-400 mb-2 uppercase">淨利 <span class="filter-hint text-[10px]"></span></div>
                             <div id="display-net" class="text-4xl font-black tracking-tighter">$0</div>
                         </div>
                     </div>
@@ -354,7 +361,6 @@
                 <section id="content-contract" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3">
-                            <!-- 修正：替換成合約文件 Icon -->
                             <i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約
                         </div>
                         <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
@@ -451,6 +457,11 @@
         let allDriveFiles = {}, currentRole = 'staff';
         let currentPublishFileId = null;
         let currentUserName = '';
+        let currentUserEmail = ''; 
+        let isFirstLogin = false;  
+
+        // 新增：財務原始數據暫存區，供月份篩選使用
+        let financeDataRaw = { income: [], expense: [], petty: [] };
 
         function showToast(msg, type = 'info') {
             const c = document.getElementById('toast-container'), t = document.createElement('div');
@@ -475,37 +486,22 @@
         }
 
         function executeLogin(email) {
-            currentRole = 'staff';
-            if(ADMIN_EMAILS.includes(email)) currentRole = 'admin';
-            else if(SHAREHOLDER_EMAILS.includes(email)) currentRole = 'shareholder';
-            
+            currentUserEmail = email;
             currentUserName = email.split('@')[0];
+            isFirstLogin = true;
+
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('dashboard-view').classList.remove('hidden-section');
             document.getElementById('user-name').innerText = currentUserName;
+            
             const lb = document.getElementById('user-role-label');
-            lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
-            lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
-
-            if (currentRole === 'admin') {
-                document.querySelectorAll('.admin-edit-btn').forEach(btn => btn.classList.remove('hidden'));
-            }
+            lb.innerText = "驗證權限中...";
+            lb.className = `text-[10px] font-black text-stone-500 bg-stone-200 px-3 py-1 rounded-full mt-1 inline-block`;
 
             loadEditableContents();
 
-            if(currentRole === 'admin') {
-                document.getElementById('menu-superadmin').classList.remove('hidden-section');
-                document.getElementById('menu-shareholder').classList.remove('hidden-section');
-                document.getElementById('menu-staff').classList.remove('hidden-section');
-                switchTab('manage');
-            } else if(currentRole === 'shareholder') {
-                document.getElementById('menu-shareholder').classList.remove('hidden-section');
-                switchTab('finance');
-            } else {
-                document.getElementById('menu-staff').classList.remove('hidden-section');
-                switchTab('announcement');
-            }
-            triggerSync(true);
+            // 觸發同步，將信箱交給後端驗證真實權限
+            triggerSync(false);
         }
 
         function toggleEdit(sectionId) {
@@ -539,25 +535,103 @@
             });
         }
 
+        // 新增：優先讀取試算表 H 欄 (標題需為「月份」) 的 yyyy-mm 格式
+        function getMonthStr(row) {
+            // 如果試算表有現成的「月份」欄位，直接抓取並把 yyyy-mm 轉成 yyyy/mm 以便閱讀
+            let monthVal = row['月份'];
+            if (monthVal && String(monthVal).trim() !== '') {
+                let val = String(monthVal).trim();
+                // 替換連字號為斜線，例如 2024-04 變成 2024/04
+                return val.replace('-', '/');
+            }
+
+            // 如果找不到月份欄位，作為防呆，退回原本自動解析日期的機制
+            let dateStr = row['日期'];
+            if (!dateStr) return '未知';
+            let str = String(dateStr).trim();
+            let m = str.match(/^(\d{4})[-/年](\d{1,2})/);
+            if (m) {
+                let year = m[1];
+                let month = m[2].padStart(2, '0');
+                return `${year}/${month}`;
+            }
+            return '其他';
+        }
+
         function triggerSync(silent = false) {
             const btn = document.getElementById('btnSyncFiles');
             if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
 
-            // === 修正：加入隨機時間參數 (?t=...) 強迫瀏覽器重新抓取，解決取消發佈後彈回舊資料的快取問題 ===
-            const fetchUrl = GOOGLE_APPS_SCRIPT_URL + (GOOGLE_APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
+            // 強制防快取 + 傳送使用者信箱
+            const fetchUrl = GOOGLE_APPS_SCRIPT_URL + "?email=" + encodeURIComponent(currentUserEmail) + "&t=" + new Date().getTime();
 
             fetch(fetchUrl)
                 .then(r => r.json())
                 .then(d => {
                     if(d.status === "error") throw new Error(d.message);
                     
-                    document.getElementById('display-revenue').innerText = '$' + Number(d.overview.revenue || 0).toLocaleString();
-                    document.getElementById('display-expense').innerText = '-$' + Math.abs(Number(d.overview.expense || 0)).toLocaleString();
-                    document.getElementById('display-net').innerText = '$' + Number(d.overview.totalNet || 0).toLocaleString();
+                    // 接收後端回傳的安全權限
+                    currentRole = d.role || 'staff';
+                    const lb = document.getElementById('user-role-label');
+                    lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
+                    lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
+
+                    // 動態顯示對應選單
+                    if (currentRole === 'admin') {
+                        document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
+                        document.getElementById('menu-superadmin').classList.remove('hidden-section');
+                        document.getElementById('menu-shareholder').classList.remove('hidden-section');
+                        document.getElementById('menu-staff').classList.remove('hidden-section');
+                    } else if(currentRole === 'shareholder') {
+                        document.getElementById('menu-shareholder').classList.remove('hidden-section');
+                    } else {
+                        document.getElementById('menu-staff').classList.remove('hidden-section');
+                    }
+
+                    // 首次登入跳轉首頁
+                    if (isFirstLogin) {
+                        if(currentRole === 'admin') switchTab('manage');
+                        else if(currentRole === 'shareholder') switchTab('finance');
+                        else switchTab('announcement');
+                        isFirstLogin = false;
+                    }
                     
-                    renderTable('income-tbody', d.income, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
-                    renderTable('expense-tbody', d.expense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
-                    renderTable('petty-tbody', d.petty, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+                    // 寫入財務原始數據暫存區
+                    financeDataRaw.income = d.income || [];
+                    financeDataRaw.expense = d.expense || [];
+                    financeDataRaw.petty = d.petty || [];
+
+                    // 動態產生月份篩選選單
+                    let months = new Set();
+                    const addMonth = (row) => {
+                        let m = getMonthStr(row); // 傳入整列資料
+                        if (m !== '其他' && m !== '未知') months.add(m);
+                    };
+                    financeDataRaw.income.forEach(addMonth);
+                    financeDataRaw.expense.forEach(addMonth);
+                    financeDataRaw.petty.forEach(addMonth);
+
+                    let monthArr = Array.from(months).sort().reverse();
+                    let filterSelect = document.getElementById('finance-month-filter');
+                    let currentVal = filterSelect.value;
+                    
+                    filterSelect.innerHTML = '<option value="all">全部月份</option>';
+                    monthArr.forEach(m => {
+                        let opt = document.createElement('option');
+                        opt.value = m;
+                        opt.innerText = m;
+                        filterSelect.appendChild(opt);
+                    });
+
+                    // 保持使用者原先的篩選選項
+                    if (monthArr.includes(currentVal)) {
+                        filterSelect.value = currentVal;
+                    } else {
+                        filterSelect.value = 'all';
+                    }
+
+                    // 套用篩選器並渲染表格/總覽數據
+                    applyFinanceFilter();
                     
                     allDriveFiles = d.driveFiles || {};
                     renderManageTable(); 
@@ -569,10 +643,53 @@
                 .finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步所有資料`; } });
         }
 
+        // 新增：套用財務月份篩選器
+        function applyFinanceFilter() {
+            let selectedMonth = document.getElementById('finance-month-filter').value;
+            
+            let filteredIncome = financeDataRaw.income;
+            let filteredExpense = financeDataRaw.expense;
+            let filteredPetty = financeDataRaw.petty;
+
+            // 針對指定月份過濾
+            if (selectedMonth !== 'all') {
+                filteredIncome = financeDataRaw.income.filter(r => getMonthStr(r) === selectedMonth);
+                filteredExpense = financeDataRaw.expense.filter(r => getMonthStr(r) === selectedMonth);
+                filteredPetty = financeDataRaw.petty.filter(r => getMonthStr(r) === selectedMonth);
+                
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selectedMonth})`);
+            } else {
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`);
+            }
+
+            // 重新計算總覽數據
+            let totalRevenue = 0;
+            filteredIncome.forEach(row => {
+                let amt = parseFloat(String(row['金額'] || 0).replace(/,/g, '')) || 0;
+                totalRevenue += amt;
+            });
+
+            let totalExpense = 0;
+            filteredExpense.forEach(row => {
+                let amt = parseFloat(String(row['金額'] || 0).replace(/,/g, '')) || 0;
+                totalExpense += amt;
+            });
+
+            // 更新 UI 數字
+            document.getElementById('display-revenue').innerText = '$' + totalRevenue.toLocaleString();
+            document.getElementById('display-expense').innerText = '-$' + Math.abs(totalExpense).toLocaleString();
+            document.getElementById('display-net').innerText = '$' + (totalRevenue - totalExpense).toLocaleString();
+
+            // 渲染過濾後的表格
+            renderTable('income-tbody', filteredIncome, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
+            renderTable('expense-tbody', filteredExpense, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
+            renderTable('petty-tbody', filteredPetty, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+        }
+
         function renderTable(id, rows, cols) {
             const b = document.getElementById(id); if(!b) return;
             b.innerHTML = '';
-            if(!rows || rows.length === 0) { b.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-stone-300">目前無數據</td></tr>'; return; }
+            if(!rows || rows.length === 0) { b.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-stone-300">該月份無相關數據</td></tr>'; return; }
             
             rows.forEach(r => {
                 let tr = document.createElement('tr');
@@ -684,7 +801,7 @@
             const targetValue = checkedRadio.value;
             showToast("正在更新發佈對象設定...", "info");
             
-            // === 加入樂觀更新 (Optimistic UI Update) ===
+            // === 樂觀更新 (Optimistic UI Update) 解決彈回舊資料問題 ===
             for(let cat in allDriveFiles) {
                 allDriveFiles[cat].forEach(fileObj => {
                     if(fileObj.id === currentPublishFileId) {
@@ -696,7 +813,6 @@
             renderManageTable();
             renderPublicFiles();
             closePublishModal();
-            // ===========================================
 
             fetch(GOOGLE_APPS_SCRIPT_URL, { 
                 method: 'POST', 
@@ -704,7 +820,7 @@
             })
             .then(res => res.json())
             .then(() => { 
-                // 延長等待時間至 2.5 秒，確保 Google 試算表已徹底儲存
+                // 延長至 2.5 秒，確保試算表已徹底寫入
                 setTimeout(() => { triggerSync(true); }, 2500); 
             })
             .catch(() => showToast("設定可能未完全同步，請檢查網路連線", "error"));
@@ -729,7 +845,6 @@
                     if (target === 'staff') target = 'policies';
 
                     if (target !== 'none' && containers[target]) {
-                        // 使用標準相容的圖示
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
                         const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
                         

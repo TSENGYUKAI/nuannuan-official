@@ -286,7 +286,7 @@
                         </div>
                     </div>
 
-                    <!-- 新增：雲端檔案發佈管理 -->
+                    <!-- 雲端檔案發佈管理 -->
                     <div class="bg-white rounded-[30px] border-2 border-stone-100 p-8 mb-10">
                         <h4 class="text-xl font-black text-gray-800 mb-6">雲端檔案發佈管理</h4>
                         <div class="overflow-x-auto custom-scrollbar">
@@ -297,7 +297,7 @@
                         </div>
                     </div>
 
-                    <!-- 新增：員工權限管理 -->
+                    <!-- 員工權限管理 -->
                     <div class="bg-stone-50 rounded-[30px] border-2 border-stone-100 p-8">
                         <h4 class="text-xl font-black text-gray-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-users-three text-orange-500"></i> 員工權限管理</h4>
                         <p class="text-xs text-stone-500 font-bold mb-6">直接新增員工 Google 信箱，授權其登入內部營運系統。</p>
@@ -640,8 +640,8 @@
                 signedFilesList = d.signedFiles || [];
 
                 renderManageTable(); 
-                renderUsersTable(); // 渲染權限名單
-                renderPublicFiles(); // 渲染卡片(包含簽收按鈕)
+                renderUsersTable(); 
+                renderPublicFiles(); 
 
                 if(!silent) showToast("✅ 同步成功！", "success");
             }).catch(err => { 
@@ -651,7 +651,7 @@
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
 
-        // ==================== 員工權限管理 (新增) ====================
+        // ==================== 員工權限管理 ====================
         function renderUsersTable() {
             const tbody = document.getElementById('users-tbody');
             if(!tbody) return;
@@ -683,7 +683,6 @@
             
             showToast("正在更新權限...", "info");
             
-            // 樂觀更新
             let existing = allUsersList.find(u => u.email === email);
             if(existing) existing.role = role; else allUsersList.push({email, role});
             renderUsersTable();
@@ -713,12 +712,12 @@
             }).catch(() => showToast("連線異常", "error"));
         }
 
-        // ==================== 檔案簽收機制 (新增) ====================
+        // ==================== 檔案簽收機制 ====================
         function signDocument(fileId) {
             showToast("正在處理簽收...", "info");
             if(!signedFilesList.includes(fileId)) {
                 signedFilesList.push(fileId);
-                renderPublicFiles(); // 重新渲染卡片，將按鈕轉為綠色
+                renderPublicFiles(); 
             }
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
@@ -928,6 +927,9 @@
                 .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); triggerSync(true); } else { showToast("上傳失敗", "error"); } });
             }; 
             r.readAsDataURL(f);
+            
+            // 加入這行清空 input，避免選同一個檔案沒反應
+            e.target.value = '';
         });
     </script>
 </body>

@@ -177,16 +177,19 @@
                         </div>
                     </div>
 
-                    <div onclick="switchTab('announcement')" id="tab-announcement" class="nav-item active">
-                        <i class="ph-bold ph-megaphone text-xl"></i> 最新公告
-                    </div>
-                    <div onclick="switchTab('policies')" id="tab-policies" class="nav-item">
-                        <i class="ph-bold ph-bank text-xl"></i> 機構制度規章
+                    <div id="menu-common" class="space-y-2">
+                        <div onclick="switchTab('announcement')" id="tab-announcement" class="nav-item active">
+                            <i class="ph-bold ph-megaphone text-xl"></i> 最新公告
+                        </div>
+                        <div onclick="switchTab('policies')" id="tab-policies" class="nav-item">
+                            <i class="ph-bold ph-bank text-xl"></i> 機構規章
+                        </div>
                     </div>
                     
                     <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
                         <div onclick="switchTab('contract')" id="tab-contract" class="nav-item">
-                            <i class="ph-bold ph-file-signature text-xl"></i> 勞動契約
+                            <!-- 修正：將無法顯示的 icon 替換為標準的文件圖示 -->
+                            <i class="ph-bold ph-file-text text-xl"></i> 勞動契約
                         </div>
                         <div onclick="switchTab('salary')" id="tab-salary" class="nav-item">
                             <i class="ph-bold ph-wallet text-xl"></i> 薪資明細
@@ -237,7 +240,7 @@
                             </h4>
                             <div class="space-y-3">
                                 <select id="uploadFolder" class="w-full p-3 bg-white border-2 border-stone-200 rounded-xl font-bold outline-none text-xs">
-                                    <option value="機構制度規章">機構制度規章</option>
+                                    <option value="機構制度規章">機構規章</option>
                                     <option value="員工合約區">員工合約區</option>
                                     <option value="股東專區">股東專區</option>
                                     <option value="薪資明細區">薪資明細區</option>
@@ -332,14 +335,13 @@
                         </button>
                     </h3>
                     <div id="text-announcement" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">5/1 正式營運，請夥伴們確認居服系統狀態。</div>
-                    <!-- 公告區也可以接收檔案發佈 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="announcement-files-container"></div>
                 </section>
 
                 <section id="content-policies" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構制度規章
+                            <i class="ph-bold ph-bank text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 機構規章
                         </div>
                         <button id="btn-edit-policies" onclick="toggleEdit('policies')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
                             <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
@@ -352,7 +354,8 @@
                 <section id="content-contract" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-file-signature text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 個人勞動契約
+                            <!-- 修正：替換成合約文件 Icon -->
+                            <i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約
                         </div>
                         <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors">
                             <i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文
@@ -402,7 +405,7 @@
                 <label class="flex items-center gap-4 p-4 rounded-xl border-2 border-stone-100 hover:border-orange-300 cursor-pointer transition-colors bg-white">
                     <input type="radio" name="publish_target" value="policies" class="w-5 h-5 accent-orange-500">
                     <div class="flex flex-col">
-                        <span class="font-black text-gray-700">🏦 發佈至：機構制度規章</span>
+                        <span class="font-black text-gray-700">🏦 發佈至：機構規章</span>
                         <span class="text-[10px] text-stone-400 font-bold mt-0.5">員工守則與作業辦法</span>
                     </div>
                 </label>
@@ -447,7 +450,7 @@
         
         let allDriveFiles = {}, currentRole = 'staff';
         let currentPublishFileId = null;
-        let currentUserName = ''; // 新增存放使用者名稱的變數
+        let currentUserName = '';
 
         function showToast(msg, type = 'info') {
             const c = document.getElementById('toast-container'), t = document.createElement('div');
@@ -476,7 +479,7 @@
             if(ADMIN_EMAILS.includes(email)) currentRole = 'admin';
             else if(SHAREHOLDER_EMAILS.includes(email)) currentRole = 'shareholder';
             
-            currentUserName = email.split('@')[0]; // 儲存帳號前綴
+            currentUserName = email.split('@')[0];
             document.getElementById('login-view').classList.add('hidden-section');
             document.getElementById('dashboard-view').classList.remove('hidden-section');
             document.getElementById('user-name').innerText = currentUserName;
@@ -484,12 +487,10 @@
             lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
             lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
-            // 若為管理員，顯示所有頁面的「編輯內文」按鈕
             if (currentRole === 'admin') {
                 document.querySelectorAll('.admin-edit-btn').forEach(btn => btn.classList.remove('hidden'));
             }
 
-            // 載入暫存的編輯文字
             loadEditableContents();
 
             if(currentRole === 'admin') {
@@ -507,25 +508,21 @@
             triggerSync(true);
         }
 
-        // ================== 頁面內文編輯功能 ==================
         function toggleEdit(sectionId) {
             const contentDiv = document.getElementById('text-' + sectionId);
             const btn = document.getElementById('btn-edit-' + sectionId);
             const isEditing = contentDiv.isContentEditable;
 
             if (isEditing) {
-                // 儲存狀態
                 contentDiv.contentEditable = false;
                 contentDiv.classList.remove('editable-active');
                 btn.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文';
                 btn.classList.remove('text-green-600', 'bg-green-50');
                 btn.classList.add('text-stone-400', 'bg-stone-50');
                 
-                // 將修改後的內容存入 LocalStorage (本機暫存)
                 localStorage.setItem('content_' + sectionId, contentDiv.innerHTML);
                 showToast('已儲存更新內容 (本機暫存)', 'success');
             } else {
-                // 進入編輯狀態
                 contentDiv.contentEditable = true;
                 contentDiv.focus();
                 contentDiv.classList.add('editable-active');
@@ -541,13 +538,15 @@
                 if (saved) document.getElementById('text-' + id).innerHTML = saved;
             });
         }
-        // =======================================================
 
         function triggerSync(silent = false) {
             const btn = document.getElementById('btnSyncFiles');
             if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
 
-            fetch(GOOGLE_APPS_SCRIPT_URL)
+            // === 修正：加入隨機時間參數 (?t=...) 強迫瀏覽器重新抓取，解決取消發佈後彈回舊資料的快取問題 ===
+            const fetchUrl = GOOGLE_APPS_SCRIPT_URL + (GOOGLE_APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
+
+            fetch(fetchUrl)
                 .then(r => r.json())
                 .then(d => {
                     if(d.status === "error") throw new Error(d.message);
@@ -593,11 +592,10 @@
             });
         }
 
-        // 映射目標代號對應的中文名稱
         const targetNames = {
             'none': '🚫 不公開',
             'announcement': '📢 最新公告',
-            'policies': '🏦 制度規章',
+            'policies': '🏦 機構規章',
             'contract': '📝 勞動契約',
             'shareholder': '💼 股東專區',
             'salary': '💰 薪資明細'
@@ -621,7 +619,6 @@
                     subFolderMap[sn].forEach(f => {
                         let tr = document.createElement('tr');
                         
-                        // 向下相容邏輯：預設處理
                         let currentTarget = f.publishTarget;
                         if (currentTarget === 'none' && f.isPublished) {
                             currentTarget = cat.includes("股東") ? 'shareholder' : 'policies';
@@ -647,12 +644,10 @@
             }
         }
 
-        // ================== Modal 控制區塊 ==================
         function openPublishModal(fileId, fileName, currentTarget) {
             currentPublishFileId = fileId;
             document.getElementById('modal-filename').innerText = fileName;
             
-            // 標記預設選項
             const radios = document.getElementsByName('publish_target');
             radios.forEach(r => {
                 if(r.value === currentTarget) r.checked = true;
@@ -662,7 +657,6 @@
             const box = document.getElementById('publish-modal-box');
             modal.classList.remove('hidden');
             
-            // 觸發動畫
             requestAnimationFrame(() => {
                 modal.classList.remove('opacity-0');
                 box.classList.remove('scale-95');
@@ -690,15 +684,31 @@
             const targetValue = checkedRadio.value;
             showToast("正在更新發佈對象設定...", "info");
             
+            // === 加入樂觀更新 (Optimistic UI Update) ===
+            for(let cat in allDriveFiles) {
+                allDriveFiles[cat].forEach(fileObj => {
+                    if(fileObj.id === currentPublishFileId) {
+                        fileObj.publishTarget = targetValue;
+                        fileObj.isPublished = (targetValue !== 'none');
+                    }
+                });
+            }
+            renderManageTable();
+            renderPublicFiles();
+            closePublishModal();
+            // ===========================================
+
             fetch(GOOGLE_APPS_SCRIPT_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ action: 'setPublishTarget', fileId: currentPublishFileId, target: targetValue }) 
             })
             .then(res => res.json())
-            .then(() => { triggerSync(true); closePublishModal(); })
-            .catch(() => showToast("設定失敗，請確認連線", "error"));
+            .then(() => { 
+                // 延長等待時間至 2.5 秒，確保 Google 試算表已徹底儲存
+                setTimeout(() => { triggerSync(true); }, 2500); 
+            })
+            .catch(() => showToast("設定可能未完全同步，請檢查網路連線", "error"));
         }
-        // ====================================================
 
         function renderPublicFiles() {
             const containers = {
@@ -709,23 +719,21 @@
                 'salary': document.getElementById('salary-files-container')
             };
 
-            // 清空所有容器
             Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
             
             for(let cat in allDriveFiles) {
                 (allDriveFiles[cat] || []).forEach(f => {
                     let target = f.publishTarget;
                     
-                    // 向下相容
                     if (target === 'none' && f.isPublished) target = cat.includes("股東") ? 'shareholder' : 'policies';
                     if (target === 'staff') target = 'policies';
 
                     if (target !== 'none' && containers[target]) {
+                        // 使用標準相容的圖示
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
                         const html = `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex items-start gap-4 cursor-pointer group"><i class="ph-fill ${icon} text-4xl group-hover:scale-110"></i><div><h4 class="font-black text-gray-800">${f.name}</h4><p class="text-[10px] text-stone-400">${f.date}</p></div></div>`;
                         
                         if (target === 'salary' || target === 'contract') {
-                            // 個人專屬檔案過濾邏輯 (薪資單 & 勞動契約)：檔名包含登入者的帳號名稱，或是系統管理員
                             if (currentRole === 'admin' || f.name.toLowerCase().includes(currentUserName.toLowerCase())) {
                                 containers[target].innerHTML += html;
                             }
@@ -740,6 +748,15 @@
         function handleLogout() { location.reload(); }
         
         function switchTab(id) {
+            if (currentRole === 'staff' && (id === 'manage' || id === 'finance')) {
+                showToast('您沒有權限訪問此頁面', 'error');
+                return;
+            }
+            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary')) {
+                showToast('您沒有權限訪問此頁面', 'error');
+                return;
+            }
+
             document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             const target = document.getElementById('content-' + id);

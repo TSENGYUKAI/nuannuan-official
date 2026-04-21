@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -244,7 +244,6 @@
                         </div>
                     </div>
 
-                    <!-- 股東與會計選單 -->
                     <div id="menu-shareholder" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
                         <div onclick="switchTab('finance')" id="tab-finance" class="nav-item">
                             <i class="ph-bold ph-calculator text-xl"></i> 會計與財務系統
@@ -329,7 +328,7 @@
                     </div>
                 </section>
 
-                <!-- 2. 人資與薪資系統 (管理者) -->
+                <!-- 2. 人資與薪資系統 -->
                 <section id="content-hr" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -454,7 +453,7 @@
                             <h4 class="text-xl font-black text-gray-800">股東專區雲端檔案</h4>
                             <button id="btn-edit-finance" onclick="toggleEdit('finance')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                         </div>
-                        <div id="text-finance" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">股東專屬檔案與財務報表皆存放於此。</div>
+                        <div id="text-finance" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm"></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
                     </div>
 
@@ -512,10 +511,7 @@
                         </button>
                     </div>
 
-                    <!-- 數位薪資單卡片 -->
-                    <div id="my-digital-payslip" class="bg-white border-2 border-stone-200 rounded-[30px] p-6 md:p-10 shadow-sm relative overflow-hidden">
-                        
-                    </div>
+                    <div id="my-digital-payslip" class="bg-white border-2 border-stone-200 rounded-[30px] p-6 md:p-10 shadow-sm relative overflow-hidden"></div>
 
                     <h4 class="text-lg font-black text-gray-800 mt-12 mb-4 no-print border-t-2 border-stone-100 pt-8">📁 雲端夾帶檔案 (如扣繳憑單)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 no-print" id="salary-files-container"></div>
@@ -808,15 +804,15 @@
     <script>
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzKRNsT2G936jTUg0pmaqll1Wa8ggPNW3p4zxdpqhnPlWXg4qEaITD4BouTiucr872bA/exec";
         
-        let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
-        let currentPublishFileId = null, currentDeleteFileId = null, currentDeleteFunction = null;
-        let financeDataRaw = { income: [], expense: [], petty: [] };
-        let hrDataRaw = { personnel: [], payroll: [], aabonus: [] }; 
-        let allUsersList = [], signedFilesList = [], publishedPayslipMonths = [];
+        var allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
+        var currentPublishFileId = null, currentDeleteFileId = null, currentDeleteFunction = null;
+        var financeDataRaw = { income: [], expense: [], petty: [] };
+        var hrDataRaw = { personnel: [], payroll: [], aabonus: [] }; 
+        var allUsersList = [], signedFilesList = [], publishedPayslipMonths = [];
 
-        const targetNames = { 'none': '🚫 不公開', 'announcement': '📢 最新公告', 'policies': '🏦 機構規章', 'contract': '📝 勞動契約', 'shareholder': '💼 股東專區', 'salary': '💰 薪資夾帶區' };
+        var targetNames = { 'none': '🚫 不公開', 'announcement': '📢 最新公告', 'policies': '🏦 機構規章', 'contract': '📝 勞動契約', 'shareholder': '💼 股東專區', 'salary': '💰 薪資夾帶區' };
 
-        const defaultTexts = {
+        var defaultTexts = {
             'announcement': '5/1 正式營運，請夥伴們確認居服系統狀態。',
             'policies': '機構內部各項規定與指導原則。',
             'contract': '顯示專屬於您的勞動契約檔案。',
@@ -909,7 +905,14 @@
             
             fetch(fetchUrl).then(r => r.json()).then(d => {
                 if(d.status === "error") throw new Error(d.message);
-                currentRole = d.role || 'unauthorized';
+                
+                // 🔥 嚴格的權限防呆
+                let rawRole = String(d.role || 'unauthorized').toLowerCase().trim();
+                if (rawRole === 'admin' || rawRole === '管理員') currentRole = 'admin';
+                else if (rawRole === 'shareholder' || rawRole === '股東') currentRole = 'shareholder';
+                else if (rawRole === 'unauthorized') currentRole = 'unauthorized';
+                else currentRole = 'staff';
+                
                 document.getElementById('loading-view').classList.add('hidden-section');
                 
                 if (currentRole === 'unauthorized') {
@@ -942,7 +945,6 @@
                     isFirstLogin = false;
                 }
 
-                // 🔥 載入首頁各模組的預設或自訂文字防護
                 try {
                     ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
                         const el = document.getElementById('text-' + id);
@@ -955,24 +957,25 @@
                     });
                 } catch(e) { console.error("Text Load Error", e); }
 
-                // 🔥 讀取「發佈開關」設定值防護
                 try {
                     let publishedStr = (d.contents && d.contents['payslip_published_months']) ? String(d.contents['payslip_published_months']) : '';
                     publishedPayslipMonths = publishedStr.split(',').filter(m => m);
                 } catch(e) { console.error("Payslip Config Load Error", e); }
                 
-                financeDataRaw.income = Array.isArray(d.income) ? d.income : [];
-                financeDataRaw.expense = Array.isArray(d.expense) ? d.expense : [];
-                financeDataRaw.petty = Array.isArray(d.petty) ? d.petty : [];
+                // 🔥 嚴格的資料淨化機制，過濾試算表的空白殘留行
+                const isValidRow = r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '');
+                
+                financeDataRaw.income = (Array.isArray(d.income) ? d.income : []).filter(isValidRow);
+                financeDataRaw.expense = (Array.isArray(d.expense) ? d.expense : []).filter(isValidRow);
+                financeDataRaw.petty = (Array.isArray(d.petty) ? d.petty : []).filter(isValidRow);
 
-                hrDataRaw.personnel = Array.isArray(d.personnel) ? d.personnel : [];
-                hrDataRaw.payroll = Array.isArray(d.payroll) ? d.payroll : [];
-                hrDataRaw.aabonus = Array.isArray(d.aaBonus) ? d.aaBonus : []; 
+                hrDataRaw.personnel = (Array.isArray(d.personnel) ? d.personnel : []).filter(isValidRow);
+                hrDataRaw.payroll = (Array.isArray(d.payroll) ? d.payroll : []).filter(isValidRow);
+                hrDataRaw.aabonus = (Array.isArray(d.aaBonus) ? d.aaBonus : []).filter(isValidRow);
                 
                 allDriveFiles = d.driveFiles || {};
                 signedFilesList = Array.isArray(d.signedFiles) ? d.signedFiles : [];
 
-                // 🔥 加入全面防護，確保單一錯誤不會導致整個畫面空白
                 try { rebuildMonthFilter(); } catch(e) { console.error("Filter 1 Error", e); }
                 try { applyFinanceFilter(); } catch(e) { console.error("Apply Finance Error", e); }
                 try { rebuildHRMonthFilter(); } catch(e) { console.error("Filter 2 Error", e); }
@@ -990,7 +993,6 @@
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
 
-        // ==================== 員工權限與檔案簽收功能 ====================
         function renderUsersTable() {
             const tbody = document.getElementById('users-tbody');
             if(!tbody) return;
@@ -1116,8 +1118,8 @@
                 fP = fP.filter(matchKeyword);
             }
 
-            let totalR = 0; fI.forEach(r => totalR += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
-            let totalE = 0; fE.forEach(r => totalE += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
+            let totalR = 0; fI.forEach(r => totalR += parseFloat(String((r && r['金額']) || 0).replace(/,/g,''))||0);
+            let totalE = 0; fE.forEach(r => totalE += parseFloat(String((r && r['金額']) || 0).replace(/,/g,''))||0);
             
             const revEl = document.getElementById('display-revenue');
             if(revEl) revEl.innerText = '$' + totalR.toLocaleString();
@@ -1265,7 +1267,6 @@
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
         }
 
-        // ==================== 新增/編輯人資紀錄 Modal 控制 ====================
         function openAddHRModal() {
             document.getElementById('hr-add-form').reset();
             document.getElementById('hr-row-index').value = '';
@@ -1457,7 +1458,6 @@
             });
         }
 
-        // ==================== 🔥 智慧薪資單發佈邏輯 ====================
         function openPayslipPublishModal() {
             let months = new Set();
             if(Array.isArray(hrDataRaw.payroll)) {
@@ -1527,7 +1527,6 @@
             .catch(() => showToast("連線異常", "error"));
         }
 
-        // ==================== 數位薪資單渲染邏輯 ====================
         function initMyPayslip() {
             let myPayroll = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.filter(r => r['姓名'] === currentUserDisplayName || r['姓名'] === currentUserName) : [];
             
@@ -1822,7 +1821,11 @@
                         if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
                         const signBtnHtml = signedFilesList.includes(f.id) ? `<button disabled class="mt-4 px-3 py-1.5 bg-green-50 border border-green-200 text-green-600 rounded-lg text-[10px] font-black flex items-center gap-1 w-max"><i class="ph-bold ph-check-circle text-sm"></i> ✅ 已詳閱簽收</button>` : `<button onclick="event.stopPropagation(); signDocument('${f.id}')" class="mt-4 px-3 py-1.5 bg-stone-100 border border-stone-200 text-stone-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-lg text-[10px] font-black transition-colors flex items-center gap-1 w-max shadow-sm"><i class="ph-bold ph-pen text-sm"></i> 📝 我已詳閱並同意</button>`;
-                        containers[t].innerHTML += `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative"><div class="flex items-start gap-4"><i class="ph-fill ${icon} text-4xl group-hover:scale-110 transition-transform"></i><div><h4 class="font-black text-gray-800 leading-tight" title="${f.name}">${formatDisplayName(f.name)}</h4><p class="text-[10px] text-stone-400 font-bold mt-1">${f.date}</p></div></div><div class="border-t border-stone-100 mt-4 pt-1 flex justify-end">${signBtnHtml}</div></div>`;
+                        
+                        let displaySignBtn = !(t === 'announcement' || t === 'policies' || t === 'contract');
+                        let btnSection = displaySignBtn ? `<div class="border-t border-stone-100 mt-4 pt-1 flex justify-end">${signBtnHtml}</div>` : '';
+                        
+                        containers[t].innerHTML += `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative"><div class="flex items-start gap-4"><i class="ph-fill ${icon} text-4xl group-hover:scale-110 transition-transform"></i><div><h4 class="font-black text-gray-800 leading-tight" title="${f.name}">${formatDisplayName(f.name)}</h4><p class="text-[10px] text-stone-400 font-bold mt-1">${f.date}</p></div></div>${btnSection}</div>`;
                     }
                 });
             }

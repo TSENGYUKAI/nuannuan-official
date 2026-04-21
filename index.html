@@ -215,6 +215,9 @@
                         <div onclick="switchTab('manage')" id="tab-manage" class="nav-item">
                             <i class="ph-bold ph-sliders text-xl"></i> 資料維護中心
                         </div>
+                        <div onclick="switchTab('hr')" id="tab-hr" class="nav-item">
+                            <i class="ph-bold ph-users text-xl"></i> 人資與薪資管理
+                        </div>
                     </div>
 
                     <div id="menu-common" class="space-y-2">
@@ -322,6 +325,54 @@
                                 <tbody id="users-tbody"></tbody>
                             </table>
                         </div>
+                    </div>
+                </section>
+
+                <!-- 新增：人資與薪資系統 -->
+                <section id="content-hr" class="content-section hidden-section">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
+                        <div class="flex items-center gap-3">
+                            <i class="ph-bold ph-users text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
+                            <h3 class="text-3xl font-black text-gray-800">人資與薪資系統</h3>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="openAddHRModal()" class="admin-edit-btn hidden flex items-center gap-2 bg-stone-800 text-white px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md">
+                                <i class="ph-bold ph-plus"></i> 新增資料
+                            </button>
+                            
+                            <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
+                                <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
+                                <input type="text" id="hr-search-filter" oninput="applyHRFilter()" placeholder="搜尋姓名或編號..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
+                            </div>
+
+                            <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border-2 border-stone-100" id="hr-month-filter-container">
+                                <i class="ph-bold ph-calendar-blank text-stone-400"></i>
+                                <select id="hr-month-filter" onchange="applyHRFilter()" class="bg-transparent text-stone-700 font-bold text-sm outline-none cursor-pointer">
+                                    <option value="all">全部月份</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mb-8 overflow-x-auto custom-scrollbar pb-2">
+                        <button onclick="switchHRTab('personnel')" id="tab-hr-personnel" class="finance-tab bg-orange-500 text-white shadow-md">人事基本資料</button>
+                        <button onclick="switchHRTab('payroll')" id="tab-hr-payroll" class="finance-tab bg-stone-50 text-stone-500">當月薪資計算表</button>
+                    </div>
+
+                    <!-- 人事資料表 -->
+                    <div id="hr-personnel" class="hr-section animate-page overflow-x-auto custom-scrollbar">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>員工編號</th><th>姓名</th><th>職位</th><th>到職日</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead>
+                            <tbody id="hr-personnel-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 薪資計算表 -->
+                    <div id="hr-payroll" class="hr-section hidden-section overflow-x-auto custom-scrollbar">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>月份</th><th>員工姓名</th><th>職位</th><th>服務時數</th><th>轉場次數</th><th>應稅薪資總額</th><th>代扣勞保</th><th>代扣健保</th><th>實發總額</th><th>公司總成本</th><th>操作</th></tr></thead>
+                            <tbody id="hr-payroll-tbody"></tbody>
+                        </table>
                     </div>
                 </section>
 
@@ -447,6 +498,115 @@
                 </section>
             </div>
         </main>
+    </div>
+
+    <!-- ==================== 新增/編輯人資薪資紀錄 Modal ==================== -->
+    <div id="add-hr-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[30px] p-8 w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-hr-modal-box">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-users"></i></div> 人資管理設定
+                </h3>
+                <button onclick="closeAddHRModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-widest">紀錄類型</label>
+                <div class="flex gap-2 bg-stone-100 p-1.5 rounded-xl">
+                    <button type="button" onclick="switchHRFormType('personnel')" id="btn-hr-type-personnel" class="flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm text-orange-500 transition-all">人事資料</button>
+                    <button type="button" onclick="switchHRFormType('payroll')" id="btn-hr-type-payroll" class="flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all">出勤/薪資</button>
+                </div>
+            </div>
+
+            <form id="hr-add-form" class="space-y-4">
+                <input type="hidden" id="hr-type" value="personnel">
+                <input type="hidden" id="hr-row-index" value="">
+                
+                <!-- 【人事基本資料】專用欄位 -->
+                <div id="hr-group-personnel" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">員工編號</label>
+                            <input type="text" id="hr-emp-id" placeholder="如: EMP-001" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">員工姓名</label>
+                            <input type="text" id="hr-emp-name" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">職位</label>
+                            <select id="hr-emp-role" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="居服員">居服員</option>
+                                <option value="行政人員">行政人員</option>
+                                <option value="業務負責人">業務負責人</option>
+                                <option value="護理人員">護理人員</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">到職日</label>
+                            <input type="date" id="hr-emp-date" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">狀態</label>
+                            <select id="hr-emp-status" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="在職">🟢 在職</option>
+                                <option value="留職停薪">🟡 留職停薪</option>
+                                <option value="離職">🔴 離職</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">備註</label>
+                            <input type="text" id="hr-emp-memo" placeholder="補充說明" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 【薪資計算】專用欄位 -->
+                <div id="hr-group-payroll" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">歸屬月份</label>
+                            <input type="month" id="hr-pay-month" required class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">員工姓名</label>
+                            <input type="text" id="hr-pay-name" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">職位</label>
+                            <select id="hr-pay-role" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="居服員">居服員</option>
+                                <option value="行政人員">行政人員</option>
+                                <option value="業務負責人">業務負責人</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-stone-100">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">服務時數</label>
+                            <input type="number" id="hr-pay-hours" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">轉場次數</label>
+                            <input type="number" id="hr-pay-transits" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-orange-500 font-bold mt-2"><i class="ph-bold ph-info"></i> 薪資總額、勞健保代扣及實發總額，將由系統依據上述時數自動計算。</p>
+                </div>
+
+                <div class="flex gap-4 pt-4 mt-6 border-t-2 border-stone-100">
+                    <button type="button" onclick="closeAddHRModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
+                    <button type="button" id="btn-submit-hr" onclick="saveHRRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認送出</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- ==================== 新增/編輯財務紀錄 Modal ==================== -->
@@ -682,7 +842,10 @@
         let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
         let currentPublishFileId = null;
         let currentDeleteFileId = null; 
+        
+        // 財務與人資資料儲存區
         let financeDataRaw = { income: [], expense: [], petty: [] };
+        let hrDataRaw = { personnel: [], payroll: [] };
         
         // 存放系統內所有員工名單與自己已簽收的檔案ID
         let allUsersList = [];
@@ -753,8 +916,8 @@
             }
         }
 
-        function getMonthStr(row) {
-            let monthVal = row['月份歸屬(自動)']; // 修正：從雲端直接讀取公式結果
+        function getMonthStr(row, monthField = '月份歸屬(自動)') {
+            let monthVal = row[monthField]; 
             if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
             let dateStr = row['日期'];
             if (!dateStr) return '未知';
@@ -783,7 +946,6 @@
                 lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
                 lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
-                // 修改：僅對 admin 顯示所有編輯與新增相關按鈕
                 if (currentRole === 'admin') {
                     document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
                     document.getElementById('menu-superadmin').classList.remove('hidden-section');
@@ -813,7 +975,12 @@
                 financeDataRaw.expense = d.expense || [];
                 financeDataRaw.petty = d.petty || [];
 
+                // 存取人資陣列
+                hrDataRaw.personnel = d.personnel || [];
+                hrDataRaw.payroll = d.payroll || [];
+
                 rebuildMonthFilter();
+                rebuildHRMonthFilter();
                 
                 allDriveFiles = d.driveFiles || {};
                 allUsersList = d.users || [];
@@ -959,7 +1126,51 @@
             renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人'], 'petty');
         }
 
-        // 修改 renderTable 加入 Action(操作) 欄位
+        // ==================== 人資與薪資渲染邏輯 ====================
+        function rebuildHRMonthFilter() {
+            let months = new Set();
+            hrDataRaw.payroll.forEach(row => {
+                let m = row['月份'];
+                if (m && String(m).trim() !== '') months.add(String(m).trim());
+            });
+
+            let filterSelect = document.getElementById('hr-month-filter');
+            let prevVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">全部月份</option>';
+            Array.from(months).sort().reverse().forEach(m => {
+                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
+            });
+            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
+            else filterSelect.value = 'all';
+
+            applyHRFilter();
+        }
+
+        function applyHRFilter() {
+            let selM = document.getElementById('hr-month-filter').value;
+            let searchInput = document.getElementById('hr-search-filter');
+            let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let hPer = hrDataRaw.personnel;
+            let hPay = hrDataRaw.payroll;
+            
+            // 薪資表月份篩選
+            if (selM !== 'all') {
+                hPay = hPay.filter(r => String(r['月份'] || '').trim() === selM);
+            }
+
+            // 關鍵字搜尋篩選
+            if (keyword) {
+                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
+                hPer = hPer.filter(matchKeyword);
+                hPay = hPay.filter(matchKeyword);
+            }
+
+            renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
+            renderTable('hr-payroll-tbody', hPay, ['月份', '員工姓名', '職位', '服務時數', '轉場次數', '應稅薪資總額', '代扣勞保(員工)', '代扣健保(員工)', '實發總額(匯款)', '公司總成本'], 'hr-payroll');
+        }
+
+        // 修改後的共用 renderTable 加入 Action(操作) 欄位
         function renderTable(id, rows, cols, typeName) {
             const b = document.getElementById(id); if(!b) return;
             b.innerHTML = rows.length === 0 ? `<tr><td colspan="${cols.length + 1}" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>` : '';
@@ -969,21 +1180,27 @@
                 cols.forEach(c => {
                     let td = document.createElement('td'), v = r[c];
                     if (v === undefined || v === null || String(v).trim() === '') { td.innerText = '-'; } 
-                    else if (c.includes('金額') || c.includes('支出') || c.includes('撥入') || c === '目前結餘') {
+                    else if (c.includes('金額') || c.includes('支出') || c.includes('撥入') || c.includes('總額') || c.includes('成本') || c.includes('代扣') || c === '目前結餘') {
                         let n = Number(String(v).replace(/,/g, '').trim());
                         if (isNaN(n)) td.innerText = '-';
-                        else td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
+                        else {
+                            if(c.includes('代扣')) td.innerHTML = `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>`;
+                            else td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
+                        }
+                    } else if (c === '狀態') {
+                        if (v === '在職') td.innerHTML = `<span class="text-green-600 font-black px-2 py-1 bg-green-50 rounded-lg text-[10px]">🟢 ${v}</span>`;
+                        else if (v === '離職') td.innerHTML = `<span class="text-red-500 font-black px-2 py-1 bg-red-50 rounded-lg text-[10px]">🔴 ${v}</span>`;
+                        else td.innerHTML = `<span class="text-orange-500 font-black px-2 py-1 bg-orange-50 rounded-lg text-[10px]">🟡 ${v}</span>`;
                     } else { td.innerText = v; }
                     tr.appendChild(td);
                 });
 
-                // 修改：動態加入操作按鈕 (僅限 admin)
                 let tdAction = document.createElement('td');
                 if (currentRole === 'admin') {
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
-                            <button onclick='openEditFinanceModal("${typeName}", ${r._rowIndex}, ${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick='deleteFinanceRecord("${typeName}", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                            <button onclick='openEditFormModal("${typeName}", ${r._rowIndex}, ${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick='deleteRecordAPI("${typeName}", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     `;
                 } else {
@@ -994,7 +1211,168 @@
             });
         }
 
-        // ==================== 新增/編輯財務紀錄 Modal 控制 ====================
+        // 統整開啟編輯 Modal
+        function openEditFormModal(type, rowIndex, record) {
+            if(type === 'income' || type === 'expense' || type === 'petty') {
+                openEditFinanceModal(type, rowIndex, record);
+            } else if (type === 'hr-personnel' || type === 'hr-payroll') {
+                openEditHRModal(type, rowIndex, record);
+            }
+        }
+
+        // 統整刪除 API
+        function deleteRecordAPI(type, rowIndex) {
+            let actionName = 'deleteFinanceRecord';
+            let dataType = type;
+            if (type === 'hr-personnel' || type === 'hr-payroll') {
+                actionName = 'deleteHRRecord';
+                dataType = type === 'hr-personnel' ? 'personnel' : 'payroll';
+            }
+
+            if(!confirm("確定要刪除這筆紀錄嗎？\n(注意：從試算表中刪除後將無法復原)")) return;
+            
+            showToast("正在刪除紀錄...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: actionName, type: dataType, rowIndex: rowIndex })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') {
+                    showToast("✅ 紀錄已成功刪除，重新整理中...", "success");
+                    triggerSync(true); 
+                } else showToast("刪除失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        // ==================== 新增/編輯人資紀錄 Modal 控制 ====================
+        function openAddHRModal() {
+            document.getElementById('hr-add-form').reset();
+            document.getElementById('hr-row-index').value = '';
+            document.getElementById('btn-submit-hr').innerText = '確認新增';
+            switchHRFormType('personnel');
+            
+            const modal = document.getElementById('add-hr-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { 
+                modal.classList.remove('opacity-0'); 
+                document.getElementById('add-hr-modal-box').classList.remove('scale-95'); 
+            });
+        }
+
+        function openEditHRModal(type, rowIndex, record) {
+            document.getElementById('hr-add-form').reset();
+            document.getElementById('hr-row-index').value = rowIndex;
+            let formType = type === 'hr-personnel' ? 'personnel' : 'payroll';
+            switchHRFormType(formType);
+            
+            if(formType === 'personnel') {
+                document.getElementById('hr-emp-id').value = record['員工編號'] || '';
+                document.getElementById('hr-emp-name').value = record['姓名'] || '';
+                document.getElementById('hr-emp-role').value = record['職位'] || '居服員';
+                if(record['到職日']) {
+                    let parts = String(record['到職日']).split(/[-/]/);
+                    if (parts.length >= 3) document.getElementById('hr-emp-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                }
+                document.getElementById('hr-emp-status').value = record['狀態'] || '在職';
+                document.getElementById('hr-emp-memo').value = record['備註'] || '';
+            } else if(formType === 'payroll') {
+                if(record['月份']) {
+                    let mStr = String(record['月份']).replace('/', '-');
+                    document.getElementById('hr-pay-month').value = mStr;
+                }
+                document.getElementById('hr-pay-name').value = record['員工姓名'] || '';
+                document.getElementById('hr-pay-role').value = record['職位'] || '居服員';
+                document.getElementById('hr-pay-hours').value = record['服務時數'] || '';
+                document.getElementById('hr-pay-transits').value = record['轉場次數'] || '';
+            }
+
+            document.getElementById('btn-submit-hr').innerText = '儲存修改';
+
+            const modal = document.getElementById('add-hr-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { 
+                modal.classList.remove('opacity-0'); 
+                document.getElementById('add-hr-modal-box').classList.remove('scale-95'); 
+            });
+        }
+
+        function closeAddHRModal() {
+            const modal = document.getElementById('add-hr-modal'); 
+            document.getElementById('add-hr-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); 
+            setTimeout(() => { modal.classList.add('hidden'); document.getElementById('hr-add-form').reset(); }, 300);
+        }
+
+        function switchHRFormType(type) {
+            document.getElementById('hr-type').value = type;
+            ['personnel', 'payroll'].forEach(t => {
+                const btn = document.getElementById('btn-hr-type-' + t);
+                const isSelected = (t === type);
+                btn.className = isSelected 
+                    ? `flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all text-orange-500`
+                    : `flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
+                
+                document.getElementById('hr-group-' + t).style.display = isSelected ? 'block' : 'none';
+            });
+        }
+
+        function saveHRRecord() {
+            const type = document.getElementById('hr-type').value;
+            const rowIndex = document.getElementById('hr-row-index').value;
+
+            let newRecord = {};
+            
+            if (type === 'personnel') {
+                if(!document.getElementById('hr-emp-name').value) return showToast("請輸入員工姓名", "error");
+                newRecord = {
+                    '員工編號': document.getElementById('hr-emp-id').value,
+                    '姓名': document.getElementById('hr-emp-name').value,
+                    '職位': document.getElementById('hr-emp-role').value,
+                    '到職日': document.getElementById('hr-emp-date').value,
+                    '狀態': document.getElementById('hr-emp-status').value,
+                    '備註': document.getElementById('hr-emp-memo').value
+                };
+            } 
+            else if (type === 'payroll') {
+                if(!document.getElementById('hr-pay-month').value) return showToast("請選擇歸屬月份", "error");
+                if(!document.getElementById('hr-pay-name').value) return showToast("請輸入員工姓名", "error");
+                
+                // 將 2024-05 轉換回 2024/05
+                let monthStr = document.getElementById('hr-pay-month').value.replace('-', '/');
+
+                newRecord = {
+                    '月份': monthStr,
+                    '員工姓名': document.getElementById('hr-pay-name').value,
+                    '職位': document.getElementById('hr-pay-role').value,
+                    '服務時數': document.getElementById('hr-pay-hours').value || 0,
+                    '轉場次數': document.getElementById('hr-pay-transits').value || 0
+                };
+            }
+
+            closeAddHRModal();
+            showToast("正在同步至雲端...", "info");
+
+            const actionName = rowIndex ? 'editHRRecord' : 'addHRRecord';
+            const payload = { action: actionName, type: type, record: newRecord };
+            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            }).then(async r => {
+                const text = await r.text();
+                try { return JSON.parse(text); } 
+                catch(e) { throw new Error("請至 Google 雲端更新 Apps Script 後端程式碼"); }
+            }).then(res => {
+                if(res.status === 'success') {
+                    showToast("✅ 儲存成功，正在載入最新數據...", "success");
+                    triggerSync(true); 
+                } else showToast("後端儲存異常", "error");
+            }).catch(err => {
+                showToast(err.message || "無法連線雲端", "error");
+            });
+        }
+
+        // ==================== 財務系統控制 ====================
         function openAddFinanceModal() {
             document.getElementById('finance-add-form').reset();
             document.getElementById('fi-row-index').value = '';
@@ -1010,13 +1388,11 @@
             });
         }
 
-        // 編輯財務紀錄
         function openEditFinanceModal(type, rowIndex, record) {
             document.getElementById('finance-add-form').reset();
             document.getElementById('fi-row-index').value = rowIndex;
             switchFinanceFormType(type);
             
-            // 日期回填轉換
             if(record['日期']) {
                 let rawDate = String(record['日期']);
                 let parts = rawDate.split(/[-/]/);
@@ -1025,7 +1401,6 @@
                 }
             }
 
-            // 欄位回填
             if(type === 'income') {
                 document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
                 document.getElementById('fi-in-account').value = record['會計科目'] || '';
@@ -1081,10 +1456,9 @@
             document.getElementById('fi-voucher-label').innerText = type === 'petty' ? '憑證編號' : '傳票/憑證編號';
         }
 
-        // ==================== 儲存與刪除財務紀錄 API ====================
         function saveFinanceRecord() {
             const type = document.getElementById('fi-type').value;
-            const rowIndex = document.getElementById('fi-row-index').value; // 取得隱藏的行號
+            const rowIndex = document.getElementById('fi-row-index').value;
             const dateVal = document.getElementById('fi-date').value;
             const voucherVal = document.getElementById('fi-voucher').value;
             
@@ -1144,27 +1518,11 @@
             }).then(res => {
                 if(res.status === 'success') {
                     showToast("✅ 儲存成功，正在載入最新結算數據...", "success");
-                    // 強制重拉資料庫最新數據 (解決不同步)
                     triggerSync(true); 
                 } else showToast("後端儲存異常", "error");
             }).catch(err => {
                 showToast(err.message || "無法連線雲端", "error");
             });
-        }
-
-        function deleteFinanceRecord(type, rowIndex) {
-            if(!confirm("確定要刪除這筆財務紀錄嗎？\n(注意：從試算表中刪除後將無法復原)")) return;
-            
-            showToast("正在刪除紀錄...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'deleteFinanceRecord', type: type, rowIndex: rowIndex })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 紀錄已成功刪除，重新整理中...", "success");
-                    triggerSync(true); 
-                } else showToast("刪除失敗", "error");
-            }).catch(() => showToast("連線異常", "error"));
         }
 
         // ==================== 檔案管理Modal相關 ====================
@@ -1314,8 +1672,8 @@
 
         function switchTab(id) {
             if (currentRole === 'unauthorized') return;
-            if (currentRole === 'staff' && (id === 'manage' || id === 'finance')) { showToast('僅限管理員或股東存取', 'error'); return; }
-            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary')) { showToast('僅限管理員或居服員存取', 'error'); return; }
+            if (currentRole === 'staff' && (id === 'manage' || id === 'finance' || id === 'hr')) { showToast('僅限管理員或股東存取', 'error'); return; }
+            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary' || id === 'hr')) { showToast('僅限管理員或居服員存取', 'error'); return; }
             
             document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -1334,6 +1692,25 @@
             if(target) target.classList.remove('hidden-section');
             const btn = document.getElementById('tab-fin-' + id);
             if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
+        }
+
+        function switchHRTab(id) {
+            document.querySelectorAll('.hr-section').forEach(e => e.classList.add('hidden-section'));
+            document.getElementById('tab-hr-personnel').classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+            document.getElementById('tab-hr-personnel').classList.add('bg-stone-50', 'text-stone-500');
+            document.getElementById('tab-hr-payroll').classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+            document.getElementById('tab-hr-payroll').classList.add('bg-stone-50', 'text-stone-500');
+            
+            const target = document.getElementById('hr-' + id);
+            if(target) target.classList.remove('hidden-section');
+            const btn = document.getElementById('tab-hr-' + id);
+            if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
+
+            // 針對薪資表顯示/隱藏月份篩選器
+            const monthFilterContainer = document.getElementById('hr-month-filter-container');
+            if(monthFilterContainer) {
+                monthFilterContainer.style.display = id === 'payroll' ? 'flex' : 'none';
+            }
         }
 
         const uploader = document.getElementById('fileUploader');

@@ -337,7 +337,7 @@
                                 <i class="ph-bold ph-plus"></i> 新增紀錄
                             </button>
                             
-                            <!-- 新增：搜尋關鍵字篩選器 -->
+                            <!-- 搜尋關鍵字篩選器 -->
                             <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
                                 <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
                                 <input type="text" id="finance-search-filter" oninput="applyFinanceFilter()" placeholder="搜尋摘要或科目..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
@@ -785,11 +785,14 @@
                 lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
                 lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
-                if (currentRole === 'admin' || currentRole === 'shareholder') {
+                // 修改：僅對 admin 顯示所有編輯與新增相關按鈕
+                if (currentRole === 'admin') {
                     document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
                     document.getElementById('menu-superadmin').classList.remove('hidden-section');
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                     document.getElementById('menu-staff').classList.remove('hidden-section');
+                } else if (currentRole === 'shareholder') {
+                    document.getElementById('menu-shareholder').classList.remove('hidden-section');
                 } else {
                     document.getElementById('menu-staff').classList.remove('hidden-section');
                 }
@@ -976,9 +979,9 @@
                     tr.appendChild(td);
                 });
 
-                // 動態加入操作按鈕 (依據權限)
+                // 修改：動態加入操作按鈕 (僅限 admin)
                 let tdAction = document.createElement('td');
-                if (currentRole === 'admin' || currentRole === 'shareholder') {
+                if (currentRole === 'admin') {
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
                             <button onclick='openEditFinanceModal("${typeName}", ${r._rowIndex}, ${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>

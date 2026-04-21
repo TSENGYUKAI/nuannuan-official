@@ -332,11 +332,16 @@
                             <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
                             <h3 class="text-3xl font-black text-gray-800">會計與財務系統</h3>
                         </div>
-                        <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border-2 border-stone-100">
-                            <i class="ph-bold ph-calendar-blank text-stone-400"></i>
-                            <select id="finance-month-filter" onchange="applyFinanceFilter()" class="bg-transparent text-stone-700 font-bold text-sm outline-none cursor-pointer">
-                                <option value="all">全部月份</option>
-                            </select>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="openAddFinanceModal()" class="admin-edit-btn hidden flex items-center gap-2 bg-stone-800 text-white px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md">
+                                <i class="ph-bold ph-plus"></i> 新增紀錄
+                            </button>
+                            <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border-2 border-stone-100">
+                                <i class="ph-bold ph-calendar-blank text-stone-400"></i>
+                                <select id="finance-month-filter" onchange="applyFinanceFilter()" class="bg-transparent text-stone-700 font-bold text-sm outline-none cursor-pointer">
+                                    <option value="all">全部月份</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -365,14 +370,14 @@
 
                     <div id="fin-income" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>會計科目</th><th>服務項目</th><th>摘要/對象</th><th>金額</th><th>備註</th></tr></thead>
+                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>服務項目(A/B/G/自費)</th><th>摘要/對象</th><th>收款方式</th><th>金額</th></tr></thead>
                             <tbody id="income-tbody"></tbody>
                         </table>
                     </div>
 
                     <div id="fin-expense" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>會計科目</th><th>摘要/用品</th><th>支付方式</th><th>金額</th><th>備註</th></tr></thead>
+                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>摘要/用品</th><th>發票號碼/統編</th><th>支付方式(轉帳/現金)</th><th>金額</th></tr></thead>
                             <tbody id="expense-tbody"></tbody>
                         </table>
                     </div>
@@ -388,7 +393,7 @@
 
                     <div id="fin-petty" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>摘要/用途</th><th>撥入</th><th>支出</th><th>結餘</th><th>經手人</th></tr></thead>
+                            <thead><tr><th>日期</th><th>憑證編號</th><th>摘要/用途</th><th>會計科目</th><th>撥入(補充零用金)</th><th>支出(報帳扣除)</th><th>目前結餘</th><th>申請人/經手人</th></tr></thead>
                             <tbody id="petty-tbody"></tbody>
                         </table>
                     </div>
@@ -432,6 +437,164 @@
                 </section>
             </div>
         </main>
+    </div>
+
+    <!-- ==================== 新增財務紀錄 Modal ==================== -->
+    <div id="add-finance-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[30px] p-8 w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-finance-modal-box">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-plus"></i></div> 新增財務紀錄
+                </h3>
+                <button onclick="closeAddFinanceModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-widest">紀錄類型</label>
+                <div class="flex gap-2 bg-stone-100 p-1.5 rounded-xl">
+                    <button type="button" onclick="switchFinanceFormType('income')" id="btn-type-income" class="flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm text-orange-500 transition-all">收入</button>
+                    <button type="button" onclick="switchFinanceFormType('expense')" id="btn-type-expense" class="flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all">支出</button>
+                    <button type="button" onclick="switchFinanceFormType('petty')" id="btn-type-petty" class="flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all">零用金</button>
+                </div>
+            </div>
+
+            <form id="finance-add-form" class="space-y-4">
+                <input type="hidden" id="fi-type" value="income">
+                
+                <!-- 共通欄位 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1">日期</label>
+                        <input type="date" id="fi-date" required class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1" id="fi-voucher-label">傳票/憑證編號</label>
+                        <input type="text" id="fi-voucher" placeholder="如: 0421-01" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                    </div>
+                </div>
+                
+                <!-- 【收入】專用欄位 -->
+                <div id="fi-group-income" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
+                            <select id="fi-in-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="補助款收入">補助款收入</option>
+                                <option value="民眾自付額收入">民眾自付額收入</option>
+                                <option value="全自費營收">全自費營收</option>
+                                <option value="其他收入">其他收入</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">服務項目</label>
+                            <select id="fi-in-service" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="A碼">A碼</option>
+                                <option value="B碼">B碼</option>
+                                <option value="G碼">G碼</option>
+                                <option value="自費">自費</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1">摘要/對象</label>
+                        <input type="text" id="fi-in-summary" placeholder="簡述收入來源與對象" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">收款方式</label>
+                            <select id="fi-in-method" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="匯款">匯款</option>
+                                <option value="現金">現金</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">金額</label>
+                            <input type="number" id="fi-in-amount" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 【支出】專用欄位 -->
+                <div id="fi-group-expense" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
+                            <select id="fi-ex-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="開辦費">開辦費</option>
+                                <option value="房租">房租</option>
+                                <option value="水電費">水電費</option>
+                                <option value="網路電信">網路電信</option>
+                                <option value="系統費">系統費</option>
+                                <option value="文具雜支">文具雜支</option>
+                                <option value="機構意外險">機構意外險</option>
+                                <option value="雇主責任險">雇主責任險</option>
+                                <option value="行銷/開案獎金">行銷/開案獎金</option>
+                                <option value="其他支出">其他支出</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">發票號碼/統編</label>
+                            <input type="text" id="fi-ex-invoice" placeholder="如: AB-12345678" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1">摘要/用品</label>
+                        <input type="text" id="fi-ex-summary" placeholder="簡述購買項目" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">支付方式</label>
+                            <select id="fi-ex-method" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="轉帳">轉帳</option>
+                                <option value="現金">現金</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">金額</label>
+                            <input type="number" id="fi-ex-amount" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 【零用金】專用欄位 -->
+                <div id="fi-group-petty" class="space-y-4 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
+                            <input type="text" id="fi-pt-account" placeholder="如: 雜項支出" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">申請人/經手人</label>
+                            <input type="text" id="fi-pt-handler" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1">摘要/用途</label>
+                        <input type="text" id="fi-pt-summary" placeholder="簡述用途" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1 text-green-600">撥入 (補充)</label>
+                            <input type="number" id="fi-pt-inflow" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-green-200 focus:border-green-500 rounded-xl font-bold outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1 text-red-500">支出 (扣除)</label>
+                            <input type="number" id="fi-pt-outflow" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-red-200 focus:border-red-500 rounded-xl font-bold outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">目前結餘</label>
+                            <input type="number" id="fi-pt-balance" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4 mt-6 border-t-2 border-stone-100">
+                    <button type="button" onclick="closeAddFinanceModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
+                    <button type="button" onclick="saveFinanceRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認新增</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- ==================== 發佈設定 Modal ==================== -->
@@ -626,18 +789,7 @@
                 financeDataRaw.expense = d.expense || [];
                 financeDataRaw.petty = d.petty || [];
 
-                let months = new Set();
-                const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
-                financeDataRaw.income.forEach(addM); financeDataRaw.expense.forEach(addM); financeDataRaw.petty.forEach(addM);
-
-                let filterSelect = document.getElementById('finance-month-filter');
-                let prevVal = filterSelect.value;
-                filterSelect.innerHTML = '<option value="all">全部月份</option>';
-                Array.from(months).sort().reverse().forEach(m => {
-                    let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
-                });
-                filterSelect.value = prevVal || 'all';
-                applyFinanceFilter();
+                rebuildMonthFilter();
                 
                 allDriveFiles = d.driveFiles || {};
                 allUsersList = d.users || [];
@@ -742,7 +894,27 @@
             }).catch(() => showToast("連線異常", "error"));
         }
 
-        // ==================== 原有財務與檔案渲染邏輯 ====================
+        // ==================== 財務與檔案渲染邏輯 ====================
+        
+        // 提取月份選單建立邏輯，以供新增後也能更新選單
+        function rebuildMonthFilter() {
+            let months = new Set();
+            const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
+            financeDataRaw.income.forEach(addM); financeDataRaw.expense.forEach(addM); financeDataRaw.petty.forEach(addM);
+
+            let filterSelect = document.getElementById('finance-month-filter');
+            let prevVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">全部月份</option>';
+            Array.from(months).sort().reverse().forEach(m => {
+                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
+            });
+            // 若之前選的月份還在，就保留；否則回歸 all
+            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
+            else filterSelect.value = 'all';
+
+            applyFinanceFilter();
+        }
+
         function applyFinanceFilter() {
             let selM = document.getElementById('finance-month-filter').value;
             let fI = financeDataRaw.income, fE = financeDataRaw.expense, fP = financeDataRaw.petty;
@@ -759,14 +931,15 @@
             document.getElementById('display-expense').innerText = '-$' + Math.abs(totalE).toLocaleString();
             document.getElementById('display-net').innerText = '$' + (totalR - totalE).toLocaleString();
 
-            renderTable('income-tbody', fI, ['日期', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '金額', '備註']);
-            renderTable('expense-tbody', fE, ['日期', '會計科目', '摘要/用品', '支付方式(轉帳/現金)', '金額', '備註']);
-            renderTable('petty-tbody', fP, ['日期', '摘要/用途', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+            // 嚴格對應您要求的欄位格式
+            renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額']);
+            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額']);
+            renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
         }
 
         function renderTable(id, rows, cols) {
             const b = document.getElementById(id); if(!b) return;
-            b.innerHTML = rows.length === 0 ? '<tr><td colspan="6" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>' : '';
+            b.innerHTML = rows.length === 0 ? `<tr><td colspan="${cols.length}" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>` : '';
             rows.forEach(r => {
                 let tr = document.createElement('tr');
                 cols.forEach(c => {
@@ -783,6 +956,114 @@
             });
         }
 
+        // ==================== 新增：財務紀錄 Modal 控制與儲存 ====================
+        function openAddFinanceModal() {
+            document.getElementById('fi-date').valueAsDate = new Date();
+            const modal = document.getElementById('add-finance-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { 
+                modal.classList.remove('opacity-0'); 
+                document.getElementById('add-finance-modal-box').classList.remove('scale-95'); 
+            });
+            switchFinanceFormType('income'); // 預設打開收入頁籤
+        }
+
+        function closeAddFinanceModal() {
+            const modal = document.getElementById('add-finance-modal'); 
+            document.getElementById('add-finance-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); 
+            setTimeout(() => { modal.classList.add('hidden'); document.getElementById('finance-add-form').reset(); }, 300);
+        }
+
+        function switchFinanceFormType(type) {
+            document.getElementById('fi-type').value = type;
+            
+            // 處理上方按鈕樣式
+            ['income', 'expense', 'petty'].forEach(t => {
+                const btn = document.getElementById('btn-type-' + t);
+                const isSelected = (t === type);
+                btn.className = isSelected 
+                    ? `flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all ${t==='income'?'text-orange-500':(t==='expense'?'text-red-500':'text-stone-800')}`
+                    : `flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
+                
+                // 顯示隱藏對應的表單區塊
+                document.getElementById('fi-group-' + t).style.display = isSelected ? 'block' : 'none';
+            });
+
+            // 動態變更「傳票/憑證編號」的 Label (零用金通常只叫憑證編號)
+            document.getElementById('fi-voucher-label').innerText = type === 'petty' ? '憑證編號' : '傳票/憑證編號';
+        }
+
+        function saveFinanceRecord() {
+            const type = document.getElementById('fi-type').value;
+            const dateVal = document.getElementById('fi-date').value;
+            const voucherVal = document.getElementById('fi-voucher').value;
+            
+            if(!dateVal) return showToast("請選擇日期", "error");
+
+            let newRecord = {};
+            
+            if (type === 'income') {
+                newRecord = {
+                    '日期': dateVal,
+                    '傳票/憑證編號': voucherVal,
+                    '會計科目': document.getElementById('fi-in-account').value,
+                    '服務項目(A/B/G/自費)': document.getElementById('fi-in-service').value,
+                    '摘要/對象': document.getElementById('fi-in-summary').value,
+                    '收款方式': document.getElementById('fi-in-method').value,
+                    '金額': document.getElementById('fi-in-amount').value || 0
+                };
+                financeDataRaw.income.push(newRecord);
+                financeDataRaw.income.sort((a,b) => new Date(b['日期']) - new Date(a['日期']));
+            } 
+            else if (type === 'expense') {
+                newRecord = {
+                    '日期': dateVal,
+                    '傳票/憑證編號': voucherVal,
+                    '會計科目': document.getElementById('fi-ex-account').value,
+                    '摘要/用品': document.getElementById('fi-ex-summary').value,
+                    '發票號碼/統編': document.getElementById('fi-ex-invoice').value,
+                    '支付方式(轉帳/現金)': document.getElementById('fi-ex-method').value,
+                    '金額': document.getElementById('fi-ex-amount').value || 0
+                };
+                financeDataRaw.expense.push(newRecord);
+                financeDataRaw.expense.sort((a,b) => new Date(b['日期']) - new Date(a['日期']));
+            }
+            else if (type === 'petty') {
+                newRecord = {
+                    '日期': dateVal,
+                    '憑證編號': voucherVal,
+                    '摘要/用途': document.getElementById('fi-pt-summary').value,
+                    '會計科目': document.getElementById('fi-pt-account').value,
+                    '撥入(補充零用金)': document.getElementById('fi-pt-inflow').value || 0,
+                    '支出(報帳扣除)': document.getElementById('fi-pt-outflow').value || 0,
+                    '目前結餘': document.getElementById('fi-pt-balance').value || 0,
+                    '申請人/經手人': document.getElementById('fi-pt-handler').value
+                };
+                financeDataRaw.petty.push(newRecord);
+                financeDataRaw.petty.sort((a,b) => new Date(b['日期']) - new Date(a['日期']));
+            }
+
+            // 本地端先行更新畫面
+            rebuildMonthFilter(); 
+            closeAddFinanceModal();
+            showToast("正在同步至雲端...", "info");
+
+            // 往後端傳遞 API (若您的 Google Apps Script 已準備好接受此 action)
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'addFinanceRecord', 
+                    type: type, 
+                    record: newRecord 
+                })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') showToast("✅ 紀錄已同步儲存", "success");
+                else showToast("後端儲存異常，但已顯示於目前畫面", "error");
+            }).catch(() => showToast("無法連線雲端，請檢查網路", "error"));
+        }
+
+        // ==================== 檔案管理Modal相關 ====================
         const targetNames = { 'none': '🚫 不公開', 'announcement': '📢 最新公告', 'policies': '🏦 機構規章', 'contract': '📝 勞動契約', 'shareholder': '💼 股東專區', 'salary': '💰 薪資明細' };
 
         function renderManageTable() {
@@ -866,29 +1147,22 @@
             .then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); }).catch(() => showToast("同步異常", "error"));
         }
 
-        // === 新增：自動隱藏檔名中的帳號前綴 ===
         function formatDisplayName(originalName) {
             let name = originalName;
-            // 抓取名單內所有員工的信箱前綴
             let prefixes = allUsersList.map(u => u.email.split('@')[0]);
             if (currentUserName && !prefixes.includes(currentUserName)) prefixes.push(currentUserName);
 
             prefixes.forEach(prefix => {
                 if (!prefix || prefix.length < 2) return; 
-                
-                // 1. 移除帶括號的帳號 (例如: (chuan5198hot) 或 [chuan5198hot])
                 const regexBracket = new RegExp(`[\\(\\[【]${prefix}[\\)\\]】]`, 'gi');
                 name = name.replace(regexBracket, '');
-                
-                // 2. 移除單獨的帳號字串
                 const regexRaw = new RegExp(prefix, 'gi');
                 name = name.replace(regexRaw, '');
             });
 
-            // 3. 清理多餘的底線與符號 (避免變成 陳素娟__勞動契約.pdf)
-            name = name.replace(/_+/g, '_');          // 雙底線變單底線
-            name = name.replace(/^_|_+(?=\.)/g, '');   // 去除開頭或副檔名前的底線
-            name = name.replace(/\(\)/g, '');          // 移除空括號
+            name = name.replace(/_+/g, '_');          
+            name = name.replace(/^_|_+(?=\.)/g, '');   
+            name = name.replace(/\(\)/g, '');          
 
             return name;
         }
@@ -906,15 +1180,12 @@
                         const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
                         const isSigned = signedFilesList.includes(f.id);
                         
-                        // 動態生成簽收按鈕 (如果已簽收則顯示綠色且禁用)
                         const signBtnHtml = isSigned
                             ? `<button disabled class="mt-4 px-3 py-1.5 bg-green-50 border border-green-200 text-green-600 rounded-lg text-[10px] font-black flex items-center gap-1 w-max"><i class="ph-bold ph-check-circle text-sm"></i> ✅ 已詳閱簽收</button>`
                             : `<button onclick="event.stopPropagation(); signDocument('${f.id}')" class="mt-4 px-3 py-1.5 bg-stone-100 border border-stone-200 text-stone-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-lg text-[10px] font-black transition-colors flex items-center gap-1 w-max shadow-sm"><i class="ph-bold ph-pen text-sm"></i> 📝 我已詳閱並同意</button>`;
 
-                        // === 套用隱藏帳號的乾淨檔名 ===
                         const cleanDisplayName = formatDisplayName(f.name);
 
-                        // 卡片結構調整，把簽收按鈕放在最下方 (加入 title 屬性讓滑鼠懸停時可看見原檔名)
                         const html = `
                         <div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative">
                             <div class="flex items-start gap-4">
@@ -971,7 +1242,6 @@
                 .then(res => res.json()).then(res => { 
                     if(res.status === "success") { 
                         showToast("✅ 上傳成功，正在重整資料...", "success"); 
-                        // 給 Google 雲端 1.5 秒的處理時間後，觸發顯性同步
                         setTimeout(() => triggerSync(false), 1500); 
                     } else { 
                         showToast("上傳失敗", "error"); 
@@ -980,7 +1250,6 @@
             }; 
             r.readAsDataURL(f);
             
-            // 加入這行清空 input，避免選同一個檔案沒反應
             e.target.value = '';
         });
     </script>

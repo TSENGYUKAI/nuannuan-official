@@ -601,7 +601,7 @@
                             <div><label class="block text-xs font-black text-stone-500 mb-1">證照加給(單一級)</label><input type="number" id="hr-pay-license-bonus" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1">BA拆帳5.5</label><input type="number" id="hr-pay-ba-split" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1">GA拆帳5.5</label><input type="number" id="hr-pay-ga-split" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
-                            <div><label class="block text-xs font-black text-stone-500 mb-1">A碼總和</label><input type="number" id="hr-pay-a-code" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                            <input type="hidden" id="hr-pay-a-code" value="">
                         </div>
                     </div>
                     
@@ -767,6 +767,7 @@
                 hrDataRaw.payroll = d.payroll || [];
                 hrDataRaw.aabonus = d.aaBonus || []; 
 
+                // ==================== 篩選與渲染邏輯 (補回的函數) ====================
                 rebuildMonthFilter();
                 rebuildHRMonthFilter();
                 
@@ -785,6 +786,77 @@
                 document.getElementById('loading-view').classList.add('hidden-section');
                 if(currentRole === 'unauthorized') document.getElementById('login-view').classList.remove('hidden-section');
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
+        }
+
+        function rebuildMonthFilter() {
+            let months = new Set();
+            const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
+            financeDataRaw.income.forEach(addM); financeDataRaw.expense.forEach(addM); financeDataRaw.petty.forEach(addM);
+
+            let filterSelect = document.getElementById('finance-month-filter');
+            let prevVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">全部月份</option>';
+            Array.from(months).sort().reverse().forEach(m => {
+                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
+            });
+            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
+            else filterSelect.value = 'all';
+
+            applyFinanceFilter();
+        }
+
+        function applyFinanceFilter() {
+            let selM = document.getElementById('finance-month-filter').value;
+            let searchInput = document.getElementById('finance-search-filter');
+            let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let fI = financeDataRaw.income, fE = financeDataRaw.expense, fP = financeDataRaw.petty;
+            
+            if (selM !== 'all') {
+                fI = fI.filter(r => getMonthStr(r) === selM);
+                fE = fE.filter(r => getMonthStr(r) === selM);
+                fP = fP.filter(r => getMonthStr(r) === selM);
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selM})`);
+            } else { 
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); 
+            }
+
+            if (keyword) {
+                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
+                fI = fI.filter(matchKeyword);
+                fE = fE.filter(matchKeyword);
+                fP = fP.filter(matchKeyword);
+            }
+
+            let totalR = 0; fI.forEach(r => totalR += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
+            let totalE = 0; fE.forEach(r => totalE += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
+            document.getElementById('display-revenue').innerText = '$' + totalR.toLocaleString();
+            document.getElementById('display-expense').innerText = '-$' + Math.abs(totalE).toLocaleString();
+            document.getElementById('display-net').innerText = '$' + (totalR - totalE).toLocaleString();
+
+            renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額'], 'income');
+            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額'], 'expense');
+            renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人'], 'petty');
+        }
+
+        function rebuildHRMonthFilter() {
+            let months = new Set();
+            hrDataRaw.payroll.forEach(row => {
+                let m = row['月份'];
+                if (m && String(m).trim() !== '') months.add(String(m).trim());
+            });
+
+            let filterSelect = document.getElementById('hr-month-filter');
+            if(!filterSelect) return;
+            let prevVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">全部月份</option>';
+            Array.from(months).sort().reverse().forEach(m => {
+                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
+            });
+            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
+            else filterSelect.value = 'all';
+
+            applyHRFilter();
         }
 
         // ==================== 數位薪資單邏輯 ====================
@@ -948,7 +1020,6 @@
 
             renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
             
-            // 完整對應 41 欄，前端只顯示摘要版，點擊編輯才會看到全貌
             renderTable('hr-payroll-tbody', hPay, [
                 '月份', '員工編號', '姓名', '薪資模式', '薪資級距', '時薪', '總時數', '轉場時間',
                 '平日薪資(含月薪)', '總薪資', '實發總額(匯款)', '公司總成本'

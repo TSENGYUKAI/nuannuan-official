@@ -328,7 +328,7 @@
                     </div>
                 </section>
 
-                <!-- 新增：人資與薪資系統 -->
+                <!-- 2. 人資與薪資系統 (AA碼+薪資) -->
                 <section id="content-hr" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -357,6 +357,7 @@
                     <div class="flex gap-2 mb-8 overflow-x-auto custom-scrollbar pb-2">
                         <button onclick="switchHRTab('personnel')" id="tab-hr-personnel" class="finance-tab bg-orange-500 text-white shadow-md">人事基本資料</button>
                         <button onclick="switchHRTab('payroll')" id="tab-hr-payroll" class="finance-tab bg-stone-50 text-stone-500">當月薪資計算表</button>
+                        <button onclick="switchHRTab('aabonus')" id="tab-hr-aabonus" class="finance-tab bg-stone-50 text-stone-500">AA碼獎金總表</button>
                     </div>
 
                     <!-- 人事資料表 -->
@@ -367,16 +368,28 @@
                         </table>
                     </div>
 
-                    <!-- 薪資計算表 (修正轉場時數) -->
+                    <!-- 薪資計算表 (簡化預覽，保留重要欄位) -->
                     <div id="hr-payroll" class="hr-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>月份</th><th>員工姓名</th><th>職位</th><th>服務時數</th><th>轉場時數</th><th>應稅薪資總額</th><th>代扣勞保(員工)</th><th>代扣健保(員工)</th><th>實發總額(匯款)</th><th>公司總成本</th><th>操作</th></tr></thead>
+                            <thead><tr>
+                                <th>月份</th><th>員工編號</th><th>姓名</th><th>薪資級距</th><th>總時數</th><th>轉場時間</th>
+                                <th>平日薪資(含月薪)</th><th>總薪資</th><th>實發總額(匯款)</th><th>公司總成本</th><th>操作</th>
+                            </tr></thead>
                             <tbody id="hr-payroll-tbody"></tbody>
+                        </table>
+                        <p class="text-xs text-stone-400 font-bold mt-4">* 點擊右側「編輯」按鈕可檢視/填寫完整的 38 項工時與加班欄位。</p>
+                    </div>
+
+                    <!-- AA碼獎金工作表 (對應獨立試算表的 AA獎金總表) -->
+                    <div id="hr-aabonus" class="hr-section hidden-section overflow-x-auto custom-scrollbar">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>服務人員身分證</th><th>姓名</th><th>AA04 次數</th><th>AA05 次數</th><th>AA06 次數</th><th>AA07 次數</th><th>金額總計</th><th>操作</th></tr></thead>
+                            <tbody id="hr-aabonus-tbody"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- 2. 財務系統 -->
+                <!-- 3. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -388,7 +401,6 @@
                                 <i class="ph-bold ph-plus"></i> 新增紀錄
                             </button>
                             
-                            <!-- 搜尋關鍵字篩選器 -->
                             <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
                                 <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
                                 <input type="text" id="finance-search-filter" oninput="applyFinanceFilter()" placeholder="搜尋摘要或科目..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
@@ -426,7 +438,6 @@
                         </div>
                     </div>
 
-                    <!-- 收入表格 -->
                     <div id="fin-income" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
                             <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>服務項目(A/B/G/自費)</th><th>摘要/對象</th><th>收款方式</th><th>金額</th><th>操作</th></tr></thead>
@@ -434,7 +445,6 @@
                         </table>
                     </div>
 
-                    <!-- 支出表格 -->
                     <div id="fin-expense" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
                             <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>摘要/用品</th><th>發票號碼/統編</th><th>支付方式(轉帳/現金)</th><th>金額</th><th>操作</th></tr></thead>
@@ -451,7 +461,6 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
                     </div>
 
-                    <!-- 零用金表格 -->
                     <div id="fin-petty" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
                             <thead><tr><th>日期</th><th>憑證編號</th><th>摘要/用途</th><th>會計科目</th><th>撥入(補充零用金)</th><th>支出(報帳扣除)</th><th>目前結餘</th><th>申請人/經手人</th><th>操作</th></tr></thead>
@@ -460,7 +469,7 @@
                     </div>
                 </section>
 
-                <!-- 3. 業務頁面 -->
+                <!-- 4. 業務頁面 -->
                 <section id="content-announcement" class="content-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
@@ -490,7 +499,7 @@
 
                 <section id="content-salary" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
-                        <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪資明細</div>
+                        <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 薪薪明細</div>
                         <button id="btn-edit-salary" onclick="toggleEdit('salary')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
                     </h3>
                     <div id="text-salary" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm">顯示專屬於您的薪資單檔案。</div>
@@ -502,19 +511,19 @@
 
     <!-- ==================== 新增/編輯人資薪資紀錄 Modal ==================== -->
     <div id="add-hr-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-[30px] p-8 w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-hr-modal-box">
+        <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-hr-modal-box">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
-                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-users"></i></div> 人資管理設定
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-users"></i></div> 人資與薪資設定
                 </h3>
                 <button onclick="closeAddHRModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-xs font-black text-stone-500 mb-2 uppercase tracking-widest">紀錄類型</label>
-                <div class="flex gap-2 bg-stone-100 p-1.5 rounded-xl">
-                    <button type="button" onclick="switchHRFormType('personnel')" id="btn-hr-type-personnel" class="flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm text-orange-500 transition-all">人事資料</button>
-                    <button type="button" onclick="switchHRFormType('payroll')" id="btn-hr-type-payroll" class="flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all">出勤/薪資</button>
+            <div class="mb-6 overflow-x-auto pb-2">
+                <div class="flex gap-2 bg-stone-100 p-1.5 rounded-xl w-max">
+                    <button type="button" onclick="switchHRFormType('personnel')" id="btn-hr-type-personnel" class="px-6 py-2 rounded-lg text-sm font-black bg-white shadow-sm text-orange-500 transition-all">人事資料</button>
+                    <button type="button" onclick="switchHRFormType('payroll')" id="btn-hr-type-payroll" class="px-6 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all">當月薪資明細</button>
+                    <button type="button" onclick="switchHRFormType('aabonus')" id="btn-hr-type-aabonus" class="px-6 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all">AA碼獎金總表</button>
                 </div>
             </div>
 
@@ -524,81 +533,105 @@
                 
                 <!-- 【人事基本資料】專用欄位 -->
                 <div id="hr-group-personnel" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">員工編號</label>
-                            <input type="text" id="hr-emp-id" placeholder="如: EMP-001" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">員工姓名</label>
-                            <input type="text" id="hr-emp-name" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">職位</label>
-                            <select id="hr-emp-role" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
-                                <option value="居服員">居服員</option>
-                                <option value="行政人員">行政人員</option>
-                                <option value="業務負責人">業務負責人</option>
-                                <option value="護理人員">護理人員</option>
-                                <option value="其他">其他</option>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div><label class="block text-xs font-black text-stone-500 mb-1">員工編號</label><input type="text" id="hr-emp-id" placeholder="EMP-001" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                        <div><label class="block text-xs font-black text-stone-500 mb-1">員工姓名</label><input type="text" id="hr-emp-name" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                        <div><label class="block text-xs font-black text-stone-500 mb-1">職位</label>
+                            <select id="hr-emp-role" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                <option value="居服員">居服員</option><option value="行政人員">行政人員</option><option value="業務負責人">業務負責人</option><option value="護理人員">護理人員</option><option value="其他">其他</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">到職日</label>
-                            <input type="date" id="hr-emp-date" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">狀態</label>
-                            <select id="hr-emp-status" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
-                                <option value="在職">🟢 在職</option>
-                                <option value="留職停薪">🟡 留職停薪</option>
-                                <option value="離職">🔴 離職</option>
+                        <div><label class="block text-xs font-black text-stone-500 mb-1">到職日</label><input type="date" id="hr-emp-date" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                        <div><label class="block text-xs font-black text-stone-500 mb-1">狀態</label>
+                            <select id="hr-emp-status" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                <option value="在職">🟢 在職</option><option value="留職停薪">🟡 留職停薪</option><option value="離職">🔴 離職</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">備註</label>
-                            <input type="text" id="hr-emp-memo" placeholder="補充說明" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
-                        </div>
+                        <div class="col-span-2 md:col-span-3"><label class="block text-xs font-black text-stone-500 mb-1">備註</label><input type="text" id="hr-emp-memo" placeholder="補充說明" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
                     </div>
                 </div>
 
-                <!-- 【薪資計算】專用欄位 -->
-                <div id="hr-group-payroll" class="space-y-4 hidden">
+                <!-- 【薪資明細】專用欄位 (38欄位對接版) -->
+                <div id="hr-group-payroll" class="space-y-6 hidden">
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-orange-600 mb-4 flex items-center gap-2 border-b border-orange-200 pb-2"><i class="ph-fill ph-identification-card"></i> 基本設定</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">歸屬月份 *</label><input type="month" id="hr-pay-month" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">員工編號</label><input type="text" id="hr-pay-empid" placeholder="EMP-001" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">姓名 *</label><input type="text" id="hr-pay-name" placeholder="輸入姓名" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">薪資模式</label><select id="hr-pay-mode" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"><option value="月薪">月薪</option><option value="時薪">時薪</option><option value="拆帳">拆帳</option></select></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-600">薪資級距</label><input type="number" id="hr-pay-range" placeholder="如: 32000" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            
+                            <input type="hidden" id="hr-pay-revert" value="">
+                            <input type="hidden" id="hr-pay-admin-meeting" value="">
+                            <input type="hidden" id="hr-pay-hourly" value="">
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-blue-600 mb-4 flex items-center gap-2 border-b border-blue-200 pb-2"><i class="ph-fill ph-clock"></i> 工時紀錄參數 (單位: 小時)</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-600">總時數</label><input type="number" step="0.5" id="hr-pay-hours-total" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-600">平日時數</label><input type="number" step="0.5" id="hr-pay-hours-weekday" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">平日加班(1.34時)</label><input type="number" step="0.5" id="hr-pay-ot-w1" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">平日加班(1.67時)</label><input type="number" step="0.5" id="hr-pay-ot-w2" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">休息日加班(1.34時)</label><input type="number" step="0.5" id="hr-pay-ot-r1" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">休息日加班(1.67時)</label><input type="number" step="0.5" id="hr-pay-ot-r2" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">假日喘息時數</label><input type="number" step="0.5" id="hr-pay-holiday-260" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">國定假時數</label><input type="number" step="0.5" id="hr-pay-national-hol" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-600">轉場時間</label><input type="number" step="0.5" id="hr-pay-transit-time" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">行政會議時數</label><input type="number" step="0.5" id="hr-pay-admin-hours" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-green-600 mb-4 flex items-center gap-2 border-b border-green-200 pb-2"><i class="ph-fill ph-money"></i> 加給與拆帳 (單位: 元)</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">證照加給(單一級)</label><input type="number" id="hr-pay-license-bonus" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">BA拆帳5.5</label><input type="number" id="hr-pay-ba-split" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">GA拆帳5.5</label><input type="number" id="hr-pay-ga-split" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">A碼總和</label><input type="number" id="hr-pay-a-code" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-[10px] text-stone-400 font-bold mt-2"><i class="ph-bold ph-info"></i> 提示：所有金額計算請由後端試算表公式自動產生，此處僅作為傳遞工時參數使用。</p>
+                </div>
+
+                <!-- 【AA碼獎金總表】專用欄位 -->
+                <div id="hr-group-aabonus" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">歸屬月份</label>
-                            <input type="month" id="hr-pay-month" required class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                            <label class="block text-xs font-black text-stone-500 mb-1">服務人員身分證</label>
+                            <input type="text" id="hr-aa-id" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">員工姓名</label>
-                            <input type="text" id="hr-pay-name" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                            <label class="block text-xs font-black text-stone-500 mb-1">姓名</label>
+                            <input type="text" id="hr-aa-name" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">職位</label>
-                            <select id="hr-pay-role" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
-                                <option value="居服員">居服員</option>
-                                <option value="行政人員">行政人員</option>
-                                <option value="業務負責人">業務負責人</option>
-                            </select>
+                            <label class="block text-xs font-black text-stone-500 mb-1">AA04 次數</label>
+                            <input type="number" step="0.1" id="hr-aa-04" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">AA05 次數</label>
+                            <input type="number" step="0.1" id="hr-aa-05" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">AA06 次數</label>
+                            <input type="number" step="0.1" id="hr-aa-06" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">AA07 次數</label>
+                            <input type="number" step="0.1" id="hr-aa-07" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-stone-100">
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">服務時數</label>
-                            <input type="number" id="hr-pay-hours" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">轉場時數</label>
-                            <input type="number" id="hr-pay-transits" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
-                        </div>
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1 text-green-600">金額總計</label>
+                        <input type="number" id="hr-aa-total" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-green-500 text-sm">
                     </div>
-                    <p class="text-[10px] text-orange-500 font-bold mt-2"><i class="ph-bold ph-info"></i> 薪資總額、勞健保代扣及實發總額，將由系統依據上述時數自動計算。</p>
+                    <p class="text-[10px] text-orange-500 font-bold mt-2"><i class="ph-bold ph-info"></i> 此表為系統透過 FA300 及清冊比對後自動產生的「總表」。若有特殊狀況需手動微調，可在此直接編輯。</p>
                 </div>
 
                 <div class="flex gap-4 pt-4 mt-6 border-t-2 border-stone-100">
@@ -632,7 +665,6 @@
                 <input type="hidden" id="fi-type" value="income">
                 <input type="hidden" id="fi-row-index" value=""> 
                 
-                <!-- 共通欄位 -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-black text-stone-500 mb-1">日期</label>
@@ -644,7 +676,6 @@
                     </div>
                 </div>
                 
-                <!-- 【收入】專用欄位 -->
                 <div id="fi-group-income" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -686,7 +717,6 @@
                     </div>
                 </div>
 
-                <!-- 【支出】專用欄位 -->
                 <div id="fi-group-expense" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -728,7 +758,6 @@
                     </div>
                 </div>
 
-                <!-- 【零用金】專用欄位 -->
                 <div id="fi-group-petty" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -825,9 +854,9 @@
             <div class="bg-red-50 text-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ph-bold ph-trash text-3xl"></i>
             </div>
-            <h3 class="text-xl font-black text-gray-800 mb-2">確定要刪除檔案嗎？</h3>
+            <h3 class="text-xl font-black text-gray-800 mb-2">確定要刪除紀錄嗎？</h3>
             <p id="delete-modal-filename" class="text-xs font-bold text-stone-500 mb-6 truncate"></p>
-            <p class="text-xs text-red-500 font-bold mb-8">此操作將會把檔案從雲端硬碟移至垃圾桶，刪除後將無法從系統恢復。</p>
+            <p class="text-xs text-red-500 font-bold mb-8">此操作將會把資料刪除，刪除後將無法從系統恢復。</p>
             <div class="flex gap-4">
                 <button onclick="closeDeleteModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
                 <button onclick="confirmDeleteFile()" class="flex-1 py-3 rounded-xl font-black text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all">確認刪除</button>
@@ -836,15 +865,15 @@
     </div>
 
     <script>
-        // 👇 更新了您的專屬部署網址
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzKRNsT2G936jTUg0pmaqll1Wa8ggPNW3p4zxdpqhnPlWXg4qEaITD4BouTiucr872bA/exec";
         
         let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
         let currentPublishFileId = null;
         let currentDeleteFileId = null; 
+        let currentDeleteFunction = null;
         
         let financeDataRaw = { income: [], expense: [], petty: [] };
-        let hrDataRaw = { personnel: [], payroll: [] };
+        let hrDataRaw = { personnel: [], payroll: [], aabonus: [] }; 
         let allUsersList = [];
         let signedFilesList = [];
 
@@ -973,6 +1002,7 @@
 
                 hrDataRaw.personnel = d.personnel || [];
                 hrDataRaw.payroll = d.payroll || [];
+                hrDataRaw.aabonus = d.aaBonus || []; 
 
                 rebuildMonthFilter();
                 rebuildHRMonthFilter();
@@ -1067,7 +1097,6 @@
         }
 
         // ==================== 財務與檔案渲染邏輯 ====================
-        
         function rebuildMonthFilter() {
             let months = new Set();
             const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
@@ -1146,19 +1175,31 @@
 
             let hPer = hrDataRaw.personnel;
             let hPay = hrDataRaw.payroll;
+            let hAA = hrDataRaw.aabonus;
             
             if (selM !== 'all') {
                 hPay = hPay.filter(r => String(r['月份'] || '').trim() === selM);
+                // 註：因為程式碼產生的「AA獎金總表」沒有月份，所以 AA 碼全顯示，僅用搜尋框過濾
             }
 
             if (keyword) {
                 const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
                 hPer = hPer.filter(matchKeyword);
                 hPay = hPay.filter(matchKeyword);
+                hAA = hAA.filter(matchKeyword);
             }
 
             renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
-            renderTable('hr-payroll-tbody', hPay, ['月份', '員工姓名', '職位', '服務時數', '轉場時數', '應稅薪資總額', '代扣勞保(員工)', '代扣健保(員工)', '實發總額(匯款)', '公司總成本'], 'hr-payroll');
+            
+            renderTable('hr-payroll-tbody', hPay, [
+                '月份', '員工編號', '姓名', '薪資級距', '總時數', '轉場時間',
+                '平日薪資(含月薪)', '總薪資', '實發總額(匯款)', '公司總成本'
+            ], 'hr-payroll');
+
+            // 🔥 渲染 AA 碼表格 (對應獨立試算表產出的總表欄位)
+            renderTable('hr-aabonus-tbody', hAA, [
+                '服務人員身分證', '姓名', 'AA04 次數', 'AA05 次數', 'AA06 次數', 'AA07 次數', '金額總計'
+            ], 'hr-aabonus');
         }
 
         function renderTable(id, rows, cols, typeName) {
@@ -1170,9 +1211,9 @@
                 cols.forEach(c => {
                     let td = document.createElement('td'), v = r[c];
                     if (v === undefined || v === null || String(v).trim() === '') { td.innerText = '-'; } 
-                    else if (c.includes('金額') || c.includes('支出') || c.includes('撥入') || c.includes('總額') || c.includes('成本') || c.includes('代扣') || c === '目前結餘') {
+                    else if (c.includes('金額') || c.includes('支出') || c.includes('撥入') || c.includes('總額') || c.includes('成本') || c.includes('代扣') || c === '目前結餘' || c.includes('薪資') || c.includes('費') || c.includes('總計')) {
                         let n = Number(String(v).replace(/,/g, '').trim());
-                        if (isNaN(n)) td.innerText = '-';
+                        if (isNaN(n)) td.innerText = v; 
                         else {
                             if(c.includes('代扣')) td.innerHTML = `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>`;
                             else td.innerHTML = n < 0 ? `<span class="text-red-500">-$${Math.abs(n).toLocaleString()}</span>` : `<span class="text-green-600">$${n.toLocaleString()}</span>`;
@@ -1204,7 +1245,7 @@
         function openEditFormModal(type, rowIndex, record) {
             if(type === 'income' || type === 'expense' || type === 'petty') {
                 openEditFinanceModal(type, rowIndex, record);
-            } else if (type === 'hr-personnel' || type === 'hr-payroll') {
+            } else if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') {
                 openEditHRModal(type, rowIndex, record);
             }
         }
@@ -1212,23 +1253,29 @@
         function deleteRecordAPI(type, rowIndex) {
             let actionName = 'deleteFinanceRecord';
             let dataType = type;
-            if (type === 'hr-personnel' || type === 'hr-payroll') {
+            if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') {
                 actionName = 'deleteHRRecord';
-                dataType = type === 'hr-personnel' ? 'personnel' : 'payroll';
+                dataType = type.replace('hr-', '');
             }
 
-            if(!confirm("確定要刪除這筆紀錄嗎？\n(注意：從試算表中刪除後將無法復原)")) return;
-            
-            showToast("正在刪除紀錄...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: actionName, type: dataType, rowIndex: rowIndex })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 紀錄已成功刪除，重新整理中...", "success");
-                    triggerSync(true); 
-                } else showToast("刪除失敗", "error");
-            }).catch(() => showToast("連線異常", "error"));
+            currentDeleteFileId = rowIndex; 
+            currentDeleteFunction = () => {
+                showToast("正在刪除紀錄...", "info");
+                fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: actionName, type: dataType, rowIndex: rowIndex })
+                }).then(r => r.json()).then(res => {
+                    if(res.status === 'success') {
+                        showToast("✅ 紀錄已成功刪除，重新整理中...", "success");
+                        closeDeleteModal();
+                        triggerSync(true); 
+                    } else showToast("刪除失敗", "error");
+                }).catch(() => showToast("連線異常", "error"));
+            };
+
+            document.getElementById('delete-modal-filename').innerText = `行號: ${rowIndex}`;
+            const modal = document.getElementById('delete-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
         }
 
         // ==================== 新增/編輯人資紀錄 Modal 控制 ====================
@@ -1249,7 +1296,7 @@
         function openEditHRModal(type, rowIndex, record) {
             document.getElementById('hr-add-form').reset();
             document.getElementById('hr-row-index').value = rowIndex;
-            let formType = type === 'hr-personnel' ? 'personnel' : 'payroll';
+            let formType = type.replace('hr-', '');
             switchHRFormType(formType);
             
             if(formType === 'personnel') {
@@ -1267,10 +1314,40 @@
                     let mStr = String(record['月份']).replace('/', '-');
                     document.getElementById('hr-pay-month').value = mStr;
                 }
-                document.getElementById('hr-pay-name').value = record['員工姓名'] || '';
-                document.getElementById('hr-pay-role').value = record['職位'] || '居服員';
-                document.getElementById('hr-pay-hours').value = record['服務時數'] || '';
-                document.getElementById('hr-pay-transits').value = record['轉場時數'] || '';
+                document.getElementById('hr-pay-empid').value = record['員工編號'] || '';
+                document.getElementById('hr-pay-name').value = record['姓名'] || '';
+                document.getElementById('hr-pay-mode').value = record['薪資模式'] || '月薪';
+                document.getElementById('hr-pay-range').value = record['薪資級距'] || '';
+                document.getElementById('hr-pay-revert').value = record['依總時數回推'] || '';
+                document.getElementById('hr-pay-admin-meeting').value = record['行政會議'] || '';
+                document.getElementById('hr-pay-hourly').value = record['時薪'] || '';
+                
+                document.getElementById('hr-pay-hours-total').value = record['總時數'] || '';
+                document.getElementById('hr-pay-hours-weekday').value = record['平日時數'] || '';
+                document.getElementById('hr-pay-transit-time').value = record['轉場時間'] || '';
+                document.getElementById('hr-pay-admin-hours').value = record['行政會議出席時數'] || '';
+                
+                document.getElementById('hr-pay-ot-w1').value = record['平日加班(1.34時)'] || '';
+                document.getElementById('hr-pay-ot-w2').value = record['平日加班(1.67時)'] || '';
+                document.getElementById('hr-pay-ot-r1').value = record['休息日加班(1.34時)'] || '';
+                document.getElementById('hr-pay-ot-r2').value = record['休息日加班(1.67時)'] || '';
+                
+                document.getElementById('hr-pay-holiday-260').value = record['假日260/時'] || '';
+                document.getElementById('hr-pay-national-hol').value = record['國定假(2時)'] || '';
+                
+                document.getElementById('hr-pay-license-bonus').value = record['證照加給(單一級)'] || '';
+                document.getElementById('hr-pay-ba-split').value = record['BA拆帳5.5'] || '';
+                document.getElementById('hr-pay-ga-split').value = record['GA拆帳5.5'] || '';
+                document.getElementById('hr-pay-a-code').value = record['A碼總和'] || '';
+            } else if (formType === 'aabonus') {
+                // 🔥 對接自動算出的 AA獎金總表 欄位
+                document.getElementById('hr-aa-id').value = record['服務人員身分證'] || '';
+                document.getElementById('hr-aa-name').value = record['姓名'] || '';
+                document.getElementById('hr-aa-04').value = record['AA04 次數'] || '';
+                document.getElementById('hr-aa-05').value = record['AA05 次數'] || '';
+                document.getElementById('hr-aa-06').value = record['AA06 次數'] || '';
+                document.getElementById('hr-aa-07').value = record['AA07 次數'] || '';
+                document.getElementById('hr-aa-total').value = String(record['金額總計']).replace(/,/g, '') || '';
             }
 
             document.getElementById('btn-submit-hr').innerText = '儲存修改';
@@ -1292,12 +1369,12 @@
 
         function switchHRFormType(type) {
             document.getElementById('hr-type').value = type;
-            ['personnel', 'payroll'].forEach(t => {
+            ['personnel', 'payroll', 'aabonus'].forEach(t => {
                 const btn = document.getElementById('btn-hr-type-' + t);
                 const isSelected = (t === type);
                 btn.className = isSelected 
-                    ? `flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all text-orange-500`
-                    : `flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
+                    ? `px-6 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all text-orange-500`
+                    : `px-6 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
                 
                 document.getElementById('hr-group-' + t).style.display = isSelected ? 'block' : 'none';
             });
@@ -1328,10 +1405,41 @@
 
                 newRecord = {
                     '月份': monthStr,
-                    '員工姓名': document.getElementById('hr-pay-name').value,
-                    '職位': document.getElementById('hr-pay-role').value,
-                    '服務時數': document.getElementById('hr-pay-hours').value || 0,
-                    '轉場時數': document.getElementById('hr-pay-transits').value || 0
+                    '員工編號': document.getElementById('hr-pay-empid').value,
+                    '姓名': document.getElementById('hr-pay-name').value,
+                    '薪資模式': document.getElementById('hr-pay-mode').value,
+                    '薪資級距': document.getElementById('hr-pay-range').value,
+                    '依總時數回推': document.getElementById('hr-pay-revert').value,
+                    '行政會議': document.getElementById('hr-pay-admin-meeting').value,
+                    '時薪': document.getElementById('hr-pay-hourly').value,
+                    '總時數': document.getElementById('hr-pay-hours-total').value || 0,
+                    '平日時數': document.getElementById('hr-pay-hours-weekday').value || 0,
+                    '平日加班(1.34時)': document.getElementById('hr-pay-ot-w1').value || 0,
+                    '平日加班(1.67時)': document.getElementById('hr-pay-ot-w2').value || 0,
+                    '休息日加班(1.34時)': document.getElementById('hr-pay-ot-r1').value || 0,
+                    '休息日加班(1.67時)': document.getElementById('hr-pay-ot-r2').value || 0,
+                    '假日260/時': document.getElementById('hr-pay-holiday-260').value || 0,
+                    '國定假(2時)': document.getElementById('hr-pay-national-hol').value || 0,
+                    '轉場時間': document.getElementById('hr-pay-transit-time').value || 0,
+                    '行政會議出席時數': document.getElementById('hr-pay-admin-hours').value || 0,
+                    '證照加給(單一級)': document.getElementById('hr-pay-license-bonus').value || 0,
+                    'BA拆帳5.5': document.getElementById('hr-pay-ba-split').value || 0,
+                    'GA拆帳5.5': document.getElementById('hr-pay-ga-split').value || 0,
+                    'A碼總和': document.getElementById('hr-pay-a-code').value || 0
+                };
+            }
+            else if (type === 'aabonus') {
+                if(!document.getElementById('hr-aa-name').value) return showToast("請輸入員工姓名", "error");
+                
+                // 🔥 對接自動產出的 AA獎金總表
+                newRecord = {
+                    '服務人員身分證': document.getElementById('hr-aa-id').value,
+                    '姓名': document.getElementById('hr-aa-name').value,
+                    'AA04 次數': document.getElementById('hr-aa-04').value || 0,
+                    'AA05 次數': document.getElementById('hr-aa-05').value || 0,
+                    'AA06 次數': document.getElementById('hr-aa-06').value || 0,
+                    'AA07 次數': document.getElementById('hr-aa-07').value || 0,
+                    '金額總計': document.getElementById('hr-aa-total').value || 0
                 };
             }
 
@@ -1550,6 +1658,7 @@
         }
 
         function openDeleteModal(fileId, fileName) {
+            currentDeleteFunction = null; 
             currentDeleteFileId = fileId; document.getElementById('delete-modal-filename').innerText = fileName;
             const modal = document.getElementById('delete-modal'); modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
@@ -1557,10 +1666,14 @@
 
         function closeDeleteModal() {
             const modal = document.getElementById('delete-modal'); document.getElementById('delete-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentDeleteFileId = null; }, 300);
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentDeleteFileId = null; currentDeleteFunction = null; }, 300);
         }
 
         function confirmDeleteFile() {
+            if(currentDeleteFunction) {
+                currentDeleteFunction();
+                return;
+            }
             if(!currentDeleteFileId) return;
             const idToDel = currentDeleteFileId; showToast("正在刪除檔案...", "info");
             for(let cat in allDriveFiles) allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== idToDel);
@@ -1687,6 +1800,8 @@
             document.getElementById('tab-hr-personnel').classList.add('bg-stone-50', 'text-stone-500');
             document.getElementById('tab-hr-payroll').classList.remove('bg-orange-500', 'text-white', 'shadow-md');
             document.getElementById('tab-hr-payroll').classList.add('bg-stone-50', 'text-stone-500');
+            document.getElementById('tab-hr-aabonus').classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+            document.getElementById('tab-hr-aabonus').classList.add('bg-stone-50', 'text-stone-500');
             
             const target = document.getElementById('hr-' + id);
             if(target) target.classList.remove('hidden-section');
@@ -1695,7 +1810,8 @@
 
             const monthFilterContainer = document.getElementById('hr-month-filter-container');
             if(monthFilterContainer) {
-                monthFilterContainer.style.display = id === 'payroll' ? 'flex' : 'none';
+                // 因為 AA獎金總表 是跨月的彙總資料，因此隱藏月份篩選器
+                monthFilterContainer.style.display = id === 'personnel' || id === 'aabonus' ? 'none' : 'flex';
             }
         }
 

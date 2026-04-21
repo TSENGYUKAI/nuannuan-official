@@ -500,7 +500,6 @@
                     </h3>
                     
                     <div class="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between no-print">
-                        <!-- 🔥 新增：管理員切換員工預覽下拉選單 -->
                         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                             <div id="admin-preview-container" class="hidden items-center gap-2">
                                 <label class="text-sm font-black text-orange-500">選擇員工(管理員預覽)</label>
@@ -605,7 +604,7 @@
                             <div><label class="block text-xs font-black text-stone-500 mb-1">平日加班(1.67時)</label><input type="number" step="0.5" id="hr-pay-ot-w2" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1">休息日加班(1.34時)</label><input type="number" step="0.5" id="hr-pay-ot-r1" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1">休息日加班(1.67時)</label><input type="number" step="0.5" id="hr-pay-ot-r2" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
-                            <div><label class="block text-xs font-black text-stone-500 mb-1">假日喘息時數</label><input type="number" step="0.5" id="hr-pay-holiday-260" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">假日喘息時數</label><input type="number" step="0.5" id="hr-pay-holiday-time" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1">國定假時數(2)</label><input type="number" step="0.5" id="hr-pay-national-hol" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-600">轉場時間(時數)</label><input type="number" step="0.5" id="hr-pay-transit-time" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
                             <div><label class="block text-xs font-black text-stone-500 mb-1">行政會議時數</label><input type="number" step="0.5" id="hr-pay-admin-hours" placeholder="0" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
@@ -942,7 +941,6 @@
 
                 allUsersList = Array.isArray(d.users) ? d.users : [];
                 
-                // 🔥 全新認證邏輯：透過人事資料的「備註」欄位（存放Gmail）來精確綁定員工姓名
                 hrDataRaw.personnel = (Array.isArray(d.personnel) ? d.personnel : []).filter(r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== ''));
                 
                 const matchedPersonnel = hrDataRaw.personnel.find(p => {
@@ -1017,7 +1015,6 @@
                 try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
                 try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
                 
-                // 🔥 將管理員專屬切換選單初始化
                 try {
                     if (currentRole === 'admin') {
                         document.getElementById('admin-preview-container').classList.remove('hidden');
@@ -1328,8 +1325,8 @@
         const payrollCols = [
             "月份", "員工編號", "姓名", "薪資模式", "薪資級距", "行政會議時薪", "時薪",
             "總時數", "平日時數", "平日加班(1.34時)", "平日加班(1.67時)", "休息日加班(1.34時)", "休息日加班(1.67時)",
-            "假日260/時", "國定假(2時)", "轉場時間", "行政會議出席時數", "平日薪資(含月薪)", "平日加班費(1.34)",
-            "平日加班費(1.67)", "休息日加班費(1.34)", "休息日加班費(1.67)", "假日喘息費用(260/時)", "國定假日加班費(2)",
+            "假日喘息時數", "國定假(2時)", "轉場時間", "行政會議出席時數", "平日薪資(含月薪)", "平日加班費(1.34)",
+            "平日加班費(1.67)", "休息日加班費(1.34)", "休息日加班費(1.67)", "假日喘息費用(230/時)", "國定假日加班費(2)",
             "行政會議費用", "轉場費用", "證照加給(單一級)", "BA拆帳5.5", "GA拆帳5.5", "總薪資", "應稅薪資總額",
             "代扣勞保(員工)", "代扣健保(員工)", "實發總額(匯款)", "公司負擔勞保", "公司負擔健保", "勞退提撥(6%)", "公司總成本"
         ];
@@ -1444,7 +1441,7 @@
                 document.getElementById('hr-pay-ot-r1').value = record['休息日加班(1.34時)'] || '';
                 document.getElementById('hr-pay-ot-r2').value = record['休息日加班(1.67時)'] || '';
                 
-                document.getElementById('hr-pay-holiday-260').value = record['假日260/時'] || '';
+                document.getElementById('hr-pay-holiday-time').value = record['假日喘息時數'] || '';
                 document.getElementById('hr-pay-national-hol').value = record['國定假(2時)'] || '';
                 
                 document.getElementById('hr-pay-license-bonus').value = record['證照加給(單一級)'] || '';
@@ -1526,7 +1523,7 @@
                     '平日加班(1.67時)': document.getElementById('hr-pay-ot-w2').value || 0,
                     '休息日加班(1.34時)': document.getElementById('hr-pay-ot-r1').value || 0,
                     '休息日加班(1.67時)': document.getElementById('hr-pay-ot-r2').value || 0,
-                    '假日260/時': document.getElementById('hr-pay-holiday-260').value || 0,
+                    '假日喘息時數': document.getElementById('hr-pay-holiday-time').value || 0,
                     '國定假(2時)': document.getElementById('hr-pay-national-hol').value || 0,
                     '轉場時間': document.getElementById('hr-pay-transit-time').value || 0,
                     '行政會議出席時數': document.getElementById('hr-pay-admin-hours').value || 0,
@@ -1645,7 +1642,6 @@
         function initMyPayslip() {
             let targetName = currentUserDisplayName;
             
-            // 🔥 取得下拉選單所選的管理員預覽目標姓名
             if (currentRole === 'admin') {
                 const previewSelect = document.getElementById('admin-preview-emp');
                 if(previewSelect && previewSelect.value) {
@@ -1658,7 +1654,6 @@
                 return recName === targetName || recName === currentUserName;
             }) : [];
             
-            // 如果是一般員工，且月份不在已發佈名單中，就過濾掉
             if (currentRole !== 'admin') {
                 let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
                 myPayroll = myPayroll.filter(r => {
@@ -1703,7 +1698,6 @@
 
             let targetName = currentUserDisplayName;
             
-            // 🔥 取得下拉選單所選的管理員預覽目標姓名
             if (currentRole === 'admin') {
                 const previewSelect = document.getElementById('admin-preview-emp');
                 if(previewSelect && previewSelect.value) {
@@ -1736,7 +1730,6 @@
             
             let badgeHtml = '';
             if (currentRole === 'admin') {
-                // 更穩健的比對：移除斜線與減號後的純數字比對 (例如 202604)
                 let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
                 let normalizedCurrentMonth = month.replace(/[\/\-]/g, '').trim();
                 const isPublished = normalizedMonths.includes(normalizedCurrentMonth);
@@ -1787,7 +1780,7 @@
                                     <div class="flex justify-between"><span>平日加班 (1.67)</span>${fmt(pr['平日加班費(1.67)'])}</div>
                                     <div class="flex justify-between"><span>休息日加班 (1.34)</span>${fmt(pr['休息日加班費(1.34)'])}</div>
                                     <div class="flex justify-between"><span>休息日加班 (1.67)</span>${fmt(pr['休息日加班費(1.67)'])}</div>
-                                    <div class="flex justify-between"><span>假日喘息費用 (260/時)</span>${fmt(pr['假日喘息費用(260/時)'])}</div>
+                                    <div class="flex justify-between"><span>假日喘息費用 (230/時)</span>${fmt(pr['假日喘息費用(230/時)'])}</div>
                                     <div class="flex justify-between"><span>國定假日加班費 (2)</span>${fmt(pr['國定假日加班費(2)'])}</div>
                                 </div>
                             </div>

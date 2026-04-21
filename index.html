@@ -170,7 +170,7 @@
     </div>
 
     <!-- ==================== 主控台 ==================== -->
-    <div id="dashboard-view" class="hidden-section max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
+    <div id="dashboard-view" class="hidden-section max-w-[1600px] mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
         
         <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4">
@@ -336,6 +336,13 @@
                             <button onclick="openAddFinanceModal()" class="admin-edit-btn hidden flex items-center gap-2 bg-stone-800 text-white px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md">
                                 <i class="ph-bold ph-plus"></i> 新增紀錄
                             </button>
+                            
+                            <!-- 新增：搜尋關鍵字篩選器 -->
+                            <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
+                                <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
+                                <input type="text" id="finance-search-filter" oninput="applyFinanceFilter()" placeholder="搜尋摘要或科目..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
+                            </div>
+
                             <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border-2 border-stone-100">
                                 <i class="ph-bold ph-calendar-blank text-stone-400"></i>
                                 <select id="finance-month-filter" onchange="applyFinanceFilter()" class="bg-transparent text-stone-700 font-bold text-sm outline-none cursor-pointer">
@@ -917,13 +924,28 @@
 
         function applyFinanceFilter() {
             let selM = document.getElementById('finance-month-filter').value;
+            let searchInput = document.getElementById('finance-search-filter');
+            let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
             let fI = financeDataRaw.income, fE = financeDataRaw.expense, fP = financeDataRaw.petty;
+            
+            // 1. 月份篩選
             if (selM !== 'all') {
-                fI = financeDataRaw.income.filter(r => getMonthStr(r) === selM);
-                fE = financeDataRaw.expense.filter(r => getMonthStr(r) === selM);
-                fP = financeDataRaw.petty.filter(r => getMonthStr(r) === selM);
+                fI = fI.filter(r => getMonthStr(r) === selM);
+                fE = fE.filter(r => getMonthStr(r) === selM);
+                fP = fP.filter(r => getMonthStr(r) === selM);
                 document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selM})`);
-            } else { document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); }
+            } else { 
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); 
+            }
+
+            // 2. 關鍵字搜尋篩選
+            if (keyword) {
+                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
+                fI = fI.filter(matchKeyword);
+                fE = fE.filter(matchKeyword);
+                fP = fP.filter(matchKeyword);
+            }
 
             let totalR = 0; fI.forEach(r => totalR += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);
             let totalE = 0; fE.forEach(r => totalE += parseFloat(String(r['金額']||0).replace(/,/g,''))||0);

@@ -500,11 +500,21 @@
                     </h3>
                     
                     <div class="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between no-print">
-                        <div class="flex items-center gap-3 w-full md:w-auto">
-                            <label class="text-sm font-black text-stone-500">選擇結算月份</label>
-                            <select id="my-payslip-month" onchange="renderMyPayslip()" class="p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer">
-                                <!-- 動態載入 -->
-                            </select>
+                        <!-- 🔥 新增：管理員切換員工預覽下拉選單 -->
+                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <div id="admin-preview-container" class="hidden items-center gap-2">
+                                <label class="text-sm font-black text-orange-500">選擇員工(管理員預覽)</label>
+                                <select id="admin-preview-emp" onchange="initMyPayslip()" class="p-3 bg-orange-50 border-2 border-orange-200 text-orange-700 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer shadow-sm">
+                                    <!-- 動態載入 -->
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-black text-stone-500">選擇結算月份</label>
+                                <select id="my-payslip-month" onchange="renderMyPayslip()" class="p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer">
+                                    <!-- 動態載入 -->
+                                </select>
+                            </div>
                         </div>
                         <button onclick="window.print()" class="bg-stone-800 text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md flex items-center justify-center gap-2 w-full md:w-auto">
                             <i class="ph-bold ph-printer text-lg"></i> 列印 / 存成 PDF
@@ -932,6 +942,7 @@
 
                 allUsersList = Array.isArray(d.users) ? d.users : [];
                 
+                // 🔥 全新認證邏輯：透過人事資料的「備註」欄位（存放Gmail）來精確綁定員工姓名
                 hrDataRaw.personnel = (Array.isArray(d.personnel) ? d.personnel : []).filter(r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== ''));
                 
                 const matchedPersonnel = hrDataRaw.personnel.find(p => {
@@ -1005,6 +1016,28 @@
                 try { renderManageTable(); } catch(e) { console.error("Manage Table Error", e); }
                 try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
                 try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
+                
+                // 🔥 將管理員專屬切換選單初始化
+                try {
+                    if (currentRole === 'admin') {
+                        document.getElementById('admin-preview-container').classList.remove('hidden');
+                        document.getElementById('admin-preview-container').classList.add('flex');
+                        
+                        let empSelect = document.getElementById('admin-preview-emp');
+                        let empOptions = `<option value="${currentUserDisplayName}">我自己 (${currentUserDisplayName})</option>`;
+                        
+                        let uniqueNames = [];
+                        if (Array.isArray(hrDataRaw.payroll)) {
+                            uniqueNames = [...new Set(hrDataRaw.payroll.map(r => String(r['姓名'] || '').trim()).filter(n => n && n !== currentUserDisplayName))];
+                        }
+                        
+                        uniqueNames.forEach(name => {
+                            empOptions += `<option value="${name}">${name}</option>`;
+                        });
+                        empSelect.innerHTML = empOptions;
+                    }
+                } catch(e) { console.error("Admin Preview Setup Error", e); }
+
                 try { updateNameDropdowns(); } catch(e) { console.error("Dropdown Update Error", e); }
                 try { initMyPayslip(); } catch(e) { console.error("My Payslip Error", e); }
 
@@ -1610,10 +1643,28 @@
         }
 
         function initMyPayslip() {
-            let myPayroll = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.filter(r => r['姓名'] === currentUserDisplayName || r['姓名'] === currentUserName) : [];
+            let targetName = currentUserDisplayName;
             
+            // 🔥 取得下拉選單所選的管理員預覽目標姓名
+            if (currentRole === 'admin') {
+                const previewSelect = document.getElementById('admin-preview-emp');
+                if(previewSelect && previewSelect.value) {
+                    targetName = previewSelect.value;
+                }
+            }
+
+            let myPayroll = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.filter(r => {
+                let recName = String(r['姓名'] || '').trim();
+                return recName === targetName || recName === currentUserName;
+            }) : [];
+            
+            // 如果是一般員工，且月份不在已發佈名單中，就過濾掉
             if (currentRole !== 'admin') {
-                myPayroll = myPayroll.filter(r => publishedPayslipMonths.includes(String(r['月份']).trim()));
+                let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
+                myPayroll = myPayroll.filter(r => {
+                    let mStr = String(r['月份'] || '').replace(/[\/\-]/g, '').trim();
+                    return normalizedMonths.includes(mStr);
+                });
             }
             
             let months = new Set();
@@ -1650,8 +1701,25 @@
                 return;
             }
 
-            let pr = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.find(r => (r['姓名'] === currentUserDisplayName || r['姓名'] === currentUserName) && String(r['月份']).trim() === month) : null;
-            let aa = Array.isArray(hrDataRaw.aabonus) ? hrDataRaw.aabonus.find(r => (r['姓名'] === currentUserDisplayName || r['姓名'] === currentUserName)) : null; 
+            let targetName = currentUserDisplayName;
+            
+            // 🔥 取得下拉選單所選的管理員預覽目標姓名
+            if (currentRole === 'admin') {
+                const previewSelect = document.getElementById('admin-preview-emp');
+                if(previewSelect && previewSelect.value) {
+                    targetName = previewSelect.value;
+                }
+            }
+
+            let pr = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.find(r => {
+                let recName = String(r['姓名'] || '').trim();
+                return (recName === targetName || recName === currentUserName) && String(r['月份']).trim() === month;
+            }) : null;
+            
+            let aa = Array.isArray(hrDataRaw.aabonus) ? hrDataRaw.aabonus.find(r => {
+                let recName = String(r['姓名'] || '').trim();
+                return (recName === targetName || recName === currentUserName);
+            }) : null; 
 
             if(!pr) {
                 container.innerHTML = `<div class="text-center py-10 text-stone-400 font-bold">此月份尚無您的薪資資料。</div>`;
@@ -1668,10 +1736,14 @@
             
             let badgeHtml = '';
             if (currentRole === 'admin') {
-                const isPublished = publishedPayslipMonths.includes(month);
+                // 更穩健的比對：移除斜線與減號後的純數字比對 (例如 202604)
+                let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
+                let normalizedCurrentMonth = month.replace(/[\/\-]/g, '').trim();
+                const isPublished = normalizedMonths.includes(normalizedCurrentMonth);
+                
                 badgeHtml = isPublished 
                     ? `<span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">✅ 已對員工發佈</span>`
-                    : `<span class="bg-red-100 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">🔒 尚未發佈 (僅您可見)</span>`;
+                    : `<span class="bg-red-100 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">🔒 尚未發佈 (員工不可見)</span>`;
             }
 
             const html = `

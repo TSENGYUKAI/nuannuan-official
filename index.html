@@ -367,10 +367,10 @@
                         </table>
                     </div>
 
-                    <!-- 薪資計算表 -->
+                    <!-- 薪資計算表 (修正轉場時數) -->
                     <div id="hr-payroll" class="hr-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>月份</th><th>員工姓名</th><th>職位</th><th>服務時數</th><th>轉場次數</th><th>應稅薪資總額</th><th>代扣勞保</th><th>代扣健保</th><th>實發總額</th><th>公司總成本</th><th>操作</th></tr></thead>
+                            <thead><tr><th>月份</th><th>員工姓名</th><th>職位</th><th>服務時數</th><th>轉場時數</th><th>應稅薪資總額</th><th>代扣勞保(員工)</th><th>代扣健保(員工)</th><th>實發總額(匯款)</th><th>公司總成本</th><th>操作</th></tr></thead>
                             <tbody id="hr-payroll-tbody"></tbody>
                         </table>
                     </div>
@@ -594,7 +594,7 @@
                             <input type="number" id="hr-pay-hours" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-black text-stone-500 mb-1">轉場次數</label>
+                            <label class="block text-xs font-black text-stone-500 mb-1">轉場時數</label>
                             <input type="number" id="hr-pay-transits" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
                         </div>
                     </div>
@@ -630,7 +630,7 @@
 
             <form id="finance-add-form" class="space-y-4">
                 <input type="hidden" id="fi-type" value="income">
-                <input type="hidden" id="fi-row-index" value=""> <!-- 隱藏的 Row Index 供編輯使用 -->
+                <input type="hidden" id="fi-row-index" value=""> 
                 
                 <!-- 共通欄位 -->
                 <div class="grid grid-cols-2 gap-4">
@@ -836,18 +836,15 @@
     </div>
 
     <script>
-        // 👇 請確定這組是您專屬的部署網址
-        const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwil97pQQrmV9Y_NfOBRFr8tB26SlxWEmfYci1j_8QnTIJAmEFEV08ip8vWtDjhf10s/exec";
+        // 👇 更新了您的專屬部署網址
+        const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzKRNsT2G936jTUg0pmaqll1Wa8ggPNW3p4zxdpqhnPlWXg4qEaITD4BouTiucr872bA/exec";
         
         let allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
         let currentPublishFileId = null;
         let currentDeleteFileId = null; 
         
-        // 財務與人資資料儲存區
         let financeDataRaw = { income: [], expense: [], petty: [] };
         let hrDataRaw = { personnel: [], payroll: [] };
-        
-        // 存放系統內所有員工名單與自己已簽收的檔案ID
         let allUsersList = [];
         let signedFilesList = [];
 
@@ -970,12 +967,10 @@
                     }
                 });
                 
-                // 存取最新陣列
                 financeDataRaw.income = d.income || [];
                 financeDataRaw.expense = d.expense || [];
                 financeDataRaw.petty = d.petty || [];
 
-                // 存取人資陣列
                 hrDataRaw.personnel = d.personnel || [];
                 hrDataRaw.payroll = d.payroll || [];
 
@@ -1097,7 +1092,6 @@
 
             let fI = financeDataRaw.income, fE = financeDataRaw.expense, fP = financeDataRaw.petty;
             
-            // 1. 月份篩選
             if (selM !== 'all') {
                 fI = fI.filter(r => getMonthStr(r) === selM);
                 fE = fE.filter(r => getMonthStr(r) === selM);
@@ -1107,7 +1101,6 @@
                 document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); 
             }
 
-            // 2. 關鍵字搜尋篩選
             if (keyword) {
                 const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
                 fI = fI.filter(matchKeyword);
@@ -1154,12 +1147,10 @@
             let hPer = hrDataRaw.personnel;
             let hPay = hrDataRaw.payroll;
             
-            // 薪資表月份篩選
             if (selM !== 'all') {
                 hPay = hPay.filter(r => String(r['月份'] || '').trim() === selM);
             }
 
-            // 關鍵字搜尋篩選
             if (keyword) {
                 const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
                 hPer = hPer.filter(matchKeyword);
@@ -1167,10 +1158,9 @@
             }
 
             renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
-            renderTable('hr-payroll-tbody', hPay, ['月份', '員工姓名', '職位', '服務時數', '轉場次數', '應稅薪資總額', '代扣勞保(員工)', '代扣健保(員工)', '實發總額(匯款)', '公司總成本'], 'hr-payroll');
+            renderTable('hr-payroll-tbody', hPay, ['月份', '員工姓名', '職位', '服務時數', '轉場時數', '應稅薪資總額', '代扣勞保(員工)', '代扣健保(員工)', '實發總額(匯款)', '公司總成本'], 'hr-payroll');
         }
 
-        // 修改後的共用 renderTable 加入 Action(操作) 欄位
         function renderTable(id, rows, cols, typeName) {
             const b = document.getElementById(id); if(!b) return;
             b.innerHTML = rows.length === 0 ? `<tr><td colspan="${cols.length + 1}" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>` : '';
@@ -1211,7 +1201,6 @@
             });
         }
 
-        // 統整開啟編輯 Modal
         function openEditFormModal(type, rowIndex, record) {
             if(type === 'income' || type === 'expense' || type === 'petty') {
                 openEditFinanceModal(type, rowIndex, record);
@@ -1220,7 +1209,6 @@
             }
         }
 
-        // 統整刪除 API
         function deleteRecordAPI(type, rowIndex) {
             let actionName = 'deleteFinanceRecord';
             let dataType = type;
@@ -1282,7 +1270,7 @@
                 document.getElementById('hr-pay-name').value = record['員工姓名'] || '';
                 document.getElementById('hr-pay-role').value = record['職位'] || '居服員';
                 document.getElementById('hr-pay-hours').value = record['服務時數'] || '';
-                document.getElementById('hr-pay-transits').value = record['轉場次數'] || '';
+                document.getElementById('hr-pay-transits').value = record['轉場時數'] || '';
             }
 
             document.getElementById('btn-submit-hr').innerText = '儲存修改';
@@ -1336,7 +1324,6 @@
                 if(!document.getElementById('hr-pay-month').value) return showToast("請選擇歸屬月份", "error");
                 if(!document.getElementById('hr-pay-name').value) return showToast("請輸入員工姓名", "error");
                 
-                // 將 2024-05 轉換回 2024/05
                 let monthStr = document.getElementById('hr-pay-month').value.replace('-', '/');
 
                 newRecord = {
@@ -1344,7 +1331,7 @@
                     '員工姓名': document.getElementById('hr-pay-name').value,
                     '職位': document.getElementById('hr-pay-role').value,
                     '服務時數': document.getElementById('hr-pay-hours').value || 0,
-                    '轉場次數': document.getElementById('hr-pay-transits').value || 0
+                    '轉場時數': document.getElementById('hr-pay-transits').value || 0
                 };
             }
 
@@ -1706,7 +1693,6 @@
             const btn = document.getElementById('tab-hr-' + id);
             if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
 
-            // 針對薪資表顯示/隱藏月份篩選器
             const monthFilterContainer = document.getElementById('hr-month-filter-container');
             if(monthFilterContainer) {
                 monthFilterContainer.style.display = id === 'payroll' ? 'flex' : 'none';

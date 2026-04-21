@@ -533,7 +533,6 @@
                             <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
                             <select id="fi-ex-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
                                 <option value="開辦費">開辦費</option>
-                                <option value="負責人薪資">負責人薪資</option>
                                 <option value="房租">房租</option>
                                 <option value="水電費">水電費</option>
                                 <option value="網路電信">網路電信</option>
@@ -576,7 +575,6 @@
                             <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
                             <select id="fi-pt-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
                                 <option value="開辦費">開辦費</option>
-                                <option value="負責人薪資">負責人薪資</option>
                                 <option value="房租">房租</option>
                                 <option value="水電費">水電費</option>
                                 <option value="網路電信">網路電信</option>
@@ -985,7 +983,7 @@
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
                             <button onclick='openEditFinanceModal("${typeName}", ${r._rowIndex}, ${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick='deleteFinanceRecord("${typeName}", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                            <button onclick='deleteFinanceRecord("${typeName}", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     `;
                 } else {

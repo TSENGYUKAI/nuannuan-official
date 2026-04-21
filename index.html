@@ -368,16 +368,18 @@
                         </div>
                     </div>
 
+                    <!-- 收入表格 -->
                     <div id="fin-income" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>服務項目(A/B/G/自費)</th><th>摘要/對象</th><th>收款方式</th><th>金額</th></tr></thead>
+                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>服務項目(A/B/G/自費)</th><th>摘要/對象</th><th>收款方式</th><th>金額</th><th>操作</th></tr></thead>
                             <tbody id="income-tbody"></tbody>
                         </table>
                     </div>
 
+                    <!-- 支出表格 -->
                     <div id="fin-expense" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>摘要/用品</th><th>發票號碼/統編</th><th>支付方式(轉帳/現金)</th><th>金額</th></tr></thead>
+                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>摘要/用品</th><th>發票號碼/統編</th><th>支付方式(轉帳/現金)</th><th>金額</th><th>操作</th></tr></thead>
                             <tbody id="expense-tbody"></tbody>
                         </table>
                     </div>
@@ -391,9 +393,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="finance-files-container"></div>
                     </div>
 
+                    <!-- 零用金表格 -->
                     <div id="fin-petty" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>憑證編號</th><th>摘要/用途</th><th>會計科目</th><th>撥入(補充零用金)</th><th>支出(報帳扣除)</th><th>目前結餘</th><th>申請人/經手人</th></tr></thead>
+                            <thead><tr><th>日期</th><th>憑證編號</th><th>摘要/用途</th><th>會計科目</th><th>撥入(補充零用金)</th><th>支出(報帳扣除)</th><th>目前結餘</th><th>申請人/經手人</th><th>操作</th></tr></thead>
                             <tbody id="petty-tbody"></tbody>
                         </table>
                     </div>
@@ -439,12 +442,12 @@
         </main>
     </div>
 
-    <!-- ==================== 新增財務紀錄 Modal ==================== -->
+    <!-- ==================== 新增/編輯財務紀錄 Modal ==================== -->
     <div id="add-finance-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-finance-modal-box">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
-                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-plus"></i></div> 新增財務紀錄
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-pencil-simple"></i></div> 財務紀錄設定
                 </h3>
                 <button onclick="closeAddFinanceModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
@@ -460,6 +463,7 @@
 
             <form id="finance-add-form" class="space-y-4">
                 <input type="hidden" id="fi-type" value="income">
+                <input type="hidden" id="fi-row-index" value=""> <!-- 隱藏的 Row Index 供編輯使用 -->
                 
                 <!-- 共通欄位 -->
                 <div class="grid grid-cols-2 gap-4">
@@ -522,6 +526,7 @@
                             <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
                             <select id="fi-ex-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
                                 <option value="開辦費">開辦費</option>
+                                <option value="負責人薪資">負責人薪資</option>
                                 <option value="房租">房租</option>
                                 <option value="水電費">水電費</option>
                                 <option value="網路電信">網路電信</option>
@@ -562,7 +567,19 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-black text-stone-500 mb-1">會計科目</label>
-                            <input type="text" id="fi-pt-account" placeholder="如: 雜項支出" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                            <select id="fi-pt-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="開辦費">開辦費</option>
+                                <option value="負責人薪資">負責人薪資</option>
+                                <option value="房租">房租</option>
+                                <option value="水電費">水電費</option>
+                                <option value="網路電信">網路電信</option>
+                                <option value="系統費">系統費</option>
+                                <option value="文具雜支">文具雜支</option>
+                                <option value="機構意外險">機構意外險</option>
+                                <option value="雇主責任險">雇主責任險</option>
+                                <option value="行銷/開案獎金">行銷/開案獎金</option>
+                                <option value="其他支出">其他支出</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-xs font-black text-stone-500 mb-1">申請人/經手人</label>
@@ -591,7 +608,7 @@
 
                 <div class="flex gap-4 pt-4 mt-6 border-t-2 border-stone-100">
                     <button type="button" onclick="closeAddFinanceModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
-                    <button type="button" onclick="saveFinanceRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認新增</button>
+                    <button type="button" id="btn-submit-finance" onclick="saveFinanceRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認送出</button>
                 </div>
             </form>
         </div>
@@ -732,7 +749,7 @@
         }
 
         function getMonthStr(row) {
-            let monthVal = row['月份'];
+            let monthVal = row['月份歸屬(自動)']; // 修正：從雲端直接讀取公式結果
             if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
             let dateStr = row['日期'];
             if (!dateStr) return '未知';
@@ -761,13 +778,11 @@
                 lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
                 lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
-                if (currentRole === 'admin') {
+                if (currentRole === 'admin' || currentRole === 'shareholder') {
                     document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
                     document.getElementById('menu-superadmin').classList.remove('hidden-section');
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                     document.getElementById('menu-staff').classList.remove('hidden-section');
-                } else if(currentRole === 'shareholder') {
-                    document.getElementById('menu-shareholder').classList.remove('hidden-section');
                 } else {
                     document.getElementById('menu-staff').classList.remove('hidden-section');
                 }
@@ -785,6 +800,7 @@
                     }
                 });
                 
+                // 存取最新陣列
                 financeDataRaw.income = d.income || [];
                 financeDataRaw.expense = d.expense || [];
                 financeDataRaw.petty = d.petty || [];
@@ -799,7 +815,7 @@
                 renderUsersTable(); 
                 renderPublicFiles(); 
 
-                if(!silent) showToast("✅ 同步成功！", "success");
+                if(!silent) showToast("✅ 同步成功！畫面已更新", "success");
             }).catch(err => { 
                 showToast("同步失敗：" + err.message, "error"); 
                 document.getElementById('loading-view').classList.add('hidden-section');
@@ -842,61 +858,46 @@
             if(!email.includes('@')) return showToast("信箱格式錯誤", "error");
             
             showToast("正在更新權限...", "info");
-            
-            let existing = allUsersList.find(u => u.email === email);
-            if(existing) {
-                existing.role = role;
-                existing.name = name;
-            } else {
-                allUsersList.push({email, name, role});
-            }
-            renderUsersTable();
-            document.getElementById('new-user-email').value = '';
-            document.getElementById('new-user-name').value = '';
-
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'updateUserRole', email: email, name: name, role: role })
             }).then(r => r.json()).then(res => {
-                if(res.status === 'success') showToast("✅ 權限已生效", "success");
-                else showToast("更新失敗", "error");
+                if(res.status === 'success') {
+                    showToast("✅ 權限已生效", "success");
+                    triggerSync(true);
+                } else showToast("更新失敗", "error");
             }).catch(() => showToast("連線異常", "error"));
         }
 
         function handleDeleteUser(email) {
             if(!confirm(`確定要移除「${email}」的系統登入權限嗎？\n移除後該帳號將無法登入系統。`)) return;
             showToast("正在移除權限...", "info");
-            allUsersList = allUsersList.filter(u => u.email !== email);
-            renderUsersTable();
-
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'deleteUserRole', email: email })
             }).then(r => r.json()).then(res => {
-                if(res.status === 'success') showToast("✅ 權限已移除", "success");
-                else showToast("移除失敗", "error");
+                if(res.status === 'success') {
+                    showToast("✅ 權限已移除", "success");
+                    triggerSync(true);
+                } else showToast("移除失敗", "error");
             }).catch(() => showToast("連線異常", "error"));
         }
 
-        // ==================== 檔案簽收機制 ====================
         function signDocument(fileId) {
             showToast("正在處理簽收...", "info");
-            if(!signedFilesList.includes(fileId)) {
-                signedFilesList.push(fileId);
-                renderPublicFiles(); 
-            }
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'signFile', fileId: fileId, email: currentUserEmail, name: currentUserDisplayName })
             }).then(r => r.json()).then(res => {
-                if(res.status === 'success') showToast("✅ 檔案已成功簽收", "success");
-                else showToast("簽收紀錄失敗", "error");
+                if(res.status === 'success') {
+                    showToast("✅ 檔案已成功簽收", "success");
+                    triggerSync(true);
+                } else showToast("簽收紀錄失敗", "error");
             }).catch(() => showToast("連線異常", "error"));
         }
 
         // ==================== 財務與檔案渲染邏輯 ====================
         
-        // 提取月份選單建立邏輯，以供新增後也能更新選單
         function rebuildMonthFilter() {
             let months = new Set();
             const addM = (row) => { let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
@@ -908,7 +909,6 @@
             Array.from(months).sort().reverse().forEach(m => {
                 let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
             });
-            // 若之前選的月份還在，就保留；否則回歸 all
             if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
             else filterSelect.value = 'all';
 
@@ -931,15 +931,16 @@
             document.getElementById('display-expense').innerText = '-$' + Math.abs(totalE).toLocaleString();
             document.getElementById('display-net').innerText = '$' + (totalR - totalE).toLocaleString();
 
-            // 嚴格對應您要求的欄位格式
-            renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額']);
-            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額']);
-            renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人']);
+            renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額'], 'income');
+            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額'], 'expense');
+            renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人'], 'petty');
         }
 
-        function renderTable(id, rows, cols) {
+        // 修改 renderTable 加入 Action(操作) 欄位
+        function renderTable(id, rows, cols, typeName) {
             const b = document.getElementById(id); if(!b) return;
-            b.innerHTML = rows.length === 0 ? `<tr><td colspan="${cols.length}" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>` : '';
+            b.innerHTML = rows.length === 0 ? `<tr><td colspan="${cols.length + 1}" class="text-center py-10 text-stone-300 font-bold">目前無相關數據</td></tr>` : '';
+            
             rows.forEach(r => {
                 let tr = document.createElement('tr');
                 cols.forEach(c => {
@@ -952,20 +953,88 @@
                     } else { td.innerText = v; }
                     tr.appendChild(td);
                 });
+
+                // 動態加入操作按鈕 (依據權限)
+                let tdAction = document.createElement('td');
+                if (currentRole === 'admin' || currentRole === 'shareholder') {
+                    tdAction.innerHTML = `
+                        <div class="flex gap-2">
+                            <button onclick='openEditFinanceModal("${typeName}", ${r._rowIndex}, ${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick='deleteFinanceRecord("${typeName}", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    `;
+                } else {
+                    tdAction.innerText = '-';
+                }
+                tr.appendChild(tdAction);
                 b.appendChild(tr);
             });
         }
 
-        // ==================== 新增：財務紀錄 Modal 控制與儲存 ====================
+        // ==================== 新增/編輯財務紀錄 Modal 控制 ====================
         function openAddFinanceModal() {
+            document.getElementById('finance-add-form').reset();
+            document.getElementById('fi-row-index').value = '';
             document.getElementById('fi-date').valueAsDate = new Date();
+            document.getElementById('btn-submit-finance').innerText = '確認新增';
+            switchFinanceFormType('income');
+            
             const modal = document.getElementById('add-finance-modal');
             modal.classList.remove('hidden');
             requestAnimationFrame(() => { 
                 modal.classList.remove('opacity-0'); 
                 document.getElementById('add-finance-modal-box').classList.remove('scale-95'); 
             });
-            switchFinanceFormType('income'); // 預設打開收入頁籤
+        }
+
+        // 編輯財務紀錄
+        function openEditFinanceModal(type, rowIndex, record) {
+            document.getElementById('finance-add-form').reset();
+            document.getElementById('fi-row-index').value = rowIndex;
+            switchFinanceFormType(type);
+            
+            // 日期回填轉換
+            if(record['日期']) {
+                let rawDate = String(record['日期']);
+                let parts = rawDate.split(/[-/]/);
+                if (parts.length >= 3) {
+                    document.getElementById('fi-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                }
+            }
+
+            // 欄位回填
+            if(type === 'income') {
+                document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
+                document.getElementById('fi-in-account').value = record['會計科目'] || '';
+                document.getElementById('fi-in-service').value = record['服務項目(A/B/G/自費)'] || '其他';
+                document.getElementById('fi-in-summary').value = record['摘要/對象'] || '';
+                document.getElementById('fi-in-method').value = record['收款方式'] || '匯款';
+                document.getElementById('fi-in-amount').value = String(record['金額']).replace(/,/g, '') || '';
+            } else if(type === 'expense') {
+                document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
+                document.getElementById('fi-ex-account').value = record['會計科目'] || '';
+                document.getElementById('fi-ex-invoice').value = record['發票號碼/統編'] || '';
+                document.getElementById('fi-ex-summary').value = record['摘要/用品'] || '';
+                document.getElementById('fi-ex-method').value = record['支付方式(轉帳/現金)'] || '轉帳';
+                document.getElementById('fi-ex-amount').value = String(record['金額']).replace(/,/g, '') || '';
+            } else if(type === 'petty') {
+                document.getElementById('fi-voucher').value = record['憑證編號'] || '';
+                document.getElementById('fi-pt-account').value = record['會計科目'] || '';
+                document.getElementById('fi-pt-handler').value = record['申請人/經手人'] || '';
+                document.getElementById('fi-pt-summary').value = record['摘要/用途'] || '';
+                document.getElementById('fi-pt-inflow').value = String(record['撥入(補充零用金)']).replace(/,/g, '') || '';
+                document.getElementById('fi-pt-outflow').value = String(record['支出(報帳扣除)']).replace(/,/g, '') || '';
+                document.getElementById('fi-pt-balance').value = String(record['目前結餘']).replace(/,/g, '') || '';
+            }
+
+            document.getElementById('btn-submit-finance').innerText = '儲存修改';
+
+            const modal = document.getElementById('add-finance-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { 
+                modal.classList.remove('opacity-0'); 
+                document.getElementById('add-finance-modal-box').classList.remove('scale-95'); 
+            });
         }
 
         function closeAddFinanceModal() {
@@ -977,8 +1046,6 @@
 
         function switchFinanceFormType(type) {
             document.getElementById('fi-type').value = type;
-            
-            // 處理上方按鈕樣式
             ['income', 'expense', 'petty'].forEach(t => {
                 const btn = document.getElementById('btn-type-' + t);
                 const isSelected = (t === type);
@@ -986,16 +1053,15 @@
                     ? `flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all ${t==='income'?'text-orange-500':(t==='expense'?'text-red-500':'text-stone-800')}`
                     : `flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
                 
-                // 顯示隱藏對應的表單區塊
                 document.getElementById('fi-group-' + t).style.display = isSelected ? 'block' : 'none';
             });
-
-            // 動態變更「傳票/憑證編號」的 Label (零用金通常只叫憑證編號)
             document.getElementById('fi-voucher-label').innerText = type === 'petty' ? '憑證編號' : '傳票/憑證編號';
         }
 
+        // ==================== 儲存與刪除財務紀錄 API ====================
         function saveFinanceRecord() {
             const type = document.getElementById('fi-type').value;
+            const rowIndex = document.getElementById('fi-row-index').value; // 取得隱藏的行號
             const dateVal = document.getElementById('fi-date').value;
             const voucherVal = document.getElementById('fi-voucher').value;
             
@@ -1013,8 +1079,6 @@
                     '收款方式': document.getElementById('fi-in-method').value,
                     '金額': document.getElementById('fi-in-amount').value || 0
                 };
-                financeDataRaw.income.push(newRecord);
-                financeDataRaw.income.sort((a,b) => new Date(b['日期']) - new Date(a['日期']));
             } 
             else if (type === 'expense') {
                 newRecord = {
@@ -1026,8 +1090,6 @@
                     '支付方式(轉帳/現金)': document.getElementById('fi-ex-method').value,
                     '金額': document.getElementById('fi-ex-amount').value || 0
                 };
-                financeDataRaw.expense.push(newRecord);
-                financeDataRaw.expense.sort((a,b) => new Date(b['日期']) - new Date(a['日期']));
             }
             else if (type === 'petty') {
                 newRecord = {
@@ -1035,32 +1097,51 @@
                     '憑證編號': voucherVal,
                     '摘要/用途': document.getElementById('fi-pt-summary').value,
                     '會計科目': document.getElementById('fi-pt-account').value,
-                    '撥入(補充零用金)': document.getElementById('fi-pt-inflow').value || 0,
-                    '支出(報帳扣除)': document.getElementById('fi-pt-outflow').value || 0,
-                    '目前結餘': document.getElementById('fi-pt-balance').value || 0,
+                    '撥入(補充零用金)': document.getElementById('fi-pt-inflow').value || "",
+                    '支出(報帳扣除)': document.getElementById('fi-pt-outflow').value || "",
+                    '目前結餘': document.getElementById('fi-pt-balance').value || "",
                     '申請人/經手人': document.getElementById('fi-pt-handler').value
                 };
-                financeDataRaw.petty.push(newRecord);
-                financeDataRaw.petty.sort((a,b) => new Date(b['日期']) - new Date(a['日期']));
             }
 
-            // 本地端先行更新畫面
-            rebuildMonthFilter(); 
             closeAddFinanceModal();
             showToast("正在同步至雲端...", "info");
 
-            // 往後端傳遞 API (若您的 Google Apps Script 已準備好接受此 action)
+            const actionName = rowIndex ? 'editFinanceRecord' : 'addFinanceRecord';
+            const payload = { action: actionName, type: type, record: newRecord };
+            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
+
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ 
-                    action: 'addFinanceRecord', 
-                    type: type, 
-                    record: newRecord 
-                })
+                body: JSON.stringify(payload)
+            }).then(async r => {
+                const text = await r.text();
+                try { return JSON.parse(text); } 
+                catch(e) { throw new Error("請至 Google 雲端更新 Apps Script 後端程式碼"); }
+            }).then(res => {
+                if(res.status === 'success') {
+                    showToast("✅ 儲存成功，正在載入最新結算數據...", "success");
+                    // 強制重拉資料庫最新數據 (解決不同步)
+                    triggerSync(true); 
+                } else showToast("後端儲存異常", "error");
+            }).catch(err => {
+                showToast(err.message || "無法連線雲端", "error");
+            });
+        }
+
+        function deleteFinanceRecord(type, rowIndex) {
+            if(!confirm("確定要刪除這筆財務紀錄嗎？\n(注意：從試算表中刪除後將無法復原)")) return;
+            
+            showToast("正在刪除紀錄...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deleteFinanceRecord', type: type, rowIndex: rowIndex })
             }).then(r => r.json()).then(res => {
-                if(res.status === 'success') showToast("✅ 紀錄已同步儲存", "success");
-                else showToast("後端儲存異常，但已顯示於目前畫面", "error");
-            }).catch(() => showToast("無法連線雲端，請檢查網路", "error"));
+                if(res.status === 'success') {
+                    showToast("✅ 紀錄已成功刪除，重新整理中...", "success");
+                    triggerSync(true); 
+                } else showToast("刪除失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
         }
 
         // ==================== 檔案管理Modal相關 ====================
@@ -1090,7 +1171,7 @@
                             <td>
                                 <div class="flex gap-2">
                                     <button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button>
-                                    <button onclick="openDeleteModal('${f.id}', '${f.name}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button>
+                                    <button onclick="openDeleteModal('${f.id}', '${f.name}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-50 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button>
                                 </div>
                             </td>
                         `;
@@ -1242,7 +1323,7 @@
                 .then(res => res.json()).then(res => { 
                     if(res.status === "success") { 
                         showToast("✅ 上傳成功，正在重整資料...", "success"); 
-                        setTimeout(() => triggerSync(false), 1500); 
+                        setTimeout(() => triggerSync(true), 1500); 
                     } else { 
                         showToast("上傳失敗", "error"); 
                     } 

@@ -125,6 +125,7 @@
 
     <div id="toast-container"></div>
 
+    <!-- ==================== 登入視窗 ==================== -->
     <div id="login-view" class="w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page relative overflow-hidden">
         <div class="absolute -top-10 -right-10 text-orange-500 opacity-10 animate-sun pointer-events-none">
             <i class="ph-fill ph-sun" style="font-size: 150px;"></i>
@@ -158,12 +159,14 @@
         </div>
     </div>
 
+    <!-- ==================== 載入中畫面 ==================== -->
     <div id="loading-view" class="hidden-section w-full flex flex-col items-center justify-center mt-40 animate-page">
         <i class="ph-bold ph-spinner animate-spin text-5xl text-orange-500 mb-4"></i>
         <h2 class="text-xl font-black text-gray-800 mb-2">正在驗證您的機構權限</h2>
         <p class="text-stone-500 font-bold tracking-widest text-sm animate-pulse">連線至資料庫同步中，請稍候...</p>
     </div>
 
+    <!-- ==================== 拒絕存取畫面 ==================== -->
     <div id="unauthorized-view" class="hidden-section w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page">
         <div class="bg-red-50 text-red-500 w-20 h-20 rounded-[30px] flex items-center justify-center mx-auto mb-6 shadow-inner">
             <i class="ph-bold ph-shield-warning text-4xl"></i>
@@ -173,8 +176,10 @@
         <button onclick="location.reload()" class="bg-stone-800 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors w-full">返回登入頁</button>
     </div>
 
+    <!-- ==================== 主控台 ==================== -->
     <div id="dashboard-view" class="hidden-section max-w-[1600px] mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
         
+        <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4 no-print">
             <div class="bg-white q-card p-8 h-full flex flex-col">
                 <div class="flex items-center gap-3 mb-6 pb-6 border-b-2 border-stone-50">
@@ -268,9 +273,11 @@
             </div>
         </aside>
 
+        <!-- 主內容區 -->
         <main class="flex-1 min-w-0">
             <div class="bg-white q-card p-8 md:p-12 min-h-full relative overflow-hidden">
                 
+                <!-- 1. 管理中心 -->
                 <section id="content-manage" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-sliders text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 資料維護中心
@@ -331,6 +338,7 @@
                     </div>
                 </section>
 
+                <!-- 2. 人資與薪資系統 -->
                 <section id="content-hr" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -389,6 +397,7 @@
                     </div>
                 </section>
 
+                <!-- 🔥 新增：個案清冊總覽 -->
                 <section id="content-caselist" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -400,7 +409,7 @@
                             <input type="text" id="caselist-search-filter" oninput="applyCaseListFilter()" placeholder="搜尋個案姓名..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
                         </div>
                     </div>
-                    <p class="text-xs text-stone-500 font-bold mb-4">系統會自動比對「訪視紀錄」，若顯示「⚠️ 尚未登打」表示該個案目前在系統內沒有任何訪視紀錄，請點擊右側按鈕進行快速新增。</p>
+                    <p class="text-xs text-stone-500 font-bold mb-4">系統會自動比對「訪視紀錄」，並根據規定 (每月1次電訪或家訪、每3個月至少1次家訪) 自動亮起提示燈號。</p>
                     
                     <div class="overflow-x-auto custom-scrollbar bg-white rounded-[30px] border-2 border-stone-100 p-4">
                         <table class="custom-table w-full whitespace-nowrap">
@@ -411,7 +420,7 @@
                                     <th>個案姓名</th>
                                     <th>CMS等級</th>
                                     <th>主責居服</th>
-                                    <th>最新訪視狀態</th>
+                                    <th>最新訪視狀態 (自動偵測)</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
@@ -420,6 +429,7 @@
                     </div>
                 </section>
 
+                <!-- 🔥 新增：個案訪視紀錄系統主畫面 -->
                 <section id="content-visit" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -456,6 +466,7 @@
                     </div>
                 </section>
 
+                <!-- 3. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -533,6 +544,7 @@
                     </div>
                 </section>
 
+                <!-- 4. 業務與個人頁面 -->
                 <section id="content-announcement" class="content-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
@@ -560,6 +572,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
 
+                <!-- 🔥 升級版：個人專屬數位薪資單 -->
                 <section id="content-salary" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center justify-between border-b-2 border-orange-50 pb-4 no-print">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 個人薪資明細</div>
@@ -570,13 +583,15 @@
                             <div id="admin-preview-container" class="hidden items-center gap-2">
                                 <label class="text-sm font-black text-orange-500">選擇員工(管理員預覽)</label>
                                 <select id="admin-preview-emp" onchange="initMyPayslip()" class="p-3 bg-orange-50 border-2 border-orange-200 text-orange-700 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer shadow-sm">
-                                    </select>
+                                    <!-- 動態載入 -->
+                                </select>
                             </div>
                             
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-black text-stone-500">選擇結算月份</label>
                                 <select id="my-payslip-month" onchange="renderMyPayslip()" class="p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer">
-                                    </select>
+                                    <!-- 動態載入 -->
+                                </select>
                             </div>
                         </div>
                         <button onclick="window.print()" class="bg-stone-800 text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md flex items-center justify-center gap-2 w-full md:w-auto">
@@ -593,6 +608,7 @@
         </main>
     </div>
 
+    <!-- 🔥 訪視紀錄 新增/編輯 Modal (包含 AI 撰寫功能) -->
     <div id="add-visit-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-visit-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -609,8 +625,9 @@
                     <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">狀態 *</label>
                         <select id="vi-status" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none">
                             <option value="✅ 已完成">✅ 已完成</option>
-                            <option value="⏳ 安排中">⏳ 安排中</option>
                             <option value="輸出">📄 輸出</option>
+                            <option value="未輸出">📝 未輸出</option>
+                            <option value="⏳ 安排中">⏳ 安排中</option>
                             <option value="❌ 取消">❌ 取消</option>
                         </select>
                     </div>
@@ -660,6 +677,7 @@
         </div>
     </div>
 
+    <!-- ==================== 新增/編輯人資薪資紀錄 Modal ==================== -->
     <div id="add-hr-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-hr-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -782,6 +800,7 @@
         </div>
     </div>
 
+    <!-- 🔥 智慧發佈管理 Modal -->
     <div id="payslip-publish-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="payslip-publish-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -793,7 +812,8 @@
             <p class="text-xs text-stone-500 font-bold mb-6 leading-relaxed">開啟發佈開關後，居服員才能在自己的「個人薪資明細」中看到該月份的數位薪資單。關閉則會對員工隱藏（但管理員自己仍可看見預覽）。</p>
             
             <div id="publish-months-list" class="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2 mb-6">
-                </div>
+                <!-- 動態載入月份開關 -->
+            </div>
 
             <div class="flex gap-4 border-t-2 border-stone-100 pt-4">
                 <button onclick="closePayslipPublishModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
@@ -802,6 +822,7 @@
         </div>
     </div>
 
+    <!-- ==================== 新增/編輯財務紀錄 Modal ==================== -->
     <div id="add-finance-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-finance-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -890,6 +911,7 @@
         </div>
     </div>
 
+    <!-- ==================== 發佈設定 Modal ==================== -->
     <div id="publish-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="publish-modal-box">
             <h3 class="text-2xl font-black text-gray-800 mb-2">發佈位置設定</h3>
@@ -929,6 +951,7 @@
         </div>
     </div>
 
+    <!-- ==================== 確認刪除 Modal ==================== -->
     <div id="delete-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 text-center" id="delete-modal-box">
             <div class="bg-red-50 text-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1141,7 +1164,7 @@
                 try { rebuildHRMonthFilter(); } catch(e) { console.error("Filter 2 Error", e); }
                 try { applyHRFilter(); } catch(e) { console.error("Apply HR Error", e); }
                 
-                try { renderCaseListTable(); } catch(e) { console.error("CaseList Table Error", e); } // 🔥 渲染個案清冊總覽
+                try { renderCaseListTable(); } catch(e) { console.error("CaseList Table Error", e); }
                 try { renderVisitTable(); } catch(e) { console.error("Visit Table Error", e); } 
                 try { updateCaseDropdown(); } catch(e) { console.error("Case Dropdown Error", e); }
                 
@@ -1211,28 +1234,64 @@
                 return;
             }
 
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+
             filteredData.forEach(r => {
                 const caseName = r['個案姓名'] || '-';
                 
-                // 比對最新訪視狀態
-                const visitsForCase = visitDataRaw.filter(v => v['個案姓名'] === caseName);
-                let latestVisitInfo = '<span class="text-stone-400 font-bold text-xs"><i class="ph-bold ph-warning text-red-500"></i> 尚未登打</span>';
+                // 找出該個案「有效」的訪視紀錄 (排除取消)
+                const validVisits = visitDataRaw.filter(v => v['個案姓名'] === caseName && !(v['狀態'] || '').includes('取消'));
                 
-                if (visitsForCase.length > 0) {
-                    // 取得最後一筆紀錄
-                    const lastVisit = visitsForCase[visitsForCase.length - 1];
-                    let vDate = lastVisit['訪視\n日期'] || lastVisit['訪視日期'] || '無日期';
-                    if(vDate.includes('T')) vDate = vDate.split('T')[0];
-                    let vStatus = lastVisit['狀態'] || '未知';
+                // 依照日期降冪排序
+                validVisits.sort((a, b) => {
+                    let dA = new Date(a['訪視\n日期'] || a['訪視日期'] || 0);
+                    let dB = new Date(b['訪視\n日期'] || b['訪視日期'] || 0);
+                    return dB - dA;
+                });
+
+                let needsHomeVisit = true;
+                let needsMonthVisit = true;
+                let lastAnyVisitDate = null;
+
+                if (validVisits.length > 0) {
+                    lastAnyVisitDate = new Date(validVisits[0]['訪視\n日期'] || validVisits[0]['訪視日期']);
                     
-                    if(vStatus.includes('完成')) {
-                        latestVisitInfo = `<span class="text-green-600 font-bold text-xs">${vDate} (${vStatus})</span>`;
-                    } else if (vStatus.includes('安排中')) {
-                        latestVisitInfo = `<span class="text-orange-500 font-bold text-xs">${vDate} (${vStatus})</span>`;
-                    } else {
-                        latestVisitInfo = `<span class="text-stone-500 font-bold text-xs">${vDate} (${vStatus})</span>`;
+                    // 檢查本月是否有任何訪視
+                    if (lastAnyVisitDate.getFullYear() === currentYear && lastAnyVisitDate.getMonth() === currentMonth) {
+                        needsMonthVisit = false;
+                    }
+
+                    // 檢查最近三個月內是否有「家訪」
+                    const lastHomeVisit = validVisits.find(v => (v['訪視方式'] || '').includes('家訪'));
+                    if (lastHomeVisit) {
+                        let hDate = new Date(lastHomeVisit['訪視\n日期'] || lastHomeVisit['訪視日期']);
+                        let monthDiff = (currentYear - hDate.getFullYear()) * 12 + (currentMonth - hDate.getMonth());
+                        if (monthDiff <= 2) { // 包含本月、上個月、上上個月 (符合三個月一次)
+                            needsHomeVisit = false;
+                        }
                     }
                 }
+
+                // 產出智慧提示燈號
+                let alertHtml = '';
+                if (needsHomeVisit) {
+                    alertHtml = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-md text-[10px] font-black">🚨 需安排家訪</span>`;
+                } else if (needsMonthVisit) {
+                    alertHtml = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-md text-[10px] font-black">⚠️ 需本月電訪</span>`;
+                } else {
+                    alertHtml = `<span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-[10px] font-black">✅ 訪視達標</span>`;
+                }
+
+                let lastDateStr = '<span class="text-stone-400 text-[10px] ml-2">無紀錄</span>';
+                if (lastAnyVisitDate) {
+                    let m = (lastAnyVisitDate.getMonth() + 1).toString().padStart(2, '0');
+                    let d = lastAnyVisitDate.getDate().toString().padStart(2, '0');
+                    lastDateStr = `<span class="text-stone-500 text-[10px] font-bold ml-2">上次: ${lastAnyVisitDate.getFullYear()}/${m}/${d}</span>`;
+                }
+
+                let latestVisitInfo = `<div class="flex items-center">${alertHtml}${lastDateStr}</div>`;
 
                 let statusBadge = r['個案狀態'] || '-';
                 if(statusBadge === '收案') statusBadge = `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
@@ -1275,9 +1334,11 @@
 
             [...filteredData].reverse().forEach(r => {
                 let statusBadge = r['狀態'] || '';
-                if(statusBadge.includes('完成')) statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
+                // 🔥 判斷已完成與輸出
+                if(statusBadge.includes('完成') || statusBadge.includes('輸出')) statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
+                else if(statusBadge.includes('未輸出') || statusBadge.includes('安排中')) statusBadge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
                 else if(statusBadge.includes('取消')) statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
-                else statusBadge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
+                else statusBadge = `<span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
 
                 let summaryPreview = String(r['訪視概況'] || '');
                 if(summaryPreview.length > 25) summaryPreview = summaryPreview.substring(0, 25) + '...';
@@ -1526,8 +1587,8 @@
             payNameSelect.innerHTML = optionsHtml;
             aaNameSelect.innerHTML = optionsHtml;
 
-            payNameSelect.value = currentPayName;
-            aaNameSelect.value = currentAaName;
+            if(payName) payNameSelect.value = payName;
+            if(aaName) aaNameSelect.value = aaName;
         }
 
         function autoFillEmpId(type, name) {

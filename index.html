@@ -125,7 +125,6 @@
 
     <div id="toast-container"></div>
 
-    <!-- ==================== 登入視窗 ==================== -->
     <div id="login-view" class="w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page relative overflow-hidden">
         <div class="absolute -top-10 -right-10 text-orange-500 opacity-10 animate-sun pointer-events-none">
             <i class="ph-fill ph-sun" style="font-size: 150px;"></i>
@@ -159,14 +158,12 @@
         </div>
     </div>
 
-    <!-- ==================== 載入中畫面 ==================== -->
     <div id="loading-view" class="hidden-section w-full flex flex-col items-center justify-center mt-40 animate-page">
         <i class="ph-bold ph-spinner animate-spin text-5xl text-orange-500 mb-4"></i>
         <h2 class="text-xl font-black text-gray-800 mb-2">正在驗證您的機構權限</h2>
         <p class="text-stone-500 font-bold tracking-widest text-sm animate-pulse">連線至資料庫同步中，請稍候...</p>
     </div>
 
-    <!-- ==================== 拒絕存取畫面 ==================== -->
     <div id="unauthorized-view" class="hidden-section w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page">
         <div class="bg-red-50 text-red-500 w-20 h-20 rounded-[30px] flex items-center justify-center mx-auto mb-6 shadow-inner">
             <i class="ph-bold ph-shield-warning text-4xl"></i>
@@ -176,10 +173,8 @@
         <button onclick="location.reload()" class="bg-stone-800 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors w-full">返回登入頁</button>
     </div>
 
-    <!-- ==================== 主控台 ==================== -->
     <div id="dashboard-view" class="hidden-section max-w-[1600px] mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
         
-        <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4 no-print">
             <div class="bg-white q-card p-8 h-full flex flex-col">
                 <div class="flex items-center gap-3 mb-6 pb-6 border-b-2 border-stone-50">
@@ -226,9 +221,11 @@
                         </div>
                     </div>
 
-                    <!-- 🔥 顯示給管理員與居服員的訪視紀錄選單 -->
                     <div id="menu-care" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
                         <div class="text-[10px] font-black text-orange-500 uppercase px-4 mb-2">Care Management</div>
+                        <div onclick="switchTab('caselist')" id="tab-caselist" class="nav-item">
+                            <i class="ph-bold ph-address-book text-xl"></i> 個案清冊總覽
+                        </div>
                         <div onclick="switchTab('visit')" id="tab-visit" class="nav-item">
                             <i class="ph-bold ph-clipboard-text text-xl"></i> 個案訪視紀錄
                         </div>
@@ -271,11 +268,9 @@
             </div>
         </aside>
 
-        <!-- 主內容區 -->
         <main class="flex-1 min-w-0">
             <div class="bg-white q-card p-8 md:p-12 min-h-full relative overflow-hidden">
                 
-                <!-- 1. 管理中心 -->
                 <section id="content-manage" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-sliders text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 資料維護中心
@@ -336,7 +331,6 @@
                     </div>
                 </section>
 
-                <!-- 2. 人資與薪資系統 -->
                 <section id="content-hr" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -395,7 +389,37 @@
                     </div>
                 </section>
 
-                <!-- 🔥 新增：個案訪視紀錄系統主畫面 -->
+                <section id="content-caselist" class="content-section hidden-section">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
+                        <div class="flex items-center gap-3">
+                            <i class="ph-bold ph-address-book text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
+                            <h3 class="text-3xl font-black text-gray-800">個案清冊總覽</h3>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
+                            <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
+                            <input type="text" id="caselist-search-filter" oninput="applyCaseListFilter()" placeholder="搜尋個案姓名..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
+                        </div>
+                    </div>
+                    <p class="text-xs text-stone-500 font-bold mb-4">系統會自動比對「訪視紀錄」，若顯示「⚠️ 尚未登打」表示該個案目前在系統內沒有任何訪視紀錄，請點擊右側按鈕進行快速新增。</p>
+                    
+                    <div class="overflow-x-auto custom-scrollbar bg-white rounded-[30px] border-2 border-stone-100 p-4">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>個案狀態</th>
+                                    <th>自訂案號</th>
+                                    <th>個案姓名</th>
+                                    <th>CMS等級</th>
+                                    <th>主責居服</th>
+                                    <th>最新訪視狀態</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="caselist-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <section id="content-visit" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -432,7 +456,6 @@
                     </div>
                 </section>
 
-                <!-- 3. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -510,7 +533,6 @@
                     </div>
                 </section>
 
-                <!-- 4. 業務與個人頁面 -->
                 <section id="content-announcement" class="content-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
@@ -538,7 +560,6 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
 
-                <!-- 🔥 升級版：個人專屬數位薪資單 -->
                 <section id="content-salary" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center justify-between border-b-2 border-orange-50 pb-4 no-print">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 個人薪資明細</div>
@@ -549,15 +570,13 @@
                             <div id="admin-preview-container" class="hidden items-center gap-2">
                                 <label class="text-sm font-black text-orange-500">選擇員工(管理員預覽)</label>
                                 <select id="admin-preview-emp" onchange="initMyPayslip()" class="p-3 bg-orange-50 border-2 border-orange-200 text-orange-700 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer shadow-sm">
-                                    <!-- 動態載入 -->
-                                </select>
+                                    </select>
                             </div>
                             
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-black text-stone-500">選擇結算月份</label>
                                 <select id="my-payslip-month" onchange="renderMyPayslip()" class="p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer">
-                                    <!-- 動態載入 -->
-                                </select>
+                                    </select>
                             </div>
                         </div>
                         <button onclick="window.print()" class="bg-stone-800 text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md flex items-center justify-center gap-2 w-full md:w-auto">
@@ -574,7 +593,6 @@
         </main>
     </div>
 
-    <!-- 🔥 訪視紀錄 新增/編輯 Modal (包含 AI 撰寫功能) -->
     <div id="add-visit-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-visit-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -598,9 +616,8 @@
                     </div>
                     <div>
                         <label class="block text-xs font-black text-stone-500 mb-1 text-red-500">個案姓名 *</label>
-                        <select id="vi-name" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none">
-                            <option value="">請選擇個案</option>
-                        </select>
+                        <input type="text" id="vi-name" list="case-name-list" placeholder="請輸入或選擇個案" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none">
+                        <datalist id="case-name-list"></datalist>
                     </div>
                     <div><label class="block text-xs font-black text-stone-500 mb-1">訪視日期</label><input type="date" id="vi-date" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
                     <div><label class="block text-xs font-black text-stone-500 mb-1">訪視時間</label><input type="time" id="vi-time" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
@@ -643,7 +660,6 @@
         </div>
     </div>
 
-    <!-- ==================== 新增/編輯人資薪資紀錄 Modal ==================== -->
     <div id="add-hr-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-hr-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -766,7 +782,6 @@
         </div>
     </div>
 
-    <!-- 🔥 智慧發佈管理 Modal -->
     <div id="payslip-publish-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="payslip-publish-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -778,8 +793,7 @@
             <p class="text-xs text-stone-500 font-bold mb-6 leading-relaxed">開啟發佈開關後，居服員才能在自己的「個人薪資明細」中看到該月份的數位薪資單。關閉則會對員工隱藏（但管理員自己仍可看見預覽）。</p>
             
             <div id="publish-months-list" class="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2 mb-6">
-                <!-- 動態載入月份開關 -->
-            </div>
+                </div>
 
             <div class="flex gap-4 border-t-2 border-stone-100 pt-4">
                 <button onclick="closePayslipPublishModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
@@ -788,7 +802,6 @@
         </div>
     </div>
 
-    <!-- ==================== 新增/編輯財務紀錄 Modal ==================== -->
     <div id="add-finance-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-finance-modal-box">
             <div class="flex justify-between items-center mb-6">
@@ -877,7 +890,6 @@
         </div>
     </div>
 
-    <!-- ==================== 發佈設定 Modal ==================== -->
     <div id="publish-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="publish-modal-box">
             <h3 class="text-2xl font-black text-gray-800 mb-2">發佈位置設定</h3>
@@ -917,7 +929,6 @@
         </div>
     </div>
 
-    <!-- ==================== 確認刪除 Modal ==================== -->
     <div id="delete-modal" class="fixed inset-0 bg-stone-900/40 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-8 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 text-center" id="delete-modal-box">
             <div class="bg-red-50 text-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1129,8 +1140,11 @@
                 try { applyFinanceFilter(); } catch(e) { console.error("Apply Finance Error", e); }
                 try { rebuildHRMonthFilter(); } catch(e) { console.error("Filter 2 Error", e); }
                 try { applyHRFilter(); } catch(e) { console.error("Apply HR Error", e); }
+                
+                try { renderCaseListTable(); } catch(e) { console.error("CaseList Table Error", e); } // 🔥 渲染個案清冊總覽
                 try { renderVisitTable(); } catch(e) { console.error("Visit Table Error", e); } 
                 try { updateCaseDropdown(); } catch(e) { console.error("Case Dropdown Error", e); }
+                
                 try { renderManageTable(); } catch(e) { console.error("Manage Table Error", e); }
                 try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
                 try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
@@ -1166,18 +1180,82 @@
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
 
+        // 🔥 更新可搜尋的個案下拉選單 (Datalist)
         function updateCaseDropdown() {
-            const caseSelect = document.getElementById('vi-name');
-            if(!caseSelect) return;
-            let options = '<option value="">請選擇個案</option>';
+            const dataList = document.getElementById('case-name-list');
+            if(!dataList) return;
+            let options = '';
             
             let uniqueCases = [...new Set(caseListRaw.map(r => r['個案姓名']).filter(n => n))];
             
             uniqueCases.forEach(name => {
-                options += `<option value="${name}">${name}</option>`;
+                options += `<option value="${name}"></option>`;
             });
-            caseSelect.innerHTML = options;
+            dataList.innerHTML = options;
         }
+
+        // 🔥 渲染個案清冊總覽表格
+        function renderCaseListTable() {
+            let filterValue = document.getElementById('caselist-search-filter').value.toLowerCase().trim();
+            let filteredData = caseListRaw;
+            if (filterValue) {
+                filteredData = caseListRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
+            }
+
+            const tbody = document.getElementById('caselist-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if(filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-stone-300 font-bold">目前無個案資料</td></tr>';
+                return;
+            }
+
+            filteredData.forEach(r => {
+                const caseName = r['個案姓名'] || '-';
+                
+                // 比對最新訪視狀態
+                const visitsForCase = visitDataRaw.filter(v => v['個案姓名'] === caseName);
+                let latestVisitInfo = '<span class="text-stone-400 font-bold text-xs"><i class="ph-bold ph-warning text-red-500"></i> 尚未登打</span>';
+                
+                if (visitsForCase.length > 0) {
+                    // 取得最後一筆紀錄
+                    const lastVisit = visitsForCase[visitsForCase.length - 1];
+                    let vDate = lastVisit['訪視\n日期'] || lastVisit['訪視日期'] || '無日期';
+                    if(vDate.includes('T')) vDate = vDate.split('T')[0];
+                    let vStatus = lastVisit['狀態'] || '未知';
+                    
+                    if(vStatus.includes('完成')) {
+                        latestVisitInfo = `<span class="text-green-600 font-bold text-xs">${vDate} (${vStatus})</span>`;
+                    } else if (vStatus.includes('安排中')) {
+                        latestVisitInfo = `<span class="text-orange-500 font-bold text-xs">${vDate} (${vStatus})</span>`;
+                    } else {
+                        latestVisitInfo = `<span class="text-stone-500 font-bold text-xs">${vDate} (${vStatus})</span>`;
+                    }
+                }
+
+                let statusBadge = r['個案狀態'] || '-';
+                if(statusBadge === '收案') statusBadge = `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
+                else if(statusBadge === '結案') statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
+                else statusBadge = `<span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${statusBadge}</td>
+                    <td class="font-bold text-stone-500">${r['自訂案號'] || '-'}</td>
+                    <td class="font-black text-gray-800 text-base">${caseName}</td>
+                    <td><span class="bg-stone-800 text-white px-2 py-1 rounded-md text-[10px] font-black">CMS ${r['CMS等級'] || '-'}</span></td>
+                    <td class="font-bold text-stone-600">${r['主責居服'] || '-'}</td>
+                    <td>${latestVisitInfo}</td>
+                    <td>
+                        <button onclick="openAddVisitModal('${caseName}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-plus"></i> 寫紀錄</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyCaseListFilter() { renderCaseListTable(); }
 
         function renderVisitTable() {
             let filterValue = document.getElementById('visit-search-filter').value.toLowerCase().trim();
@@ -1229,10 +1307,16 @@
 
         function applyVisitFilter() { renderVisitTable(); }
 
-        function openAddVisitModal() {
+        // 🔥 新增：支援直接從清冊帶入姓名的快捷功能
+        function openAddVisitModal(prefillName = '') {
             document.getElementById('visit-add-form').reset();
             document.getElementById('vi-row-index').value = '';
             document.getElementById('btn-submit-visit').innerText = '確認新增紀錄';
+            
+            if (prefillName) {
+                document.getElementById('vi-name').value = prefillName;
+            }
+
             const modal = document.getElementById('add-visit-modal');
             modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
@@ -1628,7 +1712,7 @@
             "總時數", "平日時數", "平日加班(1.34時)", "平日加班(1.67時)", "休息日加班(1.34時)", "休息日加班(1.67時)",
             "假日喘息時數", "國定假(2時)", "轉場時間", "行政會議出席時數", "平日薪資(含月薪)", "平日加班費(1.34)",
             "平日加班費(1.67)", "休息日加班費(1.34)", "休息日加班費(1.67)", "假日喘息費用(230/時)", "國定假日加班費(2)",
-            "行政會議費用", "轉場費用", "證照加給(單一級)", "AA碼獎金", "GA碼獎金", "總薪薪資", "應稅薪資總額",
+            "行政會議費用", "轉場費用", "證照加給(單一級)", "AA碼獎金", "GA碼獎金", "總薪資", "應稅薪資總額",
             "代扣勞保(員工)", "代扣健保(員工)", "實發總額(匯款)", "公司負擔勞保", "公司負擔健保", "勞退提撥(6%)", "公司總成本"
         ];
 

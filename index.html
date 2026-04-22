@@ -226,6 +226,14 @@
                         </div>
                     </div>
 
+                    <!-- 🔥 顯示給管理員與居服員的訪視紀錄選單 -->
+                    <div id="menu-care" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
+                        <div class="text-[10px] font-black text-orange-500 uppercase px-4 mb-2">Care Management</div>
+                        <div onclick="switchTab('visit')" id="tab-visit" class="nav-item">
+                            <i class="ph-bold ph-clipboard-text text-xl"></i> 個案訪視紀錄
+                        </div>
+                    </div>
+
                     <div id="menu-common" class="space-y-2">
                         <div onclick="switchTab('announcement')" id="tab-announcement" class="nav-item active">
                             <i class="ph-bold ph-megaphone text-xl"></i> 最新公告
@@ -387,6 +395,43 @@
                     </div>
                 </section>
 
+                <!-- 🔥 新增：個案訪視紀錄系統主畫面 -->
+                <section id="content-visit" class="content-section hidden-section">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
+                        <div class="flex items-center gap-3">
+                            <i class="ph-bold ph-clipboard-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
+                            <h3 class="text-3xl font-black text-gray-800">個案訪視紀錄</h3>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="openAddVisitModal()" class="flex items-center gap-2 bg-stone-800 text-white px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md">
+                                <i class="ph-bold ph-plus"></i> 新增訪視紀錄
+                            </button>
+                            <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
+                                <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
+                                <input type="text" id="visit-search-filter" oninput="applyVisitFilter()" placeholder="搜尋個案姓名..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar bg-white rounded-[30px] border-2 border-stone-100 p-4">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>狀態</th>
+                                    <th>個案姓名</th>
+                                    <th>訪視日期</th>
+                                    <th>時間</th>
+                                    <th>訪視目的</th>
+                                    <th>訪視方式</th>
+                                    <th class="w-1/3">訪視概況(摘要)</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visit-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <!-- 3. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
@@ -529,6 +574,75 @@
         </main>
     </div>
 
+    <!-- 🔥 訪視紀錄 新增/編輯 Modal (包含 AI 撰寫功能) -->
+    <div id="add-visit-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-visit-modal-box">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-clipboard-text"></i></div> 訪視紀錄單
+                </h3>
+                <button onclick="closeAddVisitModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <form id="visit-add-form" class="space-y-6">
+                <input type="hidden" id="vi-row-index" value="">
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                    <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">狀態 *</label>
+                        <select id="vi-status" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none">
+                            <option value="✅ 已完成">✅ 已完成</option>
+                            <option value="⏳ 安排中">⏳ 安排中</option>
+                            <option value="輸出">📄 輸出</option>
+                            <option value="❌ 取消">❌ 取消</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1 text-red-500">個案姓名 *</label>
+                        <select id="vi-name" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none">
+                            <option value="">請選擇個案</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">訪視日期</label><input type="date" id="vi-date" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">訪視時間</label><input type="time" id="vi-time" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">訪視目的</label>
+                        <input type="text" id="vi-purpose" placeholder="例: 初次訪視, 例行訪視, 開案" list="purpose-list" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        <datalist id="purpose-list"><option value="初次訪視"></option><option value="例行訪視"></option><option value="開案"></option></datalist>
+                    </div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">訪視方式</label>
+                        <input type="text" id="vi-method" placeholder="例: 家訪, 電訪" list="method-list" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        <datalist id="method-list"><option value="家訪"></option><option value="電訪"></option></datalist>
+                    </div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">服務頻率與時段</label><input type="text" id="vi-freq" placeholder="例: W1.3.5 1330-1530" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1">1. 訪視概況 (督導手打筆記)</label>
+                        <textarea id="vi-notes" rows="12" placeholder="輸入簡短的訪視紀錄、個案狀況、家庭支持等資訊..." class="w-full p-4 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm custom-scrollbar leading-relaxed"></textarea>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-black text-stone-500">2. 訪視紀錄產出 (正式紀錄)</label>
+                            <button type="button" id="btn-ai-gen" onclick="generateVisitRecordAI()" class="text-[10px] bg-purple-100 text-purple-600 px-3 py-1 rounded-lg font-black hover:bg-purple-200 transition-colors flex items-center gap-1 shadow-sm">
+                                <i class="ph-bold ph-magic-wand"></i> ✨ 一鍵智能產出
+                            </button>
+                        </div>
+                        <textarea id="vi-output" rows="12" placeholder="點擊上方「一鍵智能產出」，AI 將自動去清冊抓取個案資料並撰寫符合長照評鑑的專業紀錄..." class="w-full p-4 bg-stone-50 border-2 border-purple-200 rounded-xl font-bold outline-none focus:border-purple-500 text-sm custom-scrollbar leading-relaxed"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4 border-t-2 border-stone-100 mt-6">
+                    <button type="button" onclick="closeAddVisitModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
+                    <button type="button" id="btn-submit-visit" onclick="saveVisitRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認存檔</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ==================== 新增/編輯人資薪資紀錄 Modal ==================== -->
     <div id="add-hr-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-hr-modal-box">
@@ -551,7 +665,6 @@
                 <input type="hidden" id="hr-type" value="personnel">
                 <input type="hidden" id="hr-row-index" value="">
                 
-                <!-- 【人事基本資料】 -->
                 <div id="hr-group-personnel" class="space-y-4">
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div><label class="block text-xs font-black text-stone-500 mb-1">員工編號</label><input type="text" id="hr-emp-id" placeholder="EMP-001" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
@@ -576,7 +689,6 @@
                     </div>
                 </div>
 
-                <!-- 【薪資明細】 -->
                 <div id="hr-group-payroll" class="space-y-6 hidden">
                     <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
                         <h4 class="text-sm font-black text-orange-600 mb-4 flex items-center gap-2 border-b border-orange-200 pb-2"><i class="ph-fill ph-identification-card"></i> 基本設定</h4>
@@ -621,7 +733,6 @@
                     </div>
                 </div>
 
-                <!-- 【AA碼獎金總表】 -->
                 <div id="hr-group-aabonus" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -829,6 +940,8 @@
         var currentPublishFileId = null, currentDeleteFileId = null, currentDeleteFunction = null;
         var financeDataRaw = { income: [], expense: [], petty: [] };
         var hrDataRaw = { personnel: [], payroll: [], aabonus: [] }; 
+        var visitDataRaw = []; 
+        var caseListRaw = []; // 儲存個案清冊用來當下拉選單
         var allUsersList = [], signedFilesList = [], publishedPayslipMonths = [];
 
         var targetNames = { 'none': '🚫 不公開', 'announcement': '📢 最新公告', 'policies': '🏦 機構規章', 'contract': '📝 勞動契約', 'shareholder': '💼 股東專區', 'salary': '💰 薪資夾帶區' };
@@ -967,10 +1080,12 @@
                     document.getElementById('menu-superadmin').classList.remove('hidden-section');
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                     document.getElementById('menu-staff').classList.remove('hidden-section');
+                    document.getElementById('menu-care').classList.remove('hidden-section'); 
                 } else if (currentRole === 'shareholder') {
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                 } else {
                     document.getElementById('menu-staff').classList.remove('hidden-section');
+                    document.getElementById('menu-care').classList.remove('hidden-section'); 
                 }
 
                 if (isFirstLogin) {
@@ -1004,6 +1119,9 @@
                 hrDataRaw.payroll = (Array.isArray(d.payroll) ? d.payroll : []).filter(isValidRow);
                 hrDataRaw.aabonus = (Array.isArray(d.aaBonus) ? d.aaBonus : []).filter(isValidRow);
                 
+                visitDataRaw = (Array.isArray(d.visit) ? d.visit : []).filter(isValidRow); 
+                caseListRaw = Array.isArray(d.caseList) ? d.caseList : []; 
+                
                 allDriveFiles = d.driveFiles || {};
                 signedFilesList = Array.isArray(d.signedFiles) ? d.signedFiles : [];
 
@@ -1011,6 +1129,8 @@
                 try { applyFinanceFilter(); } catch(e) { console.error("Apply Finance Error", e); }
                 try { rebuildHRMonthFilter(); } catch(e) { console.error("Filter 2 Error", e); }
                 try { applyHRFilter(); } catch(e) { console.error("Apply HR Error", e); }
+                try { renderVisitTable(); } catch(e) { console.error("Visit Table Error", e); } 
+                try { updateCaseDropdown(); } catch(e) { console.error("Case Dropdown Error", e); }
                 try { renderManageTable(); } catch(e) { console.error("Manage Table Error", e); }
                 try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
                 try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
@@ -1044,6 +1164,187 @@
                 document.getElementById('loading-view').classList.add('hidden-section');
                 if(currentRole === 'unauthorized') document.getElementById('login-view').classList.remove('hidden-section');
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
+        }
+
+        function updateCaseDropdown() {
+            const caseSelect = document.getElementById('vi-name');
+            if(!caseSelect) return;
+            let options = '<option value="">請選擇個案</option>';
+            
+            let uniqueCases = [...new Set(caseListRaw.map(r => r['個案姓名']).filter(n => n))];
+            
+            uniqueCases.forEach(name => {
+                options += `<option value="${name}">${name}</option>`;
+            });
+            caseSelect.innerHTML = options;
+        }
+
+        function renderVisitTable() {
+            let filterValue = document.getElementById('visit-search-filter').value.toLowerCase().trim();
+            let filteredData = visitDataRaw;
+            if (filterValue) {
+                filteredData = visitDataRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
+            }
+
+            const tbody = document.getElementById('visit-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if(filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-stone-300 font-bold">目前無訪視紀錄</td></tr>';
+                return;
+            }
+
+            [...filteredData].reverse().forEach(r => {
+                let statusBadge = r['狀態'] || '';
+                if(statusBadge.includes('完成')) statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
+                else if(statusBadge.includes('取消')) statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
+                else statusBadge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
+
+                let summaryPreview = String(r['訪視概況'] || '');
+                if(summaryPreview.length > 25) summaryPreview = summaryPreview.substring(0, 25) + '...';
+
+                let dateStr = r['訪視\n日期'] || r['訪視日期'] || '';
+                if(dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${statusBadge}</td>
+                    <td class="font-black text-gray-800">${r['個案姓名'] || '-'}</td>
+                    <td>${dateStr || '-'}</td>
+                    <td>${r['訪視\n時間'] || r['訪視時間'] || '-'}</td>
+                    <td>${r['訪視目的'] || '-'}</td>
+                    <td>${r['訪視方式'] || '-'}</td>
+                    <td class="text-stone-500 whitespace-normal text-xs" style="max-width: 250px;" title="${String(r['訪視概況'] || '').replace(/"/g, '&quot;')}">${summaryPreview}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <button onclick='openEditVisitModal(${r._rowIndex}, ${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick='deleteRecordAPI("visit", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyVisitFilter() { renderVisitTable(); }
+
+        function openAddVisitModal() {
+            document.getElementById('visit-add-form').reset();
+            document.getElementById('vi-row-index').value = '';
+            document.getElementById('btn-submit-visit').innerText = '確認新增紀錄';
+            const modal = document.getElementById('add-visit-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
+        }
+
+        function openEditVisitModal(rowIndex, record) {
+            document.getElementById('visit-add-form').reset();
+            document.getElementById('vi-row-index').value = rowIndex;
+            
+            document.getElementById('vi-status').value = record['狀態'] || '✅ 已完成';
+            document.getElementById('vi-name').value = record['個案姓名'] || '';
+            
+            let dStr = record['訪視\n日期'] || record['訪視日期'] || '';
+            if(dStr) {
+                let parts = String(dStr).split(/[-/]/);
+                if (parts.length >= 3) document.getElementById('vi-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].substring(0,2).padStart(2, '0')}`;
+            }
+            
+            document.getElementById('vi-time').value = record['訪視\n時間'] || record['訪視時間'] || '';
+            document.getElementById('vi-purpose').value = record['訪視目的'] || '';
+            document.getElementById('vi-method').value = record['訪視方式'] || '';
+            document.getElementById('vi-freq').value = record['服務頻率與時段'] || '';
+            document.getElementById('vi-notes').value = record['訪視概況'] || '';
+            document.getElementById('vi-output').value = record['訪視紀錄產出'] || '';
+
+            document.getElementById('btn-submit-visit').innerText = '儲存修改';
+            const modal = document.getElementById('add-visit-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
+        }
+
+        function closeAddVisitModal() {
+            const modal = document.getElementById('add-visit-modal'); 
+            document.getElementById('add-visit-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); 
+            setTimeout(() => { modal.classList.add('hidden'); document.getElementById('visit-add-form').reset(); }, 300);
+        }
+
+        function saveVisitRecord() {
+            const rowIndex = document.getElementById('vi-row-index').value;
+            const name = document.getElementById('vi-name').value;
+            if(!name) return showToast("請選擇個案姓名", "error");
+
+            let dateVal = document.getElementById('vi-date').value;
+            if(dateVal) dateVal = dateVal.replace(/-/g, '/'); 
+
+            const newRecord = {
+                '狀態': document.getElementById('vi-status').value,
+                '個案姓名': name,
+                '訪視\n日期': dateVal,
+                '訪視\n時間': document.getElementById('vi-time').value,
+                '訪視目的': document.getElementById('vi-purpose').value,
+                '訪視方式': document.getElementById('vi-method').value,
+                '服務頻率與時段': document.getElementById('vi-freq').value,
+                '訪視概況': document.getElementById('vi-notes').value,
+                '訪視紀錄產出': document.getElementById('vi-output').value
+            };
+
+            closeAddVisitModal();
+            showToast("正在同步訪視紀錄至雲端...", "info");
+
+            const actionName = rowIndex ? 'editVisitRecord' : 'addVisitRecord';
+            const payload = { action: actionName, type: 'visit', record: newRecord };
+            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') {
+                    showToast("✅ 儲存成功", "success");
+                    triggerSync(true); 
+                } else showToast("後端儲存異常", "error");
+            }).catch(err => {
+                showToast("無法連線雲端", "error");
+            });
+        }
+
+        function generateVisitRecordAI() {
+            const name = document.getElementById('vi-name').value;
+            const purpose = document.getElementById('vi-purpose').value;
+            const freq = document.getElementById('vi-freq').value;
+            const notes = document.getElementById('vi-notes').value;
+
+            if(!name || !notes) return showToast("請先選擇個案並填寫訪視概況", "error");
+
+            showToast("✨ AI 正在努力撰寫中，請稍候...", "info");
+            const btn = document.getElementById('btn-ai-gen');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 產出中...`;
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'generateVisitRecordAI', 
+                    name: name, 
+                    purpose: purpose, 
+                    freq: freq, 
+                    notes: notes 
+                })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') {
+                    document.getElementById('vi-output').value = res.text;
+                    showToast("✅ AI 撰寫完成！您可以編修後點擊儲存。", "success");
+                } else {
+                    showToast("產生失敗：" + (res.message || "未知錯誤"), "error");
+                }
+            }).catch(() => showToast("連線異常", "error"))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="ph-bold ph-magic-wand"></i> ✨ 一鍵智能產出`;
+            });
         }
 
         function renderUsersTable() {
@@ -1327,7 +1628,7 @@
             "總時數", "平日時數", "平日加班(1.34時)", "平日加班(1.67時)", "休息日加班(1.34時)", "休息日加班(1.67時)",
             "假日喘息時數", "國定假(2時)", "轉場時間", "行政會議出席時數", "平日薪資(含月薪)", "平日加班費(1.34)",
             "平日加班費(1.67)", "休息日加班費(1.34)", "休息日加班費(1.67)", "假日喘息費用(230/時)", "國定假日加班費(2)",
-            "行政會議費用", "轉場費用", "證照加給(單一級)", "AA碼獎金", "GA碼獎金", "總薪資", "應稅薪資總額",
+            "行政會議費用", "轉場費用", "證照加給(單一級)", "AA碼獎金", "GA碼獎金", "總薪薪資", "應稅薪資總額",
             "代扣勞保(員工)", "代扣健保(員工)", "實發總額(匯款)", "公司負擔勞保", "公司負擔健保", "勞退提撥(6%)", "公司總成本"
         ];
 
@@ -1345,6 +1646,8 @@
             if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') {
                 actionName = 'deleteHRRecord';
                 dataType = type.replace('hr-', '');
+            } else if (type === 'visit') {
+                actionName = 'deleteVisitRecord';
             }
 
             currentDeleteFileId = rowIndex; 
@@ -1710,10 +2013,6 @@
                 return (recName === targetName || recName === currentUserName) && String(r['月份']).trim() === month;
             }) : null;
             
-            let aa = Array.isArray(hrDataRaw.aabonus) ? hrDataRaw.aabonus.find(r => {
-                let recName = String(r['姓名'] || '').trim();
-                return (recName === targetName || recName === currentUserName);
-            }) : null; 
 
             if(!pr) {
                 container.innerHTML = `<div class="text-center py-10 text-stone-400 font-bold">此月份尚無您的薪資資料。</div>`;

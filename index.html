@@ -255,7 +255,6 @@
                         <div onclick="switchTab('policies')" id="tab-policies" class="nav-item">
                             <i class="ph-bold ph-bank text-xl"></i> 機構規章
                         </div>
-                        <!-- 🔥 新增：體檢指引入口 -->
                         <div onclick="switchTab('health-exam')" id="tab-health-exam" class="nav-item">
                             <i class="ph-bold ph-heartbeat text-xl"></i> 入職體檢指引
                         </div>
@@ -578,7 +577,7 @@
                     <div id="text-policies" class="content-card mb-6 transition-all duration-300 text-stone-600 font-bold leading-relaxed text-sm"></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
-                
+
                 <!-- 🔥 新增：入職體檢互動指引 -->
                 <section id="content-health-exam" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
@@ -1181,6 +1180,87 @@
             { name: "彰化市/和美衛生所", type: "public", cost: "850", time: "14 天", tag: "需先電話預約", link: "#" }
         ];
 
+        function showExamStep(num) {
+            const contentBox = document.getElementById('step-content');
+            if(!contentBox) return;
+
+            const data = examStepsData[num];
+            contentBox.innerHTML = `
+                <h5 class="font-bold text-orange-900 text-lg mb-2">${data.title}</h5>
+                <p class="text-sm leading-relaxed">${data.content}</p>
+            `;
+
+            [1, 2, 3].forEach(n => {
+                const btn = document.getElementById(`step-btn-${n}`);
+                if(btn) {
+                    if (n === num) btn.classList.add('step-active');
+                    else btn.classList.remove('step-active');
+                }
+            });
+        }
+
+        function filterExamHospitals(filter) {
+            const list = document.getElementById('exam-hospital-list');
+            const btnAll = document.getElementById('btn-hosp-all');
+            const btnPub = document.getElementById('btn-hosp-public');
+            if(!list || !btnAll || !btnPub) return;
+
+            if (filter === 'all') {
+                btnAll.className = "px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-orange-600 transition";
+                btnPub.className = "px-4 py-2 text-xs font-bold rounded-lg text-stone-500 transition";
+            } else {
+                btnPub.className = "px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-orange-600 transition";
+                btnAll.className = "px-4 py-2 text-xs font-bold rounded-lg text-stone-500 transition";
+            }
+
+            const filteredData = filter === 'all' ? examHospitals : examHospitals.filter(h => h.type === 'public');
+
+            list.innerHTML = filteredData.map(h => `
+                <div class="bg-white p-5 rounded-2xl border border-stone-100 flex justify-between items-center group hover:border-orange-300 transition">
+                    <div class="space-y-1">
+                        <span class="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase">${h.tag}</span>
+                        <h5 class="font-bold text-stone-800">${h.name}</h5>
+                        <div class="text-xs text-stone-400">
+                            預估：NT$ ${h.cost} ｜ 約 ${h.time}
+                        </div>
+                    </div>
+                    <button onclick="window.open('${h.link}', '_blank')" class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-orange-500 group-hover:text-white transition shadow-sm">
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function initExamChart() {
+            if (examChartInitialized) return;
+            const canvas = document.getElementById('weightChart');
+            if(!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['傳染病 (TB/疥瘡)', '肝炎指標', '基礎代謝', '肝腎功能'],
+                    datasets: [{
+                        data: [45, 20, 20, 15],
+                        backgroundColor: ['#f97316', '#fb923c', '#fdba74', '#ffedd5'],
+                        hoverOffset: 10,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, font: { family: 'Noto Sans TC', size: 11 }, boxWidth: 10 } },
+                        tooltip: { callbacks: { label: function(context) { return ` 重要程度: ${context.raw}%`; } } }
+                    },
+                    cutout: '75%'
+                }
+            });
+            examChartInitialized = true;
+        }
+
         function showToast(msg, type = 'info') {
             const c = document.getElementById('toast-container'), t = document.createElement('div');
             let bg = type === 'error' ? 'bg-red-500' : (type === 'success' ? 'bg-green-500' : 'bg-stone-800');
@@ -1395,7 +1475,6 @@
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
 
-        // --- 表格渲染與互動邏輯 ---
         function updateCaseDropdown() {
             const dataList = document.getElementById('case-name-list');
             if(!dataList) return;
@@ -2615,6 +2694,44 @@
                     }
                 });
             }
+        }
+
+        function handleLogout() { location.reload(); }
+
+        function switchTab(id) {
+            if (currentRole === 'unauthorized') return;
+            if (currentRole === 'staff' && (id === 'manage' || id === 'finance' || id === 'hr')) { showToast('僅限管理員或股東存取', 'error'); return; }
+            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary' || id === 'hr')) { showToast('僅限管理員或居服員存取', 'error'); return; }
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            const target = document.getElementById('content-' + id);
+            if(target) target.classList.remove('hidden-section');
+            const a = document.getElementById('tab-' + id);
+            if(a) a.classList.add('active');
+
+            if (id === 'health-exam') {
+                setTimeout(initExamChart, 100);
+                showExamStep(1);
+                filterExamHospitals('all');
+            }
+        }
+
+        function switchFinanceTab(id) {
+            document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
+            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
+            const target = document.getElementById('fin-' + id); if(target) target.classList.remove('hidden-section');
+            const btn = document.getElementById('tab-fin-' + id); if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
+        }
+
+        function switchHRTab(id) {
+            document.querySelectorAll('.hr-section').forEach(e => e.classList.add('hidden-section'));
+            document.querySelectorAll('.hr-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
+            const target = document.getElementById('hr-' + id); if(target) target.classList.remove('hidden-section');
+            const btnActive = document.getElementById('tab-hr-' + id); if(btnActive) { btnActive.classList.remove('bg-stone-50', 'text-stone-500'); btnActive.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
+            
+            const mFilter = document.getElementById('hr-month-filter-container');
+            if(mFilter) mFilter.style.display = id === 'personnel' ? 'none' : 'flex';
         }
 
         const uploader = document.getElementById('fileUploader');

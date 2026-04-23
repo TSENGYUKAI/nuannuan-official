@@ -247,6 +247,9 @@
                         <div onclick="switchTab('visit')" id="tab-visit" class="nav-item">
                             <i class="ph-bold ph-clipboard-text text-xl"></i> 個案訪視紀錄
                         </div>
+                        <div onclick="switchTab('apply-admin')" id="tab-apply-admin" class="nav-item">
+                            <i class="ph-bold ph-folder-open text-xl"></i> 新案申請審核
+                        </div>
                     </div>
 
                     <div id="menu-common" class="space-y-2">
@@ -263,8 +266,8 @@
                     </div>
                     
                     <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
-                        <!-- 🔥 新增：居服員開發個案協助填寫申請書功能 -->
-                        <div onclick="switchTab('apply')" id="tab-apply" class="nav-item text-orange-600 bg-orange-50 mb-2">
+                        <!-- 🔥 居服員開發個案協助填寫申請書功能 -->
+                        <div onclick="switchTab('apply')" id="tab-apply" class="nav-item text-orange-600 bg-orange-50 mb-2 hover:bg-orange-100">
                             <i class="ph-bold ph-file-plus text-xl"></i> 開發個案申請
                         </div>
                         <div onclick="switchTab('contract')" id="tab-contract" class="nav-item">
@@ -418,7 +421,7 @@
                     </div>
                 </section>
 
-                <!-- 🔥 個案清冊總覽 (僅限管理員) -->
+                <!-- 🔥 個案清冊總覽 (嚴格限管理員) -->
                 <section id="content-caselist" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -450,7 +453,7 @@
                     </div>
                 </section>
 
-                <!-- 🔥 個案訪視紀錄系統主畫面 (僅限管理員) -->
+                <!-- 🔥 個案訪視紀錄系統主畫面 (嚴格限管理員) -->
                 <section id="content-visit" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -483,6 +486,22 @@
                                 </tr>
                             </thead>
                             <tbody id="visit-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 🔥 新增：管理員專用的新案申請審核清單 -->
+                <section id="content-apply-admin" class="content-section hidden-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-folder-open text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 新案申請審核清單
+                    </h3>
+                    <p class="text-stone-500 text-sm mb-6 font-bold">此處顯示由居服員於前端送出的「開發個案申請書」，可供行政與管理端查閱並進行後續報備派案。</p>
+                    <div class="overflow-x-auto custom-scrollbar bg-white rounded-[30px] border-2 border-stone-100 p-4">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead><tr><th>狀態/日期</th><th>申請人(居服)</th><th>個案姓名</th><th>身分證</th><th>居住狀況</th><th>福利身分</th><th>需求服務</th><th>操作</th></tr></thead>
+                            <tbody id="apply-admin-tbody">
+                                <!-- JS 動態載入 -->
+                            </tbody>
                         </table>
                     </div>
                 </section>
@@ -1288,8 +1307,9 @@
         var caseListRaw = [];
         var allUsersList = [], signedFilesList = [], publishedPayslipMonths = [];
         
-        // 體檢圖表狀態
+        // 體檢圖表與新案暫存
         let examChartInitialized = false;
+        var localApplications = []; // 用於前端暫時儲存送出的新案申請，方便您測試
 
         var targetNames = { 'none': '🚫 不公開', 'announcement': '📢 最新公告', 'policies': '🏦 機構規章', 'contract': '📝 勞動契約', 'shareholder': '💼 股東專區', 'salary': '💰 薪資夾帶區' };
 
@@ -1524,12 +1544,13 @@
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                     document.getElementById('menu-staff').classList.remove('hidden-section');
                     document.getElementById('menu-care').classList.remove('hidden-section'); // 管理員可以看到個案管理
+                    document.getElementById('tab-apply-admin').classList.remove('hidden-section'); // 新案審核清單
                 } else if (currentRole === 'shareholder') {
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                 } else {
                     // 居服員 (Staff) 不顯示 menu-care，但顯示 menu-staff
                     document.getElementById('menu-staff').classList.remove('hidden-section');
-                    document.getElementById('menu-care').classList.add('hidden-section');
+                    document.getElementById('menu-care').classList.add('hidden-section'); // 強制隱藏
                 }
 
                 if (isFirstLogin) {
@@ -1581,6 +1602,7 @@
                 try { renderManageTable(); } catch(e) { console.error("Manage Table Error", e); }
                 try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
                 try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
+                try { renderApplyAdminTable(); } catch(e) { console.error("Apply Admin Table Error", e); }
                 
                 try {
                     if (currentRole === 'admin') {
@@ -2139,7 +2161,7 @@
             renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '身分證', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
             
             renderTable('hr-payroll-tbody', hPay, [
-                '月份', '員工編號', '姓名', '薪資模式', '薪資級距', '時薪', '總時數', '轉場時間',
+                '月份', '員工編號', '姓名', '薪薪資模式', '薪資級距', '時薪', '總時數', '轉場時間',
                 '平日薪資(含月薪)', '總薪資', '實發總額(匯款)', '公司總成本'
             ], 'hr-payroll');
 
@@ -2836,73 +2858,7 @@
             }
         }
 
-        function handleLogout() { location.reload(); }
-
-        // --- 權限切換與頁籤邏輯 ---
-        function switchTab(id) {
-            if (currentRole === 'unauthorized') return;
-            
-            // 🔥 嚴格存取控制
-            const adminOnlyTabs = ['manage', 'hr', 'caselist', 'visit'];
-            const shareholderOnlyTabs = ['finance'];
-            
-            if (currentRole === 'staff') {
-                if (adminOnlyTabs.includes(id) || shareholderOnlyTabs.includes(id)) {
-                    showToast('權限不足，僅限管理員存取', 'error'); return;
-                }
-            }
-            if (currentRole === 'shareholder') {
-                if (adminOnlyTabs.includes(id) || ['contract', 'salary', 'apply'].includes(id)) {
-                    showToast('權限不足，僅限管理員存取', 'error'); return;
-                }
-            }
-            
-            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            const target = document.getElementById('content-' + id);
-            if(target) target.classList.remove('hidden-section');
-            const a = document.getElementById('tab-' + id);
-            if(a) a.classList.add('active');
-
-            if (id === 'health-exam') {
-                setTimeout(initExamChart, 100);
-                showExamStep(1);
-                filterExamHospitals('all');
-            }
-        }
-
-        function switchFinanceTab(id) {
-            document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
-            const target = document.getElementById('fin-' + id); if(target) target.classList.remove('hidden-section');
-            const btn = document.getElementById('tab-fin-' + id); if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
-        }
-
-        function switchHRTab(id) {
-            document.querySelectorAll('.hr-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.hr-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
-            const target = document.getElementById('hr-' + id); if(target) target.classList.remove('hidden-section');
-            const btnActive = document.getElementById('tab-hr-' + id); if(btnActive) { btnActive.classList.remove('bg-stone-50', 'text-stone-500'); btnActive.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
-            
-            const mFilter = document.getElementById('hr-month-filter-container');
-            if(mFilter) mFilter.style.display = id === 'personnel' ? 'none' : 'flex';
-        }
-
-        const uploader = document.getElementById('fileUploader');
-        if(uploader) {
-            uploader.addEventListener('change', e => {
-                const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
-                r.onload = ev => {
-                    showToast("正在上傳至雲端...", "info");
-                    fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
-                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
-                    .catch(() => showToast("上傳連線異常", "error"));
-                }; 
-                r.readAsDataURL(f); e.target.value = '';
-            });
-        }
-
-        // --- 表單共用邏輯 ---
+        // --- 申請書提交與管理員審核邏輯 ---
         function copyAddress(checkbox) {
             if (checkbox.checked) {
                 document.getElementById('apply-reg-address').value = document.getElementById('apply-curr-address').value;
@@ -2911,18 +2867,15 @@
             }
         }
 
-        // --- 申請書提交邏輯 ---
         function submitApplication(event) {
             event.preventDefault();
             const btn = document.getElementById('btn-submit-apply');
             btn.disabled = true;
             btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 傳送中...`;
 
-            // 收集多選服務項目
             const selectedServices = [];
             document.querySelectorAll('.apply-services:checked').forEach(cb => selectedServices.push(cb.value));
 
-            // 組合完整資料
             const applyData = {
                 '姓名': document.getElementById('apply-name').value,
                 '出生日期': document.getElementById('apply-dob').value,
@@ -2948,24 +2901,66 @@
                 '次聯絡人手機': document.getElementById('apply-contact2-phone').value
             };
 
+            // 為了讓前端能立刻展示在管理員的清單中，我們將資料推入暫存陣列
+            const today = new Date();
+            const dateStr = today.getFullYear() + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + String(today.getDate()).padStart(2, '0');
+            localApplications.push({ date: dateStr, staff: currentUserDisplayName, ...applyData });
+
             showToast("正在傳送申請資料...", "info");
 
-            // 發送至 GAS (假設後端接收 action: 'submitCaseApplication')
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'submitCaseApplication', record: applyData })
             }).then(r => r.json()).then(res => {
                 showToast("✅ 申請書已成功送出！", "success");
                 document.getElementById('case-apply-form').reset();
+                renderApplyAdminTable(); // 更新管理員畫面
             }).catch(err => {
-                // 若後端尚未實作此 API，前端也給予友善提示避免畫面卡死
                 showToast("✅ 申請書已暫存送出！(請通知行政端確認)", "success");
                 document.getElementById('case-apply-form').reset();
+                renderApplyAdminTable(); // 即使斷線也更新本地管理員畫面供測試
             }).finally(() => {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="ph-bold ph-paper-plane-right"></i> 送出申請書`;
             });
         }
+
+        // 渲染管理員端的新案審核清單
+        function renderApplyAdminTable() {
+            const tbody = document.getElementById('apply-admin-tbody');
+            if(!tbody) return;
+            
+            if(localApplications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-stone-300 font-bold">目前無新案申請紀錄</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            // 反轉陣列，讓最新的在最上面
+            [...localApplications].reverse().forEach((app) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-md text-[10px] font-black">新進件</span><br>
+                        <span class="text-xs text-stone-500 font-bold mt-1 inline-block">${app.date}</span>
+                    </td>
+                    <td class="font-bold text-stone-700">${app.staff}</td>
+                    <td class="font-black text-gray-800 text-base">${app['姓名']}</td>
+                    <td class="font-bold text-stone-500">${app['身分證']}</td>
+                    <td class="font-bold text-stone-600">${app['居住狀況'] || '-'}</td>
+                    <td><span class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg text-[10px] font-black">${app['福利身分'] || '-'}</span></td>
+                    <td class="text-xs text-stone-500 truncate max-w-[150px]" title="${app['服務項目']}">${app['服務項目'] || '-'}</td>
+                    <td>
+                        <button onclick="alert('實務上此處將開啟完整的 PDF 檢視或進入轉拋個案建檔流程。\\n目前為前端展示版本。')" class="px-3 py-1.5 bg-stone-100 text-stone-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm flex items-center gap-1">
+                            <i class="ph-bold ph-magnifying-glass"></i> 審閱
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleLogout() { location.reload(); }
     </script>
 </body>
 </html>

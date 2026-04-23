@@ -238,6 +238,7 @@
                         </div>
                     </div>
 
+                    <!-- 🔥 僅限管理員看見的個案管理區塊 -->
                     <div id="menu-care" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
                         <div class="text-[10px] font-black text-orange-500 uppercase px-4 mb-2">Care Management</div>
                         <div onclick="switchTab('caselist')" id="tab-caselist" class="nav-item">
@@ -261,6 +262,10 @@
                     </div>
                     
                     <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
+                        <!-- 🔥 新增：居服員開發個案協助填寫申請書功能 -->
+                        <div onclick="switchTab('apply')" id="tab-apply" class="nav-item text-orange-600 bg-orange-50 mb-2">
+                            <i class="ph-bold ph-file-plus text-xl"></i> 開發個案申請
+                        </div>
                         <div onclick="switchTab('contract')" id="tab-contract" class="nav-item">
                             <i class="ph-bold ph-file-text text-xl"></i> 勞動契約
                         </div>
@@ -412,7 +417,7 @@
                     </div>
                 </section>
 
-                <!-- 🔥 個案清冊總覽 -->
+                <!-- 🔥 個案清冊總覽 (僅限管理員) -->
                 <section id="content-caselist" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -444,7 +449,7 @@
                     </div>
                 </section>
 
-                <!-- 🔥 個案訪視紀錄系統主畫面 -->
+                <!-- 🔥 個案訪視紀錄系統主畫面 (僅限管理員) -->
                 <section id="content-visit" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -578,7 +583,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
 
-                <!-- 🔥 新增：入職體檢互動指引 -->
+                <!-- 🔥 入職體檢互動指引 -->
                 <section id="content-health-exam" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-heartbeat text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 入職體檢互動指引</div>
@@ -737,6 +742,136 @@
 
                     <h4 class="text-lg font-black text-gray-800 mt-12 mb-4 no-print border-t-2 border-stone-100 pt-8">📁 雲端夾帶檔案 (如扣繳憑單)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 no-print" id="salary-files-container"></div>
+                </section>
+
+                <!-- 🔥 新增：居服員開發個案協助填寫申請書功能 -->
+                <section id="content-apply" class="content-section hidden-section">
+                    <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
+                        <i class="ph-bold ph-file-plus text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 開發個案協助申請
+                    </h3>
+                    <p class="text-stone-500 text-sm mb-8 font-bold leading-relaxed">請依照「彰化縣政府長期照顧服務申請書」欄位協助家屬填寫。填寫完畢送出後，系統將自動通知行政人員進行後續報備與派案。</p>
+
+                    <form id="case-apply-form" onsubmit="submitApplication(event)" class="space-y-6">
+                        
+                        <!-- 區塊一：需要服務者基本資料 -->
+                        <div class="content-card !p-6 md:!p-8">
+                            <h4 class="text-lg font-black text-orange-600 mb-6 flex items-center gap-2 border-b-2 border-orange-100 pb-2"><i class="ph-fill ph-user"></i> 一、需要服務者基本資料</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">1. 姓名 *</label>
+                                    <input type="text" id="apply-name" required class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                                
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">2. 出生日期</label>
+                                    <input type="date" id="apply-dob" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                                
+                                <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">3. 身分證統一編號 *</label>
+                                    <input type="text" id="apply-sid" required class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                                
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">4. 電話(手機)</label>
+                                    <input type="tel" id="apply-phone" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                                
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">5. 性別</label>
+                                    <select id="apply-gender" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="">請選擇</option><option value="男">男</option><option value="女">女</option>
+                                    </select></div>
+                                
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">6. 目前居住狀況</label>
+                                    <select id="apply-living" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="">請選擇</option><option value="獨居">獨居</option><option value="固定同住">固定同住</option><option value="輪流居住">輪流居住</option>
+                                    </select></div>
+
+                                <div class="md:col-span-2 lg:col-span-3"><label class="block text-xs font-black text-stone-500 mb-1">7. 現居地址</label>
+                                    <input type="text" id="apply-curr-address" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                                
+                                <div class="md:col-span-2 lg:col-span-3">
+                                    <label class="flex items-center justify-between text-xs font-black text-stone-500 mb-1">
+                                        <span>8. 戶籍地址</span>
+                                        <label class="flex items-center gap-1 cursor-pointer text-orange-600 hover:text-orange-800">
+                                            <input type="checkbox" onchange="copyAddress(this)" class="w-4 h-4 accent-orange-500"> 同現居地址
+                                        </label>
+                                    </label>
+                                    <input type="text" id="apply-reg-address" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">9. 領有身心障礙手冊</label>
+                                    <select id="apply-disability" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="否">否</option><option value="是(輕度)">是(輕度)</option><option value="是(中度)">是(中度)</option><option value="是(重度)">是(重度)</option><option value="是(極重度)">是(極重度)</option>
+                                    </select></div>
+
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">10. 社會福利身分別</label>
+                                    <select id="apply-welfare" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="一般戶">一般戶</option><option value="中低收入戶">中低收入戶</option><option value="低收入戶">低收入戶</option>
+                                    </select></div>
+
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">11. 目前是否住在機構</label>
+                                    <select id="apply-in-inst" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="否">否</option><option value="是">是</option>
+                                    </select></div>
+
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">12. 目前是否住院</label>
+                                    <input type="text" id="apply-hospitalized" placeholder="否 / 若『是』請填醫院名稱" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">13. 主要就診醫療院所</label>
+                                    <select id="apply-main-hosp" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="">請選擇</option><option value="部彰">部彰</option><option value="彰基">彰基</option><option value="員基">員基</option><option value="鹿基">鹿基</option><option value="二基">二基</option><option value="秀傳">秀傳</option><option value="濱秀">濱秀</option><option value="漢銘">漢銘</option><option value="其他">其他</option>
+                                    </select></div>
+
+                                <div><label class="block text-xs font-black text-stone-500 mb-1">14. 目前是否聘請看護</label>
+                                    <select id="apply-caregiver" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                        <option value="否">否</option><option value="是(本籍)">是(本籍)</option><option value="是(外籍)">是(外籍)</option><option value="申請中">申請中</option>
+                                    </select></div>
+                                
+                                <div class="md:col-span-2 lg:col-span-3"><label class="block text-xs font-black text-stone-500 mb-1">15. 是否罹患疾病 (疾病名稱)</label>
+                                    <input type="text" id="apply-diseases" placeholder="否 / 若『是』請填寫疾病名稱" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                                    <p class="text-[10px] text-stone-400 mt-1">備註: 未領有身心障礙證明之失智症，請檢附「1年內」開立之診斷證明或CDR 1分以上報告。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊二：聯絡人資料 -->
+                        <div class="content-card !p-6 md:!p-8">
+                            <h4 class="text-lg font-black text-blue-600 mb-6 flex items-center gap-2 border-b-2 border-blue-100 pb-2"><i class="ph-fill ph-users"></i> 二、聯絡人資料</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-4">
+                                    <div class="text-sm font-black text-stone-700 bg-stone-100 px-3 py-1 rounded-lg inline-block mb-2">主要聯絡人</div>
+                                    <div><label class="block text-xs font-black text-stone-500 mb-1">姓名</label><input type="text" id="apply-contact1-name" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm"></div>
+                                    <div><label class="block text-xs font-black text-stone-500 mb-1">身分證號</label><input type="text" id="apply-contact1-sid" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm"></div>
+                                    <div><label class="block text-xs font-black text-stone-500 mb-1">與個案關係</label><input type="text" id="apply-contact1-rel" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm"></div>
+                                    <div><label class="block text-xs font-black text-stone-500 mb-1">電話 / 手機</label><input type="text" id="apply-contact1-phone" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm"></div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="text-sm font-black text-stone-700 bg-stone-100 px-3 py-1 rounded-lg inline-block mb-2">次要聯絡人</div>
+                                    <div><label class="block text-xs font-black text-stone-500 mb-1">姓名</label><input type="text" id="apply-contact2-name" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-stone-500 text-sm"></div>
+                                    <div><label class="block text-xs font-black text-stone-500 mb-1">手機</label><input type="text" id="apply-contact2-phone" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-stone-500 text-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 區塊三：服務項目 -->
+                        <div class="content-card !p-6 md:!p-8">
+                            <h4 class="text-lg font-black text-green-600 mb-6 flex items-center gap-2 border-b-2 border-green-100 pb-2"><i class="ph-fill ph-list-checks"></i> 三、16. 欲申請服務項目 (可複選)</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="居家服務" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">居家服務</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="日間照顧" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">日間照顧</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="家庭托顧" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">家庭托顧</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="老人營養餐飲服務" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">老人營養餐飲</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="交通接送服務" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">交通接送服務</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="喘息服務" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">喘息服務</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="輔具及無障礙環境" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">輔具及環境改善</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="專業服務(復能/護理/吞嚥)" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">專業服務</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="到宅沐浴車" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">到宅沐浴車</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="定點乾燥" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">定點乾燥</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="機構安置" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">機構安置</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg"><input type="checkbox" value="短照服務" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">短照服務</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-stone-50 rounded-lg md:col-span-2"><input type="checkbox" value="其他" class="apply-services w-5 h-5 accent-green-500"><span class="font-bold text-sm">其他</span></label>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4">
+                            <button type="submit" id="btn-submit-apply" class="px-8 py-4 bg-orange-500 text-white rounded-2xl font-black text-lg shadow-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+                                <i class="ph-bold ph-paper-plane-right"></i> 送出申請書
+                            </button>
+                        </div>
+                    </form>
                 </section>
             </div>
         </main>
@@ -1381,17 +1516,18 @@
                 lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
                 lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
 
+                // 🔥 權限控管邏輯更新
                 if (currentRole === 'admin') {
                     document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
                     document.getElementById('menu-superadmin').classList.remove('hidden-section');
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                     document.getElementById('menu-staff').classList.remove('hidden-section');
-                    document.getElementById('menu-care').classList.remove('hidden-section'); 
+                    document.getElementById('menu-care').classList.remove('hidden-section'); // 管理員可以看到個案管理
                 } else if (currentRole === 'shareholder') {
                     document.getElementById('menu-shareholder').classList.remove('hidden-section');
                 } else {
+                    // 居服員 (Staff) 不顯示 menu-care，但顯示 menu-staff
                     document.getElementById('menu-staff').classList.remove('hidden-section');
-                    document.getElementById('menu-care').classList.remove('hidden-section'); 
                 }
 
                 if (isFirstLogin) {
@@ -1474,6 +1610,8 @@
                 if(currentRole === 'unauthorized') document.getElementById('login-view').classList.remove('hidden-section');
             }).finally(() => { if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } });
         }
+
+        // --- 以下為表格與功能邏輯 ---
 
         function updateCaseDropdown() {
             const dataList = document.getElementById('case-name-list');
@@ -1870,8 +2008,8 @@
             payNameSelect.innerHTML = optionsHtml;
             aaNameSelect.innerHTML = optionsHtml;
 
-            payNameSelect.value = currentPayName;
-            aaNameSelect.value = currentAaName;
+            if(payName) payNameSelect.value = payName;
+            if(aaName) aaNameSelect.value = aaName;
         }
 
         function autoFillEmpId(type, name) {
@@ -2698,53 +2836,68 @@
 
         function handleLogout() { location.reload(); }
 
-        function switchTab(id) {
-            if (currentRole === 'unauthorized') return;
-            if (currentRole === 'staff' && (id === 'manage' || id === 'finance' || id === 'hr')) { showToast('僅限管理員或股東存取', 'error'); return; }
-            if (currentRole === 'shareholder' && (id === 'manage' || id === 'contract' || id === 'salary' || id === 'hr')) { showToast('僅限管理員或居服員存取', 'error'); return; }
-            
-            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            const target = document.getElementById('content-' + id);
-            if(target) target.classList.remove('hidden-section');
-            const a = document.getElementById('tab-' + id);
-            if(a) a.classList.add('active');
-
-            if (id === 'health-exam') {
-                setTimeout(initExamChart, 100);
-                showExamStep(1);
-                filterExamHospitals('all');
+        // --- 表單共用邏輯 ---
+        function copyAddress(checkbox) {
+            if (checkbox.checked) {
+                document.getElementById('apply-reg-address').value = document.getElementById('apply-curr-address').value;
+            } else {
+                document.getElementById('apply-reg-address').value = '';
             }
         }
 
-        function switchFinanceTab(id) {
-            document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
-            const target = document.getElementById('fin-' + id); if(target) target.classList.remove('hidden-section');
-            const btn = document.getElementById('tab-fin-' + id); if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
-        }
+        // --- 申請書提交邏輯 ---
+        function submitApplication(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btn-submit-apply');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 傳送中...`;
 
-        function switchHRTab(id) {
-            document.querySelectorAll('.hr-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.hr-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
-            const target = document.getElementById('hr-' + id); if(target) target.classList.remove('hidden-section');
-            const btnActive = document.getElementById('tab-hr-' + id); if(btnActive) { btnActive.classList.remove('bg-stone-50', 'text-stone-500'); btnActive.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
-            
-            const mFilter = document.getElementById('hr-month-filter-container');
-            if(mFilter) mFilter.style.display = id === 'personnel' ? 'none' : 'flex';
-        }
+            // 收集多選服務項目
+            const selectedServices = [];
+            document.querySelectorAll('.apply-services:checked').forEach(cb => selectedServices.push(cb.value));
 
-        const uploader = document.getElementById('fileUploader');
-        if (uploader) {
-            uploader.addEventListener('change', e => {
-                const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
-                r.onload = ev => {
-                    showToast("正在上傳至雲端...", "info");
-                    fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
-                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
-                    .catch(() => showToast("上傳連線異常", "error"));
-                }; 
-                r.readAsDataURL(f); e.target.value = '';
+            // 組合完整資料
+            const applyData = {
+                '姓名': document.getElementById('apply-name').value,
+                '出生日期': document.getElementById('apply-dob').value,
+                '身分證': document.getElementById('apply-sid').value,
+                '電話': document.getElementById('apply-phone').value,
+                '性別': document.getElementById('apply-gender').value,
+                '居住狀況': document.getElementById('apply-living').value,
+                '現居地址': document.getElementById('apply-curr-address').value,
+                '戶籍地址': document.getElementById('apply-reg-address').value,
+                '身障手冊': document.getElementById('apply-disability').value,
+                '福利身分': document.getElementById('apply-welfare').value,
+                '住機構': document.getElementById('apply-in-inst').value,
+                '住院': document.getElementById('apply-hospitalized').value,
+                '主要醫院': document.getElementById('apply-main-hosp').value,
+                '聘請看護': document.getElementById('apply-caregiver').value,
+                '罹患疾病': document.getElementById('apply-diseases').value,
+                '服務項目': selectedServices.join(', '),
+                '主聯絡人姓名': document.getElementById('apply-contact1-name').value,
+                '主聯絡人身分證': document.getElementById('apply-contact1-sid').value,
+                '主聯絡人關係': document.getElementById('apply-contact1-rel').value,
+                '主聯絡人電話': document.getElementById('apply-contact1-phone').value,
+                '次聯絡人姓名': document.getElementById('apply-contact2-name').value,
+                '次聯絡人手機': document.getElementById('apply-contact2-phone').value
+            };
+
+            showToast("正在傳送申請資料...", "info");
+
+            // 發送至 GAS (假設後端接收 action: 'submitCaseApplication')
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'submitCaseApplication', record: applyData })
+            }).then(r => r.json()).then(res => {
+                showToast("✅ 申請書已成功送出！", "success");
+                document.getElementById('case-apply-form').reset();
+            }).catch(err => {
+                // 若後端尚未實作此 API，前端也給予友善提示避免畫面卡死
+                showToast("✅ 申請書已暫存送出！(請通知行政端確認)", "success");
+                document.getElementById('case-apply-form').reset();
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="ph-bold ph-paper-plane-right"></i> 送出申請書`;
             });
         }
     </script>

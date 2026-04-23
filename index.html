@@ -114,7 +114,7 @@
         .toast-enter-active { transform: translateX(0); opacity: 1; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .toast-exit { transform: translateX(100%); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* 隱藏捲軸但保留功能 (體檢專區用) */
+        /* 隱藏捲軸但保留功能 */
         .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
@@ -124,7 +124,7 @@
         .step-active { border-color: #f97316 !important; background-color: #fff7ed !important; }
         .chart-container-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; height: 300px; }
 
-        /* 列印薪資單專用樣式 */
+        /* 列印專用樣式 */
         @media print {
             body * { visibility: hidden; }
             #my-digital-payslip, #my-digital-payslip * { visibility: visible; }
@@ -256,6 +256,7 @@
                         <div onclick="switchTab('policies')" id="tab-policies" class="nav-item">
                             <i class="ph-bold ph-bank text-xl"></i> 機構規章
                         </div>
+                        <!-- 🔥 體檢指引入口 -->
                         <div onclick="switchTab('health-exam')" id="tab-health-exam" class="nav-item">
                             <i class="ph-bold ph-heartbeat text-xl"></i> 入職體檢指引
                         </div>
@@ -1528,6 +1529,7 @@
                 } else {
                     // 居服員 (Staff) 不顯示 menu-care，但顯示 menu-staff
                     document.getElementById('menu-staff').classList.remove('hidden-section');
+                    document.getElementById('menu-care').classList.add('hidden-section');
                 }
 
                 if (isFirstLogin) {
@@ -2835,6 +2837,70 @@
         }
 
         function handleLogout() { location.reload(); }
+
+        // --- 權限切換與頁籤邏輯 ---
+        function switchTab(id) {
+            if (currentRole === 'unauthorized') return;
+            
+            // 🔥 嚴格存取控制
+            const adminOnlyTabs = ['manage', 'hr', 'caselist', 'visit'];
+            const shareholderOnlyTabs = ['finance'];
+            
+            if (currentRole === 'staff') {
+                if (adminOnlyTabs.includes(id) || shareholderOnlyTabs.includes(id)) {
+                    showToast('權限不足，僅限管理員存取', 'error'); return;
+                }
+            }
+            if (currentRole === 'shareholder') {
+                if (adminOnlyTabs.includes(id) || ['contract', 'salary', 'apply'].includes(id)) {
+                    showToast('權限不足，僅限管理員存取', 'error'); return;
+                }
+            }
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            const target = document.getElementById('content-' + id);
+            if(target) target.classList.remove('hidden-section');
+            const a = document.getElementById('tab-' + id);
+            if(a) a.classList.add('active');
+
+            if (id === 'health-exam') {
+                setTimeout(initExamChart, 100);
+                showExamStep(1);
+                filterExamHospitals('all');
+            }
+        }
+
+        function switchFinanceTab(id) {
+            document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
+            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
+            const target = document.getElementById('fin-' + id); if(target) target.classList.remove('hidden-section');
+            const btn = document.getElementById('tab-fin-' + id); if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
+        }
+
+        function switchHRTab(id) {
+            document.querySelectorAll('.hr-section').forEach(e => e.classList.add('hidden-section'));
+            document.querySelectorAll('.hr-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
+            const target = document.getElementById('hr-' + id); if(target) target.classList.remove('hidden-section');
+            const btnActive = document.getElementById('tab-hr-' + id); if(btnActive) { btnActive.classList.remove('bg-stone-50', 'text-stone-500'); btnActive.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
+            
+            const mFilter = document.getElementById('hr-month-filter-container');
+            if(mFilter) mFilter.style.display = id === 'personnel' ? 'none' : 'flex';
+        }
+
+        const uploader = document.getElementById('fileUploader');
+        if(uploader) {
+            uploader.addEventListener('change', e => {
+                const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
+                r.onload = ev => {
+                    showToast("正在上傳至雲端...", "info");
+                    fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
+                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
+                    .catch(() => showToast("上傳連線異常", "error"));
+                }; 
+                r.readAsDataURL(f); e.target.value = '';
+            });
+        }
 
         // --- 表單共用邏輯 ---
         function copyAddress(checkbox) {

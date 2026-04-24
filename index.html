@@ -121,28 +121,61 @@
         .step-active { border-color: #f97316 !important; background-color: #fff7ed !important; }
         .chart-container-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; height: 300px; }
 
-        /* 列印專用樣式 */
+        /* 列印專用樣式 - 修復裁切問題 */
         @media print {
-            @page { size: A4 portrait; margin: 1.5cm; }
-            body * { visibility: hidden; }
-            #my-digital-payslip, #my-digital-payslip * { visibility: visible; }
-            #my-digital-payslip { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; padding: 0 !important; }
+            @page { size: A4 portrait; margin: 1cm; }
             
-            body.printing-apply * { visibility: hidden; }
-            body.printing-apply #apply-print-container, body.printing-apply #apply-print-container * { visibility: visible; }
-            body.printing-apply #apply-print-container { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; background: white; }
+            /* 處理數位薪資單列印 */
+            body:not(.printing-apply) * { visibility: hidden; }
+            body:not(.printing-apply) #my-digital-payslip, body:not(.printing-apply) #my-digital-payslip * { visibility: visible; }
+            body:not(.printing-apply) #my-digital-payslip { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; padding: 0 !important; }
+            
+            /* 處理申請書列印 (重點修復跨頁裁切) */
+            body.printing-apply > *:not(#apply-preview-modal) {
+                display: none !important;
+            }
+
+            body.printing-apply #apply-preview-modal {
+                position: static !important;
+                display: block !important;
+                background: white !important;
+            }
+            
+            body.printing-apply #apply-preview-modal-box {
+                max-width: 100% !important;
+                width: 100% !important;
+                max-height: none !important;
+                overflow: visible !important;
+                transform: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+            }
+
+            body.printing-apply #apply-print-container {
+                width: 100% !important;
+                max-width: 21cm !important; /* 確保不超過A4寬 */
+                margin: 0 auto !important;
+                display: block !important;
+            }
+            
+            /* 防止表格被切斷 */
+            .apply-form-print table { page-break-inside: auto; }
+            .apply-form-print tr { page-break-inside: avoid; page-break-after: auto; }
+            .apply-form-print td, .apply-form-print th { page-break-inside: avoid; }
             
             .no-print { display: none !important; }
         }
 
         /* --- 開發個案申請書 完美復刻 PDF 樣式 --- */
         .apply-form-print {
-            font-family: "DFKai-SB", "BiauKai", "MingLiU", "Noto Sans TC", serif; /* 優先使用公文常見字體(標楷/細明體) */
+            font-family: "DFKai-SB", "BiauKai", "MingLiU", "Noto Sans TC", serif;
             color: #000;
             line-height: 1.4;
             font-size: 14.5px;
             width: 100%;
-            max-width: 21cm; /* A4 寬度 */
+            max-width: 21cm;
             margin: 0 auto;
         }
         .apply-form-print .header-note {
@@ -174,26 +207,19 @@
         .apply-form-print table {
             width: 100%;
             border-collapse: collapse;
-            border: 2px solid #000; /* 外框粗線 */
+            border: 2px solid #000;
             margin-bottom: 10px;
         }
         .apply-form-print th, .apply-form-print td {
-            border: 1px solid #000; /* 內線細線 */
+            border: 1px solid #000;
             padding: 8px 10px;
             vertical-align: top;
         }
         .apply-form-print .check-box {
             font-size: 18px;
-            font-family: monospace; /* 確保框框顯示正常 */
+            font-family: monospace;
             line-height: 1;
             margin-right: 2px;
-        }
-        .apply-form-print .underline {
-            border-bottom: 1px solid #000;
-            display: inline-block;
-            min-width: 40px;
-            text-align: center;
-            padding: 0 4px;
         }
         .apply-form-print .note-text {
             font-size: 12px;
@@ -205,7 +231,6 @@
 
     <div id="toast-container"></div>
 
-    <!-- ==================== 登入視窗 ==================== -->
     <div id="login-view" class="w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page relative overflow-hidden">
         <div class="absolute -top-10 -right-10 text-orange-500 opacity-10 animate-sun pointer-events-none">
             <i class="ph-fill ph-sun" style="font-size: 150px;"></i>
@@ -239,14 +264,12 @@
         </div>
     </div>
 
-    <!-- ==================== 載入中畫面 ==================== -->
     <div id="loading-view" class="hidden-section w-full flex flex-col items-center justify-center mt-40 animate-page">
         <i class="ph-bold ph-spinner animate-spin text-5xl text-orange-500 mb-4"></i>
         <h2 class="text-xl font-black text-gray-800 mb-2">正在驗證您的機構權限</h2>
         <p class="text-stone-500 font-bold tracking-widest text-sm animate-pulse">連線至資料庫同步中，請稍候...</p>
     </div>
 
-    <!-- ==================== 拒絕存取畫面 ==================== -->
     <div id="unauthorized-view" class="hidden-section w-full max-sm:px-4 max-w-sm mx-auto mt-20 q-card p-10 text-center animate-page">
         <div class="bg-red-50 text-red-500 w-20 h-20 rounded-[30px] flex items-center justify-center mx-auto mb-6 shadow-inner">
             <i class="ph-bold ph-shield-warning text-4xl"></i>
@@ -256,10 +279,8 @@
         <button onclick="location.reload()" class="bg-stone-800 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors w-full">返回登入頁</button>
     </div>
 
-    <!-- ==================== 主控台 ==================== -->
     <div id="dashboard-view" class="hidden-section max-w-[1600px] mx-auto w-full flex flex-col md:flex-row gap-8 animate-page">
         
-        <!-- 側邊選單 -->
         <aside class="w-full md:w-72 shrink-0 space-y-4 no-print">
             <div class="bg-white q-card p-8 h-full flex flex-col">
                 <div class="flex items-center gap-3 mb-6 pb-6 border-b-2 border-stone-50">
@@ -306,7 +327,6 @@
                         </div>
                     </div>
 
-                    <!-- 🔥 個案管理區塊 -->
                     <div id="menu-care" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
                         <div class="text-[10px] font-black text-orange-500 uppercase px-4 mb-2">Care Management</div>
                         <div onclick="switchTab('apply-list')" id="tab-apply-list" class="nav-item">
@@ -333,7 +353,6 @@
                     </div>
                     
                     <div id="menu-staff" class="hidden-section space-y-2 mt-2 pt-2 border-t-2 border-stone-50">
-                        <!-- 🔥 居服員開發個案協助填寫申請書功能 -->
                         <div onclick="switchTab('apply')" id="tab-apply" class="nav-item text-orange-600 bg-orange-50 mb-2">
                             <i class="ph-bold ph-file-plus text-xl"></i> 開發個案申請
                         </div>
@@ -364,11 +383,9 @@
             </div>
         </aside>
 
-        <!-- 主內容區 -->
         <main class="flex-1 min-w-0">
             <div class="bg-white q-card p-8 md:p-12 min-h-full relative overflow-hidden">
                 
-                <!-- 1. 管理中心 -->
                 <section id="content-manage" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-sliders text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 資料維護中心
@@ -429,7 +446,6 @@
                     </div>
                 </section>
 
-                <!-- 2. 人資與薪資系統 -->
                 <section id="content-hr" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -488,7 +504,6 @@
                     </div>
                 </section>
 
-                <!-- 🔥 開發個案審核清冊 -->
                 <section id="content-apply-list" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -519,7 +534,6 @@
                     </div>
                 </section>
 
-                <!-- 🔥 個案清冊總覽 -->
                 <section id="content-caselist" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -551,7 +565,6 @@
                     </div>
                 </section>
 
-                <!-- 🔥 個案訪視紀錄系統主畫面 -->
                 <section id="content-visit" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -588,7 +601,6 @@
                     </div>
                 </section>
 
-                <!-- 3. 財務系統 -->
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -666,7 +678,6 @@
                     </div>
                 </section>
 
-                <!-- 4. 業務與個人頁面 -->
                 <section id="content-announcement" class="content-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-megaphone text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 最新公告</div>
@@ -685,14 +696,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="policy-files-container"></div>
                 </section>
 
-                <!-- 🔥 入職體檢互動指引 -->
                 <section id="content-health-exam" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-heartbeat text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 入職體檢互動指引</div>
                     </h3>
                     <p class="text-stone-500 max-w-2xl mb-8">此為長照機構新進人員專屬的體檢指南，匯整了《長照服務法》要求的核心項目。</p>
 
-                    <!-- Interactive Stepper -->
                     <div class="mb-10">
                         <h4 class="text-xl font-bold border-l-4 border-orange-500 pl-3 text-stone-800 mb-4">體檢三部曲</h4>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -713,7 +722,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                        <!-- Chart -->
                         <div class="content-card p-8">
                             <h4 class="text-xl font-bold text-stone-800 mb-1">項目權重分析</h4>
                             <p class="text-sm text-stone-500 mb-6">了解為何法規要求這些項目</p>
@@ -722,7 +730,6 @@
                             </div>
                         </div>
 
-                        <!-- Checklist -->
                         <div class="content-card p-8">
                             <h4 class="text-xl font-bold text-stone-800 mb-1">現場檢查清單</h4>
                             <p class="text-sm text-stone-500 mb-6">受檢時請逐一確認</p>
@@ -749,7 +756,6 @@
                         </div>
                     </div>
 
-                    <!-- Hospitals -->
                     <div class="content-card p-8">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                             <div>
@@ -774,7 +780,6 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="contract-files-container"></div>
                 </section>
 
-                <!-- 🔥 個人專屬數位薪資單 -->
                 <section id="content-salary" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center justify-between border-b-2 border-orange-50 pb-4 no-print">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-wallet text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 個人薪資明細</div>
@@ -802,7 +807,6 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 no-print" id="salary-files-container"></div>
                 </section>
 
-                <!-- 🔥 開發個案協助申請 -->
                 <section id="content-apply" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-file-plus text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 開發個案協助申請
@@ -810,7 +814,6 @@
                     <p class="text-stone-500 text-sm mb-8 font-bold leading-relaxed">請依照「彰化縣政府長期照顧服務申請書」欄位協助家屬填寫。填寫完畢送出後，系統將自動通知行政人員進行後續報備與派案。</p>
 
                     <form id="case-apply-form" onsubmit="submitApplication(event)" class="space-y-6">
-                        <!-- 區塊一：需要服務者基本資料 -->
                         <div class="content-card !p-6 md:!p-8">
                             <h4 class="text-lg font-black text-orange-600 mb-6 flex items-center gap-2 border-b-2 border-orange-100 pb-2"><i class="ph-fill ph-user"></i> 一、需要服務者基本資料</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -871,7 +874,6 @@
                             </div>
                         </div>
 
-                        <!-- 區塊二：聯絡人資料 -->
                         <div class="content-card !p-6 md:!p-8">
                             <h4 class="text-lg font-black text-blue-600 mb-6 flex items-center gap-2 border-b-2 border-blue-100 pb-2"><i class="ph-fill ph-users"></i> 二、聯絡人資料</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -890,7 +892,6 @@
                             </div>
                         </div>
 
-                        <!-- 區塊三：服務項目 -->
                         <div class="content-card !p-6 md:!p-8">
                             <h4 class="text-lg font-black text-green-600 mb-6 flex items-center gap-2 border-b-2 border-green-100 pb-2"><i class="ph-fill ph-list-checks"></i> 三、16. 欲申請服務項目 (可複選)</h4>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -921,7 +922,6 @@
         </main>
     </div>
 
-    <!-- 🔥 開發個案申請書預覽與列印 Modal -->
     <div id="apply-preview-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col relative" id="apply-preview-modal-box">
             
@@ -935,15 +935,12 @@
                 </div>
             </div>
 
-            <!-- 這個區塊將會是專屬用來列印的畫面 -->
             <div id="apply-print-container" class="apply-form-print bg-white mx-auto w-full max-w-[800px] p-4 text-black">
-                <!-- 預覽內容由 JavaScript 動態填入 -->
-            </div>
+                </div>
 
         </div>
     </div>
 
-    <!-- 🔥 其他 Modal 區塊 (訪視、人資、財務等維持原樣) -->
     <div id="view-visit-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-4xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="view-visit-modal-box">
             <div class="flex justify-between items-center mb-6 border-b-2 border-stone-100 pb-4">
@@ -1472,16 +1469,6 @@
             }
         }
 
-        function getMonthStr(row, monthField = '月份歸屬(自動)') {
-            if(!row) return '未知';
-            let monthVal = row[monthField]; 
-            if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
-            let dateStr = row['日期'];
-            if (!dateStr) return '未知';
-            let m = String(dateStr).match(/^(\d{4})[-/年](\d{1,2})/);
-            return m ? `${m[1]}/${m[2].padStart(2, '0')}` : '其他';
-        }
-
         function triggerSync(silent = false) {
             const btn = document.getElementById('btnSyncFiles');
             if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
@@ -1513,7 +1500,7 @@
                         { "個案姓名": "陳奶奶", "自訂案號": "C-001", "CMS等級": "5", "主責居服": currentUserDisplayName || "測試員", "個案狀態": "收案" },
                         { "個案姓名": "林爺爺", "自訂案號": "C-002", "CMS等級": "4", "主責居服": currentUserDisplayName || "測試員", "個案狀態": "收案" }
                     ],
-                    applyList: applyListRaw, 
+                    applyList: applyListRaw, // 保留前端新增的資料
                     income: [], expense: [], petty: [], driveFiles: {}, signedFiles: [], contents: {}
                 };
                 processSyncData(mockData, false);
@@ -1803,29 +1790,6 @@
             }).catch(() => showToast("連線異常", "error"));
         }
 
-        function rebuildMonthFilter() {
-            let months = new Set();
-            const addM = (row) => { 
-                if(!row) return; 
-                let m = getMonthStr(row); 
-                if (m !== '其他' && m !== '未知') months.add(m); 
-            };
-            if(Array.isArray(financeDataRaw.income)) financeDataRaw.income.forEach(addM); 
-            if(Array.isArray(financeDataRaw.expense)) financeDataRaw.expense.forEach(addM); 
-            if(Array.isArray(financeDataRaw.petty)) financeDataRaw.petty.forEach(addM);
-
-            let filterSelect = document.getElementById('finance-month-filter');
-            if(!filterSelect) return;
-            
-            let prevVal = filterSelect.value;
-            filterSelect.innerHTML = '<option value="all">全部月份</option>';
-            Array.from(months).sort().reverse().forEach(m => {
-                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
-            });
-            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
-            else filterSelect.value = 'all';
-        }
-
         function applyFinanceFilter() {
             let filterSelect = document.getElementById('finance-month-filter');
             let selM = filterSelect ? filterSelect.value : 'all';
@@ -1959,28 +1923,6 @@
             .then(async r => { try { return JSON.parse(await r.text()); } catch(e) { throw new Error("後端異常"); }})
             .then(res => { if(res.status === 'success') { showToast("✅ 儲存成功", "success"); triggerSync(true); } else showToast("儲存失敗", "error"); })
             .catch(err => showToast("連線異常", "error"));
-        }
-
-        function rebuildHRMonthFilter() {
-            let months = new Set();
-            if(Array.isArray(hrDataRaw.payroll)) {
-                hrDataRaw.payroll.forEach(row => {
-                    if(!row) return;
-                    let m = row['月份'];
-                    if (m && String(m).trim() !== '') months.add(String(m).trim());
-                });
-            }
-
-            let filterSelect = document.getElementById('hr-month-filter');
-            if(!filterSelect) return;
-            
-            let prevVal = filterSelect.value;
-            filterSelect.innerHTML = '<option value="all">全部月份</option>';
-            Array.from(months).sort().reverse().forEach(m => {
-                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
-            });
-            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
-            else filterSelect.value = 'all';
         }
 
         function applyHRFilter() {
@@ -2559,6 +2501,8 @@
                 dataType = type.replace('hr-', '');
             } else if (type === 'visit') {
                 actionName = 'deleteVisitRecord';
+            } else if (type === 'apply') {
+                actionName = 'deleteApplyRecord'; // 連接後端的開發個案刪除邏輯
             }
 
             currentDeleteFileId = rowIndex; 
@@ -2580,186 +2524,6 @@
             const modal = document.getElementById('delete-modal'); modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
         }
-
-        function getMonthStr(row, monthField = '月份歸屬(自動)') {
-            if(!row) return '未知';
-            let monthVal = row[monthField]; 
-            if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
-            let dateStr = row['日期'];
-            if (!dateStr) return '未知';
-            let m = String(dateStr).match(/^(\d{4})[-/年](\d{1,2})/);
-            return m ? `${m[1]}/${m[2].padStart(2, '0')}` : '其他';
-        }
-
-        function triggerSync(silent = false) {
-            const btn = document.getElementById('btnSyncFiles');
-            if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
-            
-            const fetchUrl = GOOGLE_APPS_SCRIPT_URL + "?email=" + encodeURIComponent(currentUserEmail) + "&t=" + new Date().getTime();
-            
-            fetch(fetchUrl).then(async r => {
-                const text = await r.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    throw new Error("後端 API 回傳格式錯誤 (可能未設定「所有人可存取」或網址無效)");
-                }
-            }).then(d => {
-                if(d.status === "error") throw new Error(d.message);
-                processSyncData(d, silent);
-            }).catch(err => { 
-                console.warn("Sync Error:", err);
-                showToast("無法連線後端：" + err.message + "，已啟用【離線測試模式】", "error");
-                
-                // 啟動假資料以便在預覽環境下測試介面
-                const mockData = {
-                    status: "success",
-                    role: "admin",
-                    users: [{email: currentUserEmail, name: currentUserDisplayName || "管理員", role: "admin"}],
-                    personnel: [{ "員工編號": "EMP-001", "姓名": currentUserDisplayName || "測試員", "身分證": "A123456789", "職位": "居服員", "狀態": "在職中" }],
-                    payroll: [], aaBonus: [], visit: [],
-                    caseList: [
-                        { "個案姓名": "陳奶奶", "自訂案號": "C-001", "CMS等級": "5", "主責居服": currentUserDisplayName || "測試員", "個案狀態": "收案" },
-                        { "個案姓名": "林爺爺", "自訂案號": "C-002", "CMS等級": "4", "主責居服": currentUserDisplayName || "測試員", "個案狀態": "收案" }
-                    ],
-                    applyList: applyListRaw, // 保留前端新增的資料
-                    income: [], expense: [], petty: [], driveFiles: {}, signedFiles: [], contents: {}
-                };
-                processSyncData(mockData, false);
-                
-            }).finally(() => { 
-                if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } 
-            });
-        }
-
-        function processSyncData(d, silent) {
-            let rawRole = String(d.role || 'unauthorized').toLowerCase().trim();
-            if (rawRole === 'admin' || rawRole === '管理員') currentRole = 'admin';
-            else if (rawRole === 'shareholder' || rawRole === '股東') currentRole = 'shareholder';
-            else if (rawRole === 'unauthorized') currentRole = 'unauthorized';
-            else currentRole = 'staff';
-            
-            document.getElementById('loading-view').classList.add('hidden-section');
-            
-            if (currentRole === 'unauthorized') {
-                document.getElementById('unauthorized-view').classList.remove('hidden-section'); return;
-            }
-
-            allUsersList = Array.isArray(d.users) ? d.users : [];
-            hrDataRaw.personnel = (Array.isArray(d.personnel) ? d.personnel : []).filter(r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== ''));
-            
-            const matchedPersonnel = hrDataRaw.personnel.find(p => {
-                const memo = String(p['備註'] || '').toLowerCase();
-                const email = currentUserEmail.toLowerCase();
-                return memo.includes(email) && email !== '';
-            });
-            
-            if (matchedPersonnel && matchedPersonnel['姓名']) {
-                currentUserDisplayName = matchedPersonnel['姓名'];
-            } else {
-                const matchedUser = allUsersList.find(u => u.email.toLowerCase() === currentUserEmail.toLowerCase());
-                if(matchedUser && matchedUser.name) currentUserDisplayName = matchedUser.name;
-            }
-
-            document.getElementById('dashboard-view').classList.remove('hidden-section');
-            document.getElementById('user-name').innerText = currentUserDisplayName;
-            const lb = document.getElementById('user-role-label');
-            lb.innerText = currentRole === 'admin' ? '管理員' : (currentRole === 'shareholder' ? '股東' : '居服員');
-            lb.className = `text-[10px] font-black text-white px-3 py-1 rounded-full mt-1 inline-block ${currentRole==='admin'?'bg-red-500':'bg-orange-500'}`;
-
-            if (currentRole === 'admin') {
-                document.querySelectorAll('.admin-edit-btn').forEach(b => b.classList.remove('hidden'));
-                document.getElementById('menu-superadmin').classList.remove('hidden-section');
-                document.getElementById('menu-shareholder').classList.remove('hidden-section');
-                document.getElementById('menu-staff').classList.remove('hidden-section');
-                document.getElementById('menu-care').classList.remove('hidden-section'); 
-            } else if (currentRole === 'shareholder') {
-                document.getElementById('menu-shareholder').classList.remove('hidden-section');
-            } else {
-                document.getElementById('menu-staff').classList.remove('hidden-section');
-                document.getElementById('menu-care').classList.add('hidden-section');
-            }
-
-            if (isFirstLogin) {
-                switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement'));
-                isFirstLogin = false;
-            }
-
-            try {
-                ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
-                    const el = document.getElementById('text-' + id);
-                    if (el && !el.isContentEditable) {
-                        let backendText = (d.contents && d.contents[id]) ? String(d.contents[id]).trim() : '';
-                        const newContent = backendText ? backendText : (defaultTexts[id] || '無內容');
-                        el.innerHTML = newContent; 
-                        localStorage.setItem('content_' + id, newContent);
-                    }
-                });
-            } catch(e) { console.error("Text Load Error", e); }
-
-            try {
-                let publishedStr = (d.contents && d.contents['payslip_published_months']) ? String(d.contents['payslip_published_months']) : '';
-                publishedPayslipMonths = publishedStr.split(',').filter(m => m);
-            } catch(e) { console.error("Payslip Config Load Error", e); }
-            
-            const isValidRow = r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '');
-            
-            financeDataRaw.income = (Array.isArray(d.income) ? d.income : []).filter(isValidRow);
-            financeDataRaw.expense = (Array.isArray(d.expense) ? d.expense : []).filter(isValidRow);
-            financeDataRaw.petty = (Array.isArray(d.petty) ? d.petty : []).filter(isValidRow);
-
-            hrDataRaw.payroll = (Array.isArray(d.payroll) ? d.payroll : []).filter(isValidRow);
-            hrDataRaw.aabonus = (Array.isArray(d.aaBonus) ? d.aaBonus : []).filter(isValidRow);
-            
-            visitDataRaw = (Array.isArray(d.visit) ? d.visit : []).filter(isValidRow); 
-            caseListRaw = Array.isArray(d.caseList) ? d.caseList : []; 
-            if (Array.isArray(d.applyList) && d.applyList.length > 0) applyListRaw = d.applyList; 
-            
-            allDriveFiles = d.driveFiles || {};
-            signedFilesList = Array.isArray(d.signedFiles) ? d.signedFiles : [];
-
-            try { rebuildMonthFilter(); } catch(e) { console.error("Filter 1 Error", e); }
-            try { applyFinanceFilter(); } catch(e) { console.error("Apply Finance Error", e); }
-            try { rebuildHRMonthFilter(); } catch(e) { console.error("Filter 2 Error", e); }
-            try { applyHRFilter(); } catch(e) { console.error("Apply HR Error", e); }
-            
-            try { renderCaseListTable(); } catch(e) { console.error("CaseList Table Error", e); }
-            try { renderVisitTable(); } catch(e) { console.error("Visit Table Error", e); } 
-            try { updateCaseDropdown(); } catch(e) { console.error("Case Dropdown Error", e); }
-            try { renderApplyListTable(); } catch(e) { console.error("Apply List Table Error", e); }
-            
-            try { renderManageTable(); } catch(e) { console.error("Manage Table Error", e); }
-            try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
-            try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
-            
-            try {
-                if (currentRole === 'admin') {
-                    document.getElementById('admin-preview-container').classList.remove('hidden');
-                    document.getElementById('admin-preview-container').classList.add('flex');
-                    
-                    let empSelect = document.getElementById('admin-preview-emp');
-                    let empOptions = `<option value="${currentUserDisplayName}">我自己 (${currentUserDisplayName})</option>`;
-                    
-                    let uniqueNames = [];
-                    if (Array.isArray(hrDataRaw.payroll)) {
-                        uniqueNames = [...new Set(hrDataRaw.payroll.map(r => String(r['姓名'] || '').trim()).filter(n => n && n !== currentUserDisplayName))];
-                    }
-                    
-                    uniqueNames.forEach(name => {
-                        empOptions += `<option value="${name}">${name}</option>`;
-                    });
-                    empSelect.innerHTML = empOptions;
-                }
-            } catch(e) { console.error("Admin Preview Setup Error", e); }
-
-            try { updateNameDropdowns(); } catch(e) { console.error("Dropdown Update Error", e); }
-            try { initMyPayslip(); } catch(e) { console.error("My Payslip Error", e); }
-
-            if(!silent) showToast("✅ 同步成功！畫面已更新", "success");
-        }
-
-
-        // ==================== 表格渲染與處理邏輯 ====================
 
         function renderApplyListTable() {
             let filterValue = document.getElementById('apply-list-search-filter').value.toLowerCase().trim();
@@ -2788,6 +2552,21 @@
                 let services = r['服務項目'] || '-';
                 if(services.length > 20) services = services.substring(0, 20) + '...';
 
+                // 根據權限決定是否顯示刪除按鈕
+                let actionBtns = `
+                    <button onclick='openApplyPreviewModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="px-4 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm flex items-center gap-1">
+                        <i class="ph-bold ph-printer"></i> 預覽與列印
+                    </button>
+                `;
+
+                if (currentRole === 'admin') {
+                    actionBtns += `
+                    <button onclick='deleteRecordAPI("apply", ${r._rowIndex})' class="px-4 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors shadow-sm flex items-center gap-1">
+                        <i class="ph-bold ph-trash"></i> 刪除
+                    </button>
+                    `;
+                }
+
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="text-stone-500">${dateStr}</td>
@@ -2796,9 +2575,9 @@
                     <td title="${r['服務項目'] || ''}">${services}</td>
                     <td><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-[10px] font-black">${r['申請人'] || r['申請帳號'] || '-'}</span></td>
                     <td>
-                        <button onclick='openApplyPreviewModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="px-4 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm flex items-center gap-1">
-                            <i class="ph-bold ph-printer"></i> 預覽與列印
-                        </button>
+                        <div class="flex gap-2">
+                            ${actionBtns}
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2843,7 +2622,7 @@
             let disability = record['身障手冊'] || '否';
             let disLevel = disability.replace('是(', '').replace(')', '');
 
-            // --- 完美復刻 PDF 的 HTML 佈局 ---
+            // --- 完美復刻 PDF 的 HTML 佈局 (移除了底線 span) ---
             let html = `
                 <div class="header-note">
                     <div>修訂日期:112.02.01<br>修訂日期:115.03.30</div>
@@ -2857,10 +2636,10 @@
                         <span class="check-box">☐</span> 電洽 1966 &nbsp;&nbsp;
                         <span class="check-box">☐</span> 親洽 &nbsp;&nbsp;
                         <span class="check-box">☐</span> 傳真 &nbsp;&nbsp;
-                        受理人：<span class="underline">　　　　</span>
+                        受理人：　　　　
                     </div>
                     <div>
-                        申請日期：<span class="underline">&nbsp;${applyYear}&nbsp;</span> 年 <span class="underline">&nbsp;${applyMonth}&nbsp;</span> 月 <span class="underline">&nbsp;${applyDay}&nbsp;</span> 日
+                        申請日期： ${applyYear} 年 ${applyMonth} 月 ${applyDay} 日
                     </div>
                 </div>
 
@@ -2868,7 +2647,7 @@
                 <table>
                     <tr>
                         <td width="33%">1. 姓名：${record['姓名'] || ''}</td>
-                        <td width="33%">2. 出生日期：民國<span class="underline">${dobParts[0]}</span>年<span class="underline">${dobParts[1]}</span>月<span class="underline">${dobParts[2]}</span>日</td>
+                        <td width="33%">2. 出生日期：民國 ${dobParts[0]} 年 ${dobParts[1]} 月 ${dobParts[2]} 日</td>
                         <td width="34%">3. 身分證統一編號：${record['身分證'] || ''}</td>
                     </tr>
                     <tr>
@@ -2880,10 +2659,10 @@
                         <td colspan="3">7. 現居地址：${record['現居地址'] || ''}</td>
                     </tr>
                     <tr>
-                        <td colspan="3">8. 戶籍地址：<span class="check-box">${record['戶籍地址'] === record['現居地址'] ? '☑' : '☐'}</span>同上 &nbsp; <span class="check-box">${record['戶籍地址'] !== record['現居地址'] && record['戶籍地址'] ? '☑' : '☐'}</span>其他 <span class="underline">${record['戶籍地址'] !== record['現居地址'] ? (record['戶籍地址'] || '　　　　　　') : '　　　　　　'}</span></td>
+                        <td colspan="3">8. 戶籍地址：<span class="check-box">${record['戶籍地址'] === record['現居地址'] ? '☑' : '☐'}</span>同上 &nbsp; <span class="check-box">${record['戶籍地址'] !== record['現居地址'] && record['戶籍地址'] ? '☑' : '☐'}</span>其他 ${record['戶籍地址'] !== record['現居地址'] ? (record['戶籍地址'] || '　　　　　　') : '　　　　　　'}</td>
                     </tr>
                     <tr>
-                        <td colspan="3">9. 目前是否領有身心障礙手冊：<span class="check-box">${disability === '否' ? '☑' : '☐'}</span>否 &nbsp; <span class="check-box">${disability !== '否' ? '☑' : '☐'}</span>是(障別：第<span class="underline">　</span>類 / 程度：<span class="check-box">${checkMark(disLevel, '輕度')}</span>輕度 <span class="check-box">${checkMark(disLevel, '中度')}</span>中度 <span class="check-box">${checkMark(disLevel, '重度')}</span>重度 <span class="check-box">${checkMark(disLevel, '極重度')}</span>極重度)</td>
+                        <td colspan="3">9. 目前是否領有身心障礙手冊：<span class="check-box">${disability === '否' ? '☑' : '☐'}</span>否 &nbsp; <span class="check-box">${disability !== '否' ? '☑' : '☐'}</span>是(障別：第 　 類 / 程度：<span class="check-box">${checkMark(disLevel, '輕度')}</span>輕度 <span class="check-box">${checkMark(disLevel, '中度')}</span>中度 <span class="check-box">${checkMark(disLevel, '重度')}</span>重度 <span class="check-box">${checkMark(disLevel, '極重度')}</span>極重度)</td>
                     </tr>
                     <tr>
                         <td colspan="3">10. 社會福利身分別：<span class="check-box">${checkMark(record['福利身分'], '一般戶')}</span>一般戶 &nbsp; <span class="check-box">${checkMark(record['福利身分'], '中低收入戶')}</span>中低收入戶 &nbsp; <span class="check-box">${checkMark(record['福利身分'], '低收入戶')}</span>低收入戶</td>
@@ -2892,11 +2671,11 @@
                         <td colspan="3">11. 目前是否住在機構：<span class="check-box">${checkMark(record['住機構'], '否')}</span>否 &nbsp; <span class="check-box">${checkMark(record['住機構'], '是')}</span>是</td>
                     </tr>
                     <tr>
-                        <td colspan="3">12. 目前是否住院：<span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☑' : '☐'}</span>是，醫院名稱：<span class="underline">${record['住院'] && record['住院'] !== '否' ? record['住院'] : '　　　　　　'}</span></td>
+                        <td colspan="3">12. 目前是否住院：<span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☑' : '☐'}</span>是，醫院名稱：${record['住院'] && record['住院'] !== '否' ? record['住院'] : '　　　　　　'}</td>
                     </tr>
                     <tr>
                         <td colspan="3" style="line-height: 1.8;">
-                            13. 主要就診醫療院所：<span class="check-box">${checkMark(mainHosp, '部彰')}</span>部彰 <span class="check-box">${checkMark(mainHosp, '彰基')}</span>彰基 <span class="check-box">${checkMark(mainHosp, '員基')}</span>員基 <span class="check-box">${checkMark(mainHosp, '鹿基')}</span>鹿基 <span class="check-box">${checkMark(mainHosp, '二基')}</span>二基 <span class="check-box">${checkMark(mainHosp, '秀傳')}</span>秀傳 <span class="check-box">${checkMark(mainHosp, '濱秀')}</span>濱秀 <span class="check-box">${checkMark(mainHosp, '漢銘')}</span>漢銘 <span class="check-box">${isOtherHosp ? '☑' : '☐'}</span>其他<span class="underline">${isOtherHosp ? mainHosp : '　　　'}</span>
+                            13. 主要就診醫療院所：<span class="check-box">${checkMark(mainHosp, '部彰')}</span>部彰 <span class="check-box">${checkMark(mainHosp, '彰基')}</span>彰基 <span class="check-box">${checkMark(mainHosp, '員基')}</span>員基 <span class="check-box">${checkMark(mainHosp, '鹿基')}</span>鹿基 <span class="check-box">${checkMark(mainHosp, '二基')}</span>二基 <span class="check-box">${checkMark(mainHosp, '秀傳')}</span>秀傳 <span class="check-box">${checkMark(mainHosp, '濱秀')}</span>濱秀 <span class="check-box">${checkMark(mainHosp, '漢銘')}</span>漢銘 <span class="check-box">${isOtherHosp ? '☑' : '☐'}</span>其他 ${isOtherHosp ? mainHosp : '　　　'}
                         </td>
                     </tr>
                     <tr>
@@ -2904,7 +2683,7 @@
                     </tr>
                     <tr>
                         <td colspan="3">
-                            15. 是否罹患疾病：<span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☑' : '☐'}</span>是，疾病名稱：<span class="underline">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? record['罹患疾病'] : '　　　　　　'}</span><br>
+                            15. 是否罹患疾病：<span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☑' : '☐'}</span>是，疾病名稱：${record['罹患疾病'] && record['罹患疾病'] !== '否' ? record['罹患疾病'] : '　　　　　　'}<br>
                             <div class="note-text" style="margin-top:4px;">備註:未領有身心障礙證明之失智症(請檢附「1年內」開立之失智症診斷證明書，並載明或檢附CDR 1分以上之檢查報告)</div>
                         </td>
                     </tr>
@@ -2940,7 +2719,7 @@
                 <table>
                     <tr>
                         <td width="50%">申請單位/聯絡人：暖暖居家長照機構 / ${record['申請人'] || currentUserDisplayName}</td>
-                        <td width="50%">電話：(04) 751-0321</td>
+                        <td width="50%">電話：0901-071711</td>
                     </tr>
                     <tr>
                         <td colspan="2" style="padding: 10px;">
@@ -2995,9 +2774,10 @@
             const selectedServices = [];
             document.querySelectorAll('.apply-services:checked').forEach(cb => selectedServices.push(cb.value));
 
-            // 組合完整資料
+            // 組合完整資料 (並自動將登入的 Email 一起打包送出)
             const applyData = {
                 '申請人': currentUserDisplayName,
+                'email': currentUserEmail,
                 '申請日期': new Date().toISOString(),
                 '姓名': document.getElementById('apply-name').value,
                 '出生日期': document.getElementById('apply-dob').value,
@@ -3053,314 +2833,6 @@
                 if(currentRole === 'admin') {
                     switchTab('apply-list');
                 }
-            });
-        }
-
-        function copyAddress(checkbox) {
-            if (checkbox.checked) {
-                document.getElementById('apply-reg-address').value = document.getElementById('apply-curr-address').value;
-            } else {
-                document.getElementById('apply-reg-address').value = '';
-            }
-        }
-
-        function updateCaseDropdown() {
-            const dataList = document.getElementById('case-name-list');
-            if(!dataList) return;
-            let options = '';
-            let uniqueCases = [...new Set(caseListRaw.map(r => r['個案姓名']).filter(n => n))];
-            uniqueCases.forEach(name => { options += `<option value="${name}"></option>`; });
-            dataList.innerHTML = options;
-        }
-
-        function renderCaseListTable() {
-            let filterValue = document.getElementById('caselist-search-filter').value.toLowerCase().trim();
-            let filteredData = caseListRaw;
-            if (filterValue) {
-                filteredData = caseListRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
-            }
-
-            const tbody = document.getElementById('caselist-tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-stone-300 font-bold">目前無個案資料</td></tr>';
-                return;
-            }
-
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
-
-            filteredData.forEach(r => {
-                const caseName = r['個案姓名'] || '-';
-                const validVisits = visitDataRaw.filter(v => v['個案姓名'] === caseName && !(v['狀態'] || '').includes('取消'));
-                validVisits.sort((a, b) => {
-                    let dA = new Date(a['訪視\n日期'] || a['訪視日期'] || 0);
-                    let dB = new Date(b['訪視\n日期'] || b['訪視日期'] || 0);
-                    return dB - dA;
-                });
-
-                let needsHomeVisit = true;
-                let needsMonthVisit = true;
-                let lastAnyVisitDate = null;
-
-                if (validVisits.length > 0) {
-                    lastAnyVisitDate = new Date(validVisits[0]['訪視\n日期'] || validVisits[0]['訪視日期']);
-                    if (lastAnyVisitDate.getFullYear() === currentYear && lastAnyVisitDate.getMonth() === currentMonth) {
-                        needsMonthVisit = false;
-                    }
-                    const lastHomeVisit = validVisits.find(v => (v['訪視方式'] || '').includes('家訪'));
-                    if (lastHomeVisit) {
-                        let hDate = new Date(lastHomeVisit['訪視\n日期'] || lastHomeVisit['訪視日期']);
-                        let monthDiff = (currentYear - hDate.getFullYear()) * 12 + (currentMonth - hDate.getMonth());
-                        if (monthDiff <= 2) { 
-                            needsHomeVisit = false;
-                        }
-                    }
-                }
-
-                let alertHtml = '';
-                if (needsHomeVisit) alertHtml = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-md text-[10px] font-black">🚨 需安排家訪</span>`;
-                else if (needsMonthVisit) alertHtml = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-md text-[10px] font-black">⚠️ 需本月電訪</span>`;
-                else alertHtml = `<span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-[10px] font-black">✅ 訪視達標</span>`;
-
-                let lastDateStr = '<span class="text-stone-400 text-[10px] ml-2">無紀錄</span>';
-                if (lastAnyVisitDate) {
-                    let m = (lastAnyVisitDate.getMonth() + 1).toString().padStart(2, '0');
-                    let d = lastAnyVisitDate.getDate().toString().padStart(2, '0');
-                    lastDateStr = `<span class="text-stone-500 text-[10px] font-bold ml-2">上次: ${lastAnyVisitDate.getFullYear()}/${m}/${d}</span>`;
-                }
-
-                let latestVisitInfo = `<div class="flex items-center">${alertHtml}${lastDateStr}</div>`;
-                let statusBadge = r['個案狀態'] || '-';
-                if(statusBadge === '收案') statusBadge = `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
-                else if(statusBadge === '結案') statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
-                else statusBadge = `<span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
-
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${statusBadge}</td>
-                    <td class="font-bold text-stone-500">${r['自訂案號'] || '-'}</td>
-                    <td class="font-black text-gray-800 text-base">${caseName}</td>
-                    <td><span class="bg-stone-800 text-white px-2 py-1 rounded-md text-[10px] font-black">CMS ${r['CMS等級'] || '-'}</span></td>
-                    <td class="font-bold text-stone-600">${r['主責居服'] || '-'}</td>
-                    <td>${latestVisitInfo}</td>
-                    <td>
-                        <button onclick="openAddVisitModal('${caseName}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-plus"></i> 寫紀錄</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function applyCaseListFilter() { renderCaseListTable(); }
-
-        function renderVisitTable() {
-            let filterValue = document.getElementById('visit-search-filter').value.toLowerCase().trim();
-            let filteredData = visitDataRaw;
-            if (filterValue) {
-                filteredData = visitDataRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
-            }
-
-            const tbody = document.getElementById('visit-tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-stone-300 font-bold">目前無訪視紀錄</td></tr>';
-                return;
-            }
-
-            [...filteredData].reverse().forEach(r => {
-                let statusBadge = r['狀態'] || '';
-                
-                if(statusBadge.includes('完成') || statusBadge.includes('輸出')) statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
-                else if(statusBadge.includes('未輸出') || statusBadge.includes('安排中')) statusBadge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
-                else if(statusBadge.includes('取消')) statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
-                else statusBadge = `<span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
-
-                let summaryPreview = String(r['訪視概況'] || '');
-                if(summaryPreview.length > 25) summaryPreview = summaryPreview.substring(0, 25) + '...';
-
-                let dateStr = r['訪視\n日期'] || r['訪視日期'] || '';
-                if(dateStr.includes('T')) dateStr = dateStr.split('T')[0];
-
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${statusBadge}</td>
-                    <td class="font-black text-gray-800">${r['個案姓名'] || '-'}</td>
-                    <td>${dateStr || '-'}</td>
-                    <td>${r['訪視\n時間'] || r['訪視時間'] || '-'}</td>
-                    <td>${r['訪視目的'] || '-'}</td>
-                    <td>${r['訪視方式'] || '-'}</td>
-                    <td class="text-stone-500 whitespace-normal text-xs" style="max-width: 250px;" title="${String(r['訪視概況'] || '').replace(/"/g, '&quot;')}">${summaryPreview}</td>
-                    <td>
-                        <div class="flex gap-2">
-                            <button onclick='openViewVisitModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors" title="檢視詳細內容"><i class="ph-bold ph-eye"></i></button>
-                            <button onclick='openEditVisitModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick='deleteRecordAPI("visit", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function applyVisitFilter() { renderVisitTable(); }
-
-        function openViewVisitModal(record) {
-            document.getElementById('view-name').innerText = record['個案姓名'] || '-';
-            document.getElementById('view-status').innerText = record['狀態'] || '-';
-            
-            let dStr = record['訪視\n日期'] || record['訪視日期'] || '-';
-            if(dStr && dStr.includes('T')) dStr = dStr.split('T')[0];
-            document.getElementById('view-date').innerText = dStr;
-            
-            document.getElementById('view-time').innerText = record['訪視\n時間'] || record['訪視時間'] || '-';
-            document.getElementById('view-purpose').innerText = record['訪視目的'] || '-';
-            document.getElementById('view-method').innerText = record['訪視方式'] || '-';
-            document.getElementById('view-freq').innerText = record['服務頻率與時段'] || '-';
-            
-            document.getElementById('view-notes').innerText = record['訪視概況'] || '無內容';
-            document.getElementById('view-output').innerText = record['訪視紀錄產出'] || '尚未產出正式紀錄';
-
-            const modal = document.getElementById('view-visit-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('view-visit-modal-box').classList.remove('scale-95'); 
-            });
-        }
-
-        function closeViewVisitModal() {
-            const modal = document.getElementById('view-visit-modal'); 
-            document.getElementById('view-visit-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        function openAddVisitModal(prefillName = '') {
-            document.getElementById('visit-add-form').reset();
-            document.getElementById('vi-row-index').value = '';
-            document.getElementById('btn-submit-visit').innerText = '確認新增紀錄';
-            
-            if (prefillName) {
-                document.getElementById('vi-name').value = prefillName;
-            }
-
-            const modal = document.getElementById('add-visit-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
-        }
-
-        function openEditVisitModal(rowIndex, record) {
-            document.getElementById('visit-add-form').reset();
-            document.getElementById('vi-row-index').value = rowIndex;
-            
-            document.getElementById('vi-status').value = record['狀態'] || '✅ 已完成';
-            document.getElementById('vi-name').value = record['個案姓名'] || '';
-            
-            let dStr = record['訪視\n日期'] || record['訪視日期'] || '';
-            if(dStr) {
-                let parts = String(dStr).split(/[-/]/);
-                if (parts.length >= 3) document.getElementById('vi-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].substring(0,2).padStart(2, '0')}`;
-            }
-            
-            document.getElementById('vi-time').value = record['訪視\n時間'] || record['訪視時間'] || '';
-            document.getElementById('vi-purpose').value = record['訪視目的'] || '';
-            document.getElementById('vi-method').value = record['訪視方式'] || '';
-            document.getElementById('vi-freq').value = record['服務頻率與時段'] || '';
-            document.getElementById('vi-notes').value = record['訪視概況'] || '';
-            document.getElementById('vi-output').value = record['訪視紀錄產出'] || '';
-
-            document.getElementById('btn-submit-visit').innerText = '儲存修改';
-            const modal = document.getElementById('add-visit-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
-        }
-
-        function closeAddVisitModal() {
-            const modal = document.getElementById('add-visit-modal'); 
-            document.getElementById('add-visit-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); document.getElementById('visit-add-form').reset(); }, 300);
-        }
-
-        function saveVisitRecord() {
-            const rowIndex = document.getElementById('vi-row-index').value;
-            const name = document.getElementById('vi-name').value;
-            if(!name) return showToast("請選擇個案姓名", "error");
-
-            let dateVal = document.getElementById('vi-date').value;
-            if(dateVal) dateVal = dateVal.replace(/-/g, '/'); 
-
-            const newRecord = {
-                '狀態': document.getElementById('vi-status').value,
-                '個案姓名': name,
-                '訪視日期': dateVal,
-                '訪視時間': document.getElementById('vi-time').value,
-                '訪視目的': document.getElementById('vi-purpose').value,
-                '訪視方式': document.getElementById('vi-method').value,
-                '服務頻率與時段': document.getElementById('vi-freq').value,
-                '訪視概況': document.getElementById('vi-notes').value,
-                '訪視紀錄產出': document.getElementById('vi-output').value
-            };
-
-            closeAddVisitModal();
-            showToast("正在同步訪視紀錄至雲端...", "info");
-
-            const actionName = rowIndex ? 'editVisitRecord' : 'addVisitRecord';
-            const payload = { action: actionName, type: 'visit', record: newRecord };
-            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 儲存成功", "success");
-                    triggerSync(true); 
-                } else showToast("後端儲存異常", "error");
-            }).catch(err => {
-                showToast("無法連線雲端", "error");
-            });
-        }
-
-        function generateVisitRecordAI() {
-            const name = document.getElementById('vi-name').value;
-            const purpose = document.getElementById('vi-purpose').value;
-            const freq = document.getElementById('vi-freq').value;
-            const notes = document.getElementById('vi-notes').value;
-
-            if(!name || !notes) return showToast("請先選擇個案並填寫訪視概況", "error");
-
-            showToast("✨ AI 正在努力撰寫中，請稍候...", "info");
-            const btn = document.getElementById('btn-ai-gen');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 產出中...`;
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    action: 'generateVisitRecordAI', 
-                    name: name, 
-                    purpose: purpose, 
-                    freq: freq, 
-                    notes: notes 
-                })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    document.getElementById('vi-output').value = res.text;
-                    showToast("✅ AI 撰寫完成！您可以編修後點擊儲存。", "success");
-                } else {
-                    showToast("產生失敗：" + (res.message || "未知錯誤"), "error");
-                }
-            }).catch(() => showToast("連線異常", "error"))
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="ph-bold ph-magic-wand"></i> ✨ 一鍵智能產出`;
             });
         }
     </script>

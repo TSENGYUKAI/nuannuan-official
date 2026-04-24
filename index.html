@@ -2786,7 +2786,7 @@
             const applyData = {
                 '申請人': currentUserDisplayName,
                 'email': currentUserEmail,
-                '申請日期': new Date().toISOString(),
+                '申請日期': new Date().toISOString(), // 預設先用本地時間，稍後會被後端的 timestamp 覆蓋
                 '姓名': document.getElementById('apply-name').value,
                 '出生日期': document.getElementById('apply-dob').value,
                 '身分證': document.getElementById('apply-sid').value,
@@ -2818,13 +2818,22 @@
                 method: 'POST',
                 body: JSON.stringify({ action: 'submitCaseApplication', record: applyData })
             }).then(r => r.json()).then(res => {
-                showToast("✅ 申請書已成功送出！", "success");
-                
-                // 2. 本地端立即更新 applyListRaw，讓列表出現資料
-                applyListRaw.push(applyData);
-                renderApplyListTable();
-                
-                document.getElementById('case-apply-form').reset();
+                if(res.status === 'success') {
+                    showToast("✅ 申請書已成功送出！", "success");
+                    
+                    // 🔥 重點修正：接收後端的標準台灣時間，並覆寫到畫面上
+                    if (res.timestamp) {
+                        applyData['申請日期'] = res.timestamp;
+                    }
+                    
+                    // 2. 本地端立即更新 applyListRaw，讓列表出現資料
+                    applyListRaw.push(applyData);
+                    renderApplyListTable();
+                    
+                    document.getElementById('case-apply-form').reset();
+                } else {
+                    showToast("送出失敗：" + res.message, "error");
+                }
             }).catch(err => {
                 showToast("✅ 申請書已暫存送出！(請通知行政端確認)", "success");
                 
@@ -2845,4 +2854,5 @@
         }
     </script>
 </body>
+</html>
 </html>

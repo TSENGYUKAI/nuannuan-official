@@ -1026,7 +1026,6 @@
 
             <div id="apply-print-container" class="apply-form-print bg-white mx-auto w-full max-w-[800px] p-4 text-black">
                 </div>
-
         </div>
     </div>
 
@@ -1300,21 +1299,22 @@
             <p class="text-xs text-red-500 font-bold mb-8">此操作將會把資料刪除，刪除後將無法從系統恢復。</p>
             <div class="flex gap-4">
                 <button onclick="closeDeleteModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
-                <button onclick="confirmDeleteFile()" class="flex-1 py-3 rounded-xl font-black text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all">確認刪除</button>
+                <button onclick="confirmDeleteAction()" class="flex-1 py-3 rounded-xl font-black text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all">確認刪除</button>
             </div>
         </div>
     </div>
 
     <script>
+        // 🚨 這裡務必填入您最新部署的 Google Apps Script 網址
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzKRNsT2G936jTUg0pmaqll1Wa8ggPNW3p4zxdpqhnPlWXg4qEaITD4BouTiucr872bA/exec";
         
         var allDriveFiles = {}, currentRole = 'unauthorized', currentUserName = '', currentUserEmail = '', currentUserDisplayName = '', isFirstLogin = false;
-        var currentPublishFileId = null, currentDeleteFileId = null, currentDeleteFunction = null;
+        var currentPublishFileId = null, currentDeleteFileId = null, currentDeleteFunction = null, currentDeleteType = '', currentDeleteIndex = null;
         var financeDataRaw = { income: [], expense: [], petty: [] };
         var hrDataRaw = { personnel: [], payroll: [], aabonus: [] }; 
         var visitDataRaw = []; 
         var caseListRaw = [];
-        var applyListRaw = []; // 開發個案清冊資料
+        var applyListRaw = []; 
         var allUsersList = [], signedFilesList = [], publishedPayslipMonths = [];
         
         let examChartInitialized = false;
@@ -1343,22 +1343,18 @@
             { name: "彰化市/和美衛生所", type: "public", cost: "850", time: "14 天", tag: "需先電話預約", link: "#" }
         ];
 
+        // ====== 輔助功能區 ======
+        function escapeHtml(obj) { return JSON.stringify(obj).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+        const checkMark = (val, target) => String(val).includes(target) ? '☑' : '☐';
+
         function showExamStep(num) {
             const contentBox = document.getElementById('step-content');
             if(!contentBox) return;
-
             const data = examStepsData[num];
-            contentBox.innerHTML = `
-                <h5 class="font-bold text-orange-900 text-lg mb-2">${data.title}</h5>
-                <p class="text-sm leading-relaxed">${data.content}</p>
-            `;
-
+            contentBox.innerHTML = `<h5 class="font-bold text-orange-900 text-lg mb-2">${data.title}</h5><p class="text-sm leading-relaxed">${data.content}</p>`;
             [1, 2, 3].forEach(n => {
                 const btn = document.getElementById(`step-btn-${n}`);
-                if(btn) {
-                    if (n === num) btn.classList.add('step-active');
-                    else btn.classList.remove('step-active');
-                }
+                if(btn) { if (n === num) btn.classList.add('step-active'); else btn.classList.remove('step-active'); }
             });
         }
 
@@ -1377,19 +1373,14 @@
             }
 
             const filteredData = filter === 'all' ? examHospitals : examHospitals.filter(h => h.type === 'public');
-
             list.innerHTML = filteredData.map(h => `
                 <div class="bg-white p-5 rounded-2xl border border-stone-100 flex justify-between items-center group hover:border-orange-300 transition">
                     <div class="space-y-1">
                         <span class="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold uppercase">${h.tag}</span>
                         <h5 class="font-bold text-stone-800">${h.name}</h5>
-                        <div class="text-xs text-stone-400">
-                            預估：NT$ ${h.cost} ｜ 約 ${h.time}
-                        </div>
+                        <div class="text-xs text-stone-400">預估：NT$ ${h.cost} ｜ 約 ${h.time}</div>
                     </div>
-                    <button onclick="window.open('${h.link}', '_blank')" class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-orange-500 group-hover:text-white transition shadow-sm">
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </button>
+                    <button onclick="window.open('${h.link}', '_blank')" class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-orange-500 group-hover:text-white transition shadow-sm"><i class="ph-bold ph-arrow-right"></i></button>
                 </div>
             `).join('');
         }
@@ -1398,22 +1389,15 @@
             if (examChartInitialized) return;
             const canvas = document.getElementById('weightChart');
             if(!canvas) return;
-            
             const ctx = canvas.getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['傳染病 (TB/疥瘡/糞便)', '肝炎指標', '基礎代謝', '肝腎功能'],
-                    datasets: [{
-                        data: [45, 20, 20, 15],
-                        backgroundColor: ['#f97316', '#fb923c', '#fdba74', '#ffedd5'],
-                        hoverOffset: 10,
-                        borderWidth: 0
-                    }]
+                    datasets: [{ data: [45, 20, 20, 15], backgroundColor: ['#f97316', '#fb923c', '#fdba74', '#ffedd5'], hoverOffset: 10, borderWidth: 0 }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: {
                         legend: { position: 'bottom', labels: { padding: 20, font: { family: 'Noto Sans TC', size: 11 }, boxWidth: 10 } },
                         tooltip: { callbacks: { label: function(context) { return ` 重要程度: ${context.raw}%`; } } }
@@ -1434,6 +1418,7 @@
             setTimeout(() => { t.classList.add('toast-exit'); if(c.contains(t)) c.removeChild(t); }, 3000);
         }
 
+        // ====== 登入與同步邏輯 ======
         async function handleGoogleLogin(res) {
             try {
                 const base64Url = res.credential.split('.')[1];
@@ -1442,13 +1427,11 @@
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 }).join(''));
                 const payload = JSON.parse(jsonPayload);
-                
                 let displayName = payload.name;
                 const matchedUser = allUsersList.find(u => u.email.toLowerCase() === payload.email.toLowerCase());
                 if(matchedUser && matchedUser.name) displayName = matchedUser.name;
-
                 executeLogin(payload.email, displayName);
-            } catch (e) { showToast("授權失敗", "error"); console.error(e); }
+            } catch (e) { showToast("授權失敗", "error"); }
         }
 
         function handleManualLogin() {
@@ -1471,137 +1454,29 @@
             triggerSync(false);
         }
         
-        function handleLogout() {
-            location.reload();
-        }
-
-        function switchTab(id) {
-            if (currentRole === 'unauthorized') return;
-            
-            const adminOnlyTabs = ['manage', 'hr', 'caselist', 'visit', 'apply-list'];
-            const shareholderOnlyTabs = ['finance'];
-            
-            if (currentRole === 'staff') {
-                if (adminOnlyTabs.includes(id) || shareholderOnlyTabs.includes(id)) {
-                    showToast('權限不足，僅限管理員存取', 'error'); return;
-                }
-            }
-            if (currentRole === 'shareholder') {
-                if (adminOnlyTabs.includes(id) || ['contract', 'salary', 'apply'].includes(id)) {
-                    showToast('權限不足，僅限管理員存取', 'error'); return;
-                }
-            }
-            
-            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            const target = document.getElementById('content-' + id);
-            if(target) target.classList.remove('hidden-section');
-            const a = document.getElementById('tab-' + id);
-            if(a) a.classList.add('active');
-
-            if (id === 'health-exam') {
-                setTimeout(initExamChart, 100);
-                showExamStep(1);
-                filterExamHospitals('all');
-            }
-        }
-
-        function switchFinanceTab(id) {
-            document.querySelectorAll('.fin-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.finance-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
-            const target = document.getElementById('fin-' + id); if(target) target.classList.remove('hidden-section');
-            const btn = document.getElementById('tab-fin-' + id); if(btn) { btn.classList.remove('bg-stone-50', 'text-stone-500'); btn.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
-        }
-
-        function switchHRTab(id) {
-            document.querySelectorAll('.hr-section').forEach(e => e.classList.add('hidden-section'));
-            document.querySelectorAll('.hr-tab').forEach(el => { el.classList.remove('bg-orange-500', 'text-white', 'shadow-md'); el.classList.add('bg-stone-50', 'text-stone-500'); });
-            const target = document.getElementById('hr-' + id); if(target) target.classList.remove('hidden-section');
-            const btnActive = document.getElementById('tab-hr-' + id); if(btnActive) { btnActive.classList.remove('bg-stone-50', 'text-stone-500'); btnActive.classList.add('bg-orange-500', 'text-white', 'shadow-md'); }
-            
-            const mFilter = document.getElementById('hr-month-filter-container');
-            if(mFilter) mFilter.style.display = id === 'personnel' ? 'none' : 'flex';
-        }
-
-        const uploader = document.getElementById('fileUploader');
-        if(uploader) {
-            uploader.addEventListener('change', e => {
-                const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
-                r.onload = ev => {
-                    showToast("正在上傳至雲端...", "info");
-                    fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) })
-                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
-                    .catch(() => showToast("上傳連線異常", "error"));
-                }; 
-                r.readAsDataURL(f); e.target.value = '';
-            });
-        }
-
-        function toggleEdit(sectionId) {
-            const contentDiv = document.getElementById('text-' + sectionId);
-            const btn = document.getElementById('btn-edit-' + sectionId);
-            if (contentDiv.isContentEditable) {
-                contentDiv.contentEditable = false; contentDiv.classList.remove('editable-active');
-                btn.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文';
-                const newContent = contentDiv.innerHTML;
-                localStorage.setItem('content_' + sectionId, newContent);
-                showToast('正在同步內文至雲端...', 'info');
-                fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'saveContent', sectionId: sectionId, content: newContent }) })
-                .then(res => res.json()).then(res => { 
-                    if(res.status === 'success') showToast('✅ 內文已儲存', 'success'); 
-                    else showToast('雲端儲存失敗', 'error'); 
-                }).catch(() => showToast("連線異常，已暫存於本機", "error"));
-            } else {
-                contentDiv.contentEditable = true; contentDiv.focus(); contentDiv.classList.add('editable-active');
-                btn.innerHTML = '<i class="ph-bold ph-check text-lg"></i> 完成儲存';
-            }
-        }
-
-        function getMonthStr(row, monthField = '月份歸屬(自動)') {
-            if(!row) return '未知';
-            let monthVal = row[monthField]; 
-            if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
-            let dateStr = row['日期'];
-            if (!dateStr) return '未知';
-            let m = String(dateStr).match(/^(\d{4})[-/年](\d{1,2})/);
-            return m ? `${m[1]}/${m[2].padStart(2, '0')}` : '其他';
-        }
+        function handleLogout() { location.reload(); }
 
         function triggerSync(silent = false) {
             const btn = document.getElementById('btnSyncFiles');
             if(btn) { btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 同步中...`; }
-            
             const fetchUrl = GOOGLE_APPS_SCRIPT_URL + "?email=" + encodeURIComponent(currentUserEmail) + "&t=" + new Date().getTime();
-            
             fetch(fetchUrl).then(async r => {
                 const text = await r.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    throw new Error("後端 API 回傳格式錯誤 (可能未設定「所有人可存取」或網址無效)");
-                }
+                try { return JSON.parse(text); } catch(e) { throw new Error("後端 API 回傳格式錯誤"); }
             }).then(d => {
                 if(d.status === "error") throw new Error(d.message);
                 processSyncData(d, silent);
             }).catch(err => { 
                 console.warn("Sync Error:", err);
                 showToast("無法連線後端：" + err.message + "，已啟用【離線測試模式】", "error");
-                
                 const mockData = {
-                    status: "success",
-                    role: "admin",
+                    status: "success", role: "admin",
                     users: [{email: currentUserEmail, name: currentUserDisplayName || "管理員", role: "admin"}],
                     personnel: [{ "員工編號": "EMP-001", "姓名": currentUserDisplayName || "測試員", "身分證": "A123456789", "職位": "居服員", "狀態": "在職中" }],
-                    payroll: [], aaBonus: [], visit: [],
-                    caseList: [
-                        { "個案姓名": "陳奶奶", "自訂案號": "C-001", "CMS等級": "5", "主責居服": currentUserDisplayName || "測試員", "個案狀態": "收案" },
-                        { "個案姓名": "林爺爺", "自訂案號": "C-002", "CMS等級": "4", "主責居服": currentUserDisplayName || "測試員", "個案狀態": "收案" }
-                    ],
-                    applyList: applyListRaw, 
+                    payroll: [], aaBonus: [], visit: [], caseList: [], applyList: applyListRaw, 
                     income: [], expense: [], petty: [], driveFiles: {}, signedFiles: [], contents: {}
                 };
                 processSyncData(mockData, false);
-                
             }).finally(() => { 
                 if(btn) { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise"></i> 立即同步資料`; } 
             });
@@ -1615,23 +1490,18 @@
             else currentRole = 'staff';
             
             document.getElementById('loading-view').classList.add('hidden-section');
-            
-            if (currentRole === 'unauthorized') {
-                document.getElementById('unauthorized-view').classList.remove('hidden-section'); return;
-            }
+            if (currentRole === 'unauthorized') { document.getElementById('unauthorized-view').classList.remove('hidden-section'); return; }
 
             allUsersList = Array.isArray(d.users) ? d.users : [];
             hrDataRaw.personnel = (Array.isArray(d.personnel) ? d.personnel : []).filter(r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== ''));
             
             const matchedPersonnel = hrDataRaw.personnel.find(p => {
                 const memo = String(p['備註'] || '').toLowerCase();
-                const email = currentUserEmail.toLowerCase();
-                return memo.includes(email) && email !== '';
+                return memo.includes(currentUserEmail.toLowerCase()) && currentUserEmail !== '';
             });
             
-            if (matchedPersonnel && matchedPersonnel['姓名']) {
-                currentUserDisplayName = matchedPersonnel['姓名'];
-            } else {
+            if (matchedPersonnel && matchedPersonnel['姓名']) currentUserDisplayName = matchedPersonnel['姓名'];
+            else {
                 const matchedUser = allUsersList.find(u => u.email.toLowerCase() === currentUserEmail.toLowerCase());
                 if(matchedUser && matchedUser.name) currentUserDisplayName = matchedUser.name;
             }
@@ -1655,10 +1525,7 @@
                 document.getElementById('menu-care').classList.add('hidden-section');
             }
 
-            if (isFirstLogin) {
-                switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement'));
-                isFirstLogin = false;
-            }
+            if (isFirstLogin) { switchTab(currentRole === 'admin' ? 'manage' : (currentRole === 'shareholder' ? 'finance' : 'announcement')); isFirstLogin = false; }
 
             try {
                 ['announcement', 'policies', 'contract', 'salary', 'finance'].forEach(id => {
@@ -1666,75 +1533,68 @@
                     if (el && !el.isContentEditable) {
                         let backendText = (d.contents && d.contents[id]) ? String(d.contents[id]).trim() : '';
                         const newContent = backendText ? backendText : (defaultTexts[id] || '無內容');
-                        el.innerHTML = newContent; 
-                        localStorage.setItem('content_' + id, newContent);
+                        el.innerHTML = newContent; localStorage.setItem('content_' + id, newContent);
                     }
                 });
-            } catch(e) { console.error("Text Load Error", e); }
-
-            try {
                 let publishedStr = (d.contents && d.contents['payslip_published_months']) ? String(d.contents['payslip_published_months']) : '';
                 publishedPayslipMonths = publishedStr.split(',').filter(m => m);
-            } catch(e) { console.error("Payslip Config Load Error", e); }
+            } catch(e) {}
             
             const isValidRow = r => r && Object.keys(r).some(k => k !== '_rowIndex' && r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '');
             
-            financeDataRaw.income = (Array.isArray(d.income) ? d.income : []).filter(isValidRow);
-            financeDataRaw.expense = (Array.isArray(d.expense) ? d.expense : []).filter(isValidRow);
-            financeDataRaw.petty = (Array.isArray(d.petty) ? d.petty : []).filter(isValidRow);
-
-            hrDataRaw.payroll = (Array.isArray(d.payroll) ? d.payroll : []).filter(isValidRow);
-            hrDataRaw.aabonus = (Array.isArray(d.aaBonus) ? d.aaBonus : []).filter(isValidRow);
-            
-            visitDataRaw = (Array.isArray(d.visit) ? d.visit : []).filter(isValidRow); 
+            financeDataRaw.income = Array.isArray(d.income) ? d.income.filter(isValidRow) : [];
+            financeDataRaw.expense = Array.isArray(d.expense) ? d.expense.filter(isValidRow) : [];
+            financeDataRaw.petty = Array.isArray(d.petty) ? d.petty.filter(isValidRow) : [];
+            hrDataRaw.payroll = Array.isArray(d.payroll) ? d.payroll.filter(isValidRow) : [];
+            hrDataRaw.aabonus = Array.isArray(d.aaBonus) ? d.aaBonus.filter(isValidRow) : [];
+            visitDataRaw = Array.isArray(d.visit) ? d.visit.filter(isValidRow) : []; 
             caseListRaw = Array.isArray(d.caseList) ? d.caseList : []; 
-            if (Array.isArray(d.applyList) && d.applyList.length > 0) applyListRaw = d.applyList; 
-            
-            allDriveFiles = d.driveFiles || {};
+            applyListRaw = Array.isArray(d.applyList) ? d.applyList : []; 
             signedFilesList = Array.isArray(d.signedFiles) ? d.signedFiles : [];
-
-            try { rebuildMonthFilter(); } catch(e) { console.error("Filter 1 Error", e); }
-            try { applyFinanceFilter(); } catch(e) { console.error("Apply Finance Error", e); }
-            try { rebuildHRMonthFilter(); } catch(e) { console.error("Filter 2 Error", e); }
-            try { applyHRFilter(); } catch(e) { console.error("Apply HR Error", e); }
+            allDriveFiles = d.driveFiles || {};
             
-            try { renderCaseListTable(); } catch(e) { console.error("CaseList Table Error", e); }
-            try { renderVisitTable(); } catch(e) { console.error("Visit Table Error", e); } 
-            try { updateCaseDropdown(); } catch(e) { console.error("Case Dropdown Error", e); }
-            try { renderApplyListTable(); } catch(e) { console.error("Apply List Table Error", e); }
-            
-            try { renderManageTable(); } catch(e) { console.error("Manage Table Error", e); }
-            try { renderUsersTable(); } catch(e) { console.error("Users Table Error", e); }
-            try { renderPublicFiles(); } catch(e) { console.error("Public Files Error", e); }
+            rebuildMonthFilter(); applyFinanceFilter(); 
+            rebuildHRMonthFilter(); applyHRFilter(); 
+            renderCaseListTable(); renderVisitTable(); updateCaseDropdown(); renderApplyListTable();
+            renderManageTable(); renderUsersTable(); renderPublicFiles(); 
             
             try {
                 if (currentRole === 'admin') {
                     document.getElementById('admin-preview-container').classList.remove('hidden');
                     document.getElementById('admin-preview-container').classList.add('flex');
-                    
                     let empSelect = document.getElementById('admin-preview-emp');
                     let empOptions = `<option value="${currentUserDisplayName}">我自己 (${currentUserDisplayName})</option>`;
-                    
                     let uniqueNames = [];
                     if (Array.isArray(hrDataRaw.payroll)) {
                         uniqueNames = [...new Set(hrDataRaw.payroll.map(r => String(r['姓名'] || '').trim()).filter(n => n && n !== currentUserDisplayName))];
                     }
-                    
-                    uniqueNames.forEach(name => {
-                        empOptions += `<option value="${name}">${name}</option>`;
-                    });
+                    uniqueNames.forEach(name => { empOptions += `<option value="${name}">${name}</option>`; });
                     empSelect.innerHTML = empOptions;
                 }
-            } catch(e) { console.error("Admin Preview Setup Error", e); }
+            } catch(e) {}
 
-            try { updateNameDropdowns(); } catch(e) { console.error("Dropdown Update Error", e); }
-            try { initMyPayslip(); } catch(e) { console.error("My Payslip Error", e); }
-
+            updateNameDropdowns(); initMyPayslip();
             if(!silent) showToast("✅ 同步成功！畫面已更新", "success");
         }
 
+        // ====== 共用基礎與表格渲染函數 ======
+        function switchTab(id) {
+            if (currentRole === 'unauthorized') return;
+            const adminOnlyTabs = ['manage', 'hr', 'caselist', 'visit', 'apply-list'];
+            const shareholderOnlyTabs = ['finance'];
+            
+            if (currentRole === 'staff' && (adminOnlyTabs.includes(id) || shareholderOnlyTabs.includes(id))) { showToast('權限不足，僅限管理員存取', 'error'); return; }
+            if (currentRole === 'shareholder' && (adminOnlyTabs.includes(id) || ['contract', 'salary', 'apply'].includes(id))) { showToast('權限不足，僅限管理員存取', 'error'); return; }
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden-section'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            const target = document.getElementById('content-' + id);
+            if(target) target.classList.remove('hidden-section');
+            const a = document.getElementById('tab-' + id);
+            if(a) a.classList.add('active');
 
-        // ==================== 表格渲染與處理邏輯 ====================
+            if (id === 'health-exam') { setTimeout(initExamChart, 100); showExamStep(1); filterExamHospitals('all'); }
+        }
 
         function formatDisplayName(originalName) {
             let name = originalName; 
@@ -1746,842 +1606,6 @@
                 name = name.replace(new RegExp(prefix, 'gi'), ''); 
             });
             return name.replace(/_+/g, '_').replace(/^_|_+(?=\.)/g, '').replace(/\(\)/g, '');
-        }
-
-        function renderManageTable() {
-            const b = document.getElementById('manage-files-tbody'); if(!b) return; b.innerHTML = '';
-            for(let cat in allDriveFiles) {
-                const subFolderMap = {};
-                (allDriveFiles[cat] || []).forEach(f => {
-                    const fn = f.folderName || "主目錄";
-                    if(!subFolderMap[fn]) subFolderMap[fn] = []; subFolderMap[fn].push(f);
-                });
-                for(let sn in subFolderMap) {
-                    let h = document.createElement('tr'); h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`; b.appendChild(h);
-                    subFolderMap[sn].forEach(f => {
-                        let curT = f.publishTarget;
-                        if (curT === 'none' && f.isPublished) curT = cat.includes("股東") ? 'shareholder' : 'policies';
-                        let style = curT !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
-                        let tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td><td>${f.date}</td><td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td><td><div class="flex gap-2"><button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button><button onclick="openDeleteModal('${f.id}', '${f.name}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-50 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button></div></td>`;
-                        b.appendChild(tr);
-                    });
-                }
-            }
-        }
-
-        function openDeleteModal(fileId, fileName) { currentDeleteFunction = null; currentDeleteFileId = fileId; document.getElementById('delete-modal-filename').innerText = fileName; const modal = document.getElementById('delete-modal'); modal.classList.remove('hidden'); requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); }); }
-        function closeDeleteModal() { const modal = document.getElementById('delete-modal'); document.getElementById('delete-modal-box').classList.add('scale-95'); modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentDeleteFileId = null; currentDeleteFunction = null; }, 300); }
-        
-        function confirmDeleteFile() {
-            if(currentDeleteFunction) { currentDeleteFunction(); return; }
-            if(!currentDeleteFileId) return; const idToDel = currentDeleteFileId; showToast("正在刪除檔案...", "info");
-            for(let cat in allDriveFiles) allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== idToDel);
-            renderManageTable(); renderPublicFiles(); closeDeleteModal();
-            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteFile', fileId: idToDel }) })
-            .then(res => res.json()).then(res => { if(res.status === 'success') { showToast("✅ 檔案已移至垃圾桶", "success"); setTimeout(() => triggerSync(true), 2000); } else showToast("刪除失敗", "error"); })
-            .catch(() => showToast("刪除異常", "error"));
-        }
-
-        function openPublishModal(fileId, fileName, currentTarget) { currentPublishFileId = fileId; document.getElementById('modal-filename').innerText = fileName; document.getElementsByName('publish_target').forEach(r => { if(r.value === currentTarget) r.checked = true; }); const modal = document.getElementById('publish-modal'); modal.classList.remove('hidden'); requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('publish-modal-box').classList.remove('scale-95'); }); }
-        function closePublishModal() { const modal = document.getElementById('publish-modal'); document.getElementById('publish-modal-box').classList.add('scale-95'); modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentPublishFileId = null; }, 300); }
-        
-        function confirmPublishTarget() {
-            if(!currentPublishFileId) return; const targetValue = document.querySelector('input[name="publish_target"]:checked').value; showToast("正在同步發佈狀態...", "info");
-            for(let cat in allDriveFiles) { allDriveFiles[cat].forEach(f => { if(f.id === currentPublishFileId) { f.publishTarget = targetValue; f.isPublished = (targetValue !== 'none'); } }); }
-            renderManageTable(); renderPublicFiles(); closePublishModal();
-            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'setPublishTarget', fileId: currentPublishFileId, target: targetValue }) }).then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); }).catch(() => showToast("同步異常", "error"));
-        }
-
-        function renderUsersTable() {
-            const tbody = document.getElementById('users-tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            if(allUsersList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-stone-400 font-bold">目前無員工資料</td></tr>';
-                return;
-            }
-            allUsersList.forEach(u => {
-                let roleText = u.role === 'admin' ? '管理員' : (u.role === 'shareholder' ? '股東' : '居服員');
-                let roleStyle = u.role === 'admin' ? 'text-red-600 bg-red-50 border border-red-200' : (u.role === 'shareholder' ? 'text-orange-600 bg-orange-50 border border-orange-200' : 'text-blue-600 bg-blue-50 border border-blue-200');
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="font-bold text-gray-700 tracking-wide">${u.email}</td>
-                    <td class="font-black text-gray-800">${u.name || '<span class="text-stone-300">未填寫</span>'}</td>
-                    <td><span class="px-3 py-1 rounded-md text-[10px] font-black ${roleStyle}">${roleText}</span></td>
-                    <td>
-                        <button onclick="handleDeleteUser('${u.email}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors" title="移除存取權限"><i class="ph-bold ph-trash"></i> 移除</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function handleAddUser() {
-            const name = document.getElementById('new-user-name').value.trim();
-            const email = document.getElementById('new-user-email').value.trim().toLowerCase();
-            const role = document.getElementById('new-user-role').value;
-            
-            if(!name) return showToast("請輸入員工姓名", "error");
-            if(!email) return showToast("請輸入員工 Google 信箱", "error");
-            if(!email.includes('@')) return showToast("信箱格式錯誤", "error");
-            
-            showToast("正在更新權限...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'updateUserRole', email: email, name: name, role: role })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 權限已生效", "success");
-                    document.getElementById('new-user-name').value = '';
-                    document.getElementById('new-user-email').value = '';
-                    triggerSync(true);
-                } else showToast("更新失敗", "error");
-            }).catch(() => showToast("連線異常", "error"));
-        }
-
-        function handleDeleteUser(email) {
-            if(!confirm(`確定要移除「${email}」的系統登入權限嗎？\n移除後該帳號將無法登入系統。`)) return;
-            showToast("正在移除權限...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'deleteUserRole', email: email })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 權限已移除", "success");
-                    triggerSync(true);
-                } else showToast("移除失敗", "error");
-            }).catch(() => showToast("連線異常", "error"));
-        }
-
-        function renderPublicFiles() {
-            const containers = { 'announcement': document.getElementById('announcement-files-container'), 'policies': document.getElementById('policy-files-container'), 'contract': document.getElementById('contract-files-container'), 'shareholder': document.getElementById('finance-files-container'), 'salary': document.getElementById('salary-files-container') };
-            Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
-            for(let cat in allDriveFiles) {
-                (allDriveFiles[cat] || []).forEach(f => {
-                    let t = f.publishTarget; if (t === 'none' && f.isPublished) t = cat.includes("股東") ? 'shareholder' : 'policies';
-                    if (t !== 'none' && containers[t]) {
-                        if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
-                        const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
-                        const signBtnHtml = signedFilesList.includes(f.id) ? `<button disabled class="mt-4 px-3 py-1.5 bg-green-50 border border-green-200 text-green-600 rounded-lg text-[10px] font-black flex items-center gap-1 w-max"><i class="ph-bold ph-check-circle text-sm"></i> ✅ 已詳閱簽收</button>` : `<button onclick="event.stopPropagation(); signDocument('${f.id}')" class="mt-4 px-3 py-1.5 bg-stone-100 border border-stone-200 text-stone-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-lg text-[10px] font-black transition-colors flex items-center gap-1 w-max shadow-sm"><i class="ph-bold ph-pen text-sm"></i> 📝 我已詳閱並同意</button>`;
-                        
-                        let displaySignBtn = !(t === 'announcement' || t === 'policies' || t === 'contract');
-                        let btnSection = displaySignBtn ? `<div class="border-t border-stone-100 mt-4 pt-1 flex justify-end">${signBtnHtml}</div>` : '';
-                        
-                        containers[t].innerHTML += `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative"><div class="flex items-start gap-4"><i class="ph-fill ${icon} text-4xl group-hover:scale-110 transition-transform"></i><div><h4 class="font-black text-gray-800 leading-tight" title="${f.name}">${formatDisplayName(f.name)}</h4><p class="text-[10px] text-stone-400 font-bold mt-1">${f.date}</p></div></div>${btnSection}</div>`;
-                    }
-                });
-            }
-        }
-
-        function signDocument(fileId) {
-            showToast("正在處理簽收...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'signFile', fileId: fileId, email: currentUserEmail, name: currentUserDisplayName })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 檔案已成功簽收", "success");
-                    triggerSync(true);
-                } else showToast("簽收紀錄失敗", "error");
-            }).catch(() => showToast("連線異常", "error"));
-        }
-
-        function rebuildMonthFilter() {
-            let months = new Set();
-            const addM = (row) => { 
-                if(!row) return; 
-                let m = getMonthStr(row); 
-                if (m !== '其他' && m !== '未知') months.add(m); 
-            };
-            if(Array.isArray(financeDataRaw.income)) financeDataRaw.income.forEach(addM); 
-            if(Array.isArray(financeDataRaw.expense)) financeDataRaw.expense.forEach(addM); 
-            if(Array.isArray(financeDataRaw.petty)) financeDataRaw.petty.forEach(addM);
-
-            let filterSelect = document.getElementById('finance-month-filter');
-            if(!filterSelect) return;
-            
-            let prevVal = filterSelect.value;
-            filterSelect.innerHTML = '<option value="all">全部月份</option>';
-            Array.from(months).sort().reverse().forEach(m => {
-                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
-            });
-            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
-            else filterSelect.value = 'all';
-        }
-
-        function applyFinanceFilter() {
-            let filterSelect = document.getElementById('finance-month-filter');
-            let selM = filterSelect ? filterSelect.value : 'all';
-            if(!selM) selM = 'all';
-            
-            let searchInput = document.getElementById('finance-search-filter');
-            let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-            let fI = Array.isArray(financeDataRaw.income) ? financeDataRaw.income : [];
-            let fE = Array.isArray(financeDataRaw.expense) ? financeDataRaw.expense : [];
-            let fP = Array.isArray(financeDataRaw.petty) ? financeDataRaw.petty : [];
-            
-            if (selM !== 'all') {
-                fI = fI.filter(r => getMonthStr(r) === selM);
-                fE = fE.filter(r => getMonthStr(r) === selM);
-                fP = fP.filter(r => getMonthStr(r) === selM);
-                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selM})`);
-            } else { 
-                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); 
-            }
-
-            if (keyword) {
-                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
-                fI = fI.filter(matchKeyword);
-                fE = fE.filter(matchKeyword);
-                fP = fP.filter(matchKeyword);
-            }
-
-            let totalR = 0; fI.forEach(r => totalR += parseFloat(String((r && r['金額']) || 0).replace(/,/g,''))||0);
-            let totalE = 0; fE.forEach(r => totalE += parseFloat(String((r && r['金額']) || 0).replace(/,/g,''))||0);
-            
-            const revEl = document.getElementById('display-revenue');
-            if(revEl) revEl.innerText = '$' + totalR.toLocaleString();
-            const expEl = document.getElementById('display-expense');
-            if(expEl) expEl.innerText = '-$' + Math.abs(totalE).toLocaleString();
-            const netEl = document.getElementById('display-net');
-            if(netEl) netEl.innerText = '$' + (totalR - totalE).toLocaleString();
-
-            renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額'], 'income');
-            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額'], 'expense');
-            renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人'], 'petty');
-        }
-
-        function openAddFinanceModal() {
-            document.getElementById('finance-add-form').reset();
-            document.getElementById('fi-row-index').value = '';
-            document.getElementById('fi-date').valueAsDate = new Date();
-            document.getElementById('btn-submit-finance').innerText = '確認新增';
-            switchFinanceFormType('income');
-            const modal = document.getElementById('add-finance-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-finance-modal-box').classList.remove('scale-95'); });
-        }
-
-        function openEditFinanceModal(type, rowIndex, record) {
-            document.getElementById('finance-add-form').reset();
-            document.getElementById('fi-row-index').value = rowIndex;
-            switchFinanceFormType(type);
-            
-            if(record['日期']) {
-                let rawDate = String(record['日期']);
-                let parts = rawDate.split(/[-/]/);
-                if (parts.length >= 3) document.getElementById('fi-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-            }
-
-            if(type === 'income') {
-                document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
-                document.getElementById('fi-in-account').value = record['會計科目'] || '';
-                document.getElementById('fi-in-service').value = record['服務項目(A/B/G/自費)'] || '其他';
-                document.getElementById('fi-in-summary').value = record['摘要/對象'] || '';
-                document.getElementById('fi-in-method').value = record['收款方式'] || '匯款';
-                document.getElementById('fi-in-amount').value = String(record['金額']).replace(/,/g, '') || '';
-            } else if(type === 'expense') {
-                document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
-                document.getElementById('fi-ex-account').value = record['會計科目'] || '';
-                document.getElementById('fi-ex-invoice').value = record['發票號碼/統編'] || '';
-                document.getElementById('fi-ex-summary').value = record['摘要/用品'] || '';
-                document.getElementById('fi-ex-method').value = record['支付方式(轉帳/現金)'] || '轉帳';
-                document.getElementById('fi-ex-amount').value = String(record['金額']).replace(/,/g, '') || '';
-            } else if(type === 'petty') {
-                document.getElementById('fi-voucher').value = record['憑證編號'] || '';
-                document.getElementById('fi-pt-account').value = record['會計科目'] || '';
-                document.getElementById('fi-pt-handler').value = record['申請人/經手人'] || '';
-                document.getElementById('fi-pt-summary').value = record['摘要/用途'] || '';
-                document.getElementById('fi-pt-inflow').value = String(record['撥入(補充零用金)']).replace(/,/g, '') || '';
-                document.getElementById('fi-pt-outflow').value = String(record['支出(報帳扣除)']).replace(/,/g, '') || '';
-                document.getElementById('fi-pt-balance').value = String(record['目前結餘']).replace(/,/g, '') || '';
-            }
-
-            document.getElementById('btn-submit-finance').innerText = '儲存修改';
-            const modal = document.getElementById('add-finance-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-finance-modal-box').classList.remove('scale-95'); });
-        }
-
-        function closeAddFinanceModal() {
-            const modal = document.getElementById('add-finance-modal'); document.getElementById('add-finance-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); document.getElementById('finance-add-form').reset(); }, 300);
-        }
-
-        function switchFinanceFormType(type) {
-            document.getElementById('fi-type').value = type;
-            ['income', 'expense', 'petty'].forEach(t => {
-                const btn = document.getElementById('btn-type-' + t);
-                const isSelected = (t === type);
-                btn.className = isSelected ? `flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all ${t==='income'?'text-orange-500':(t==='expense'?'text-red-500':'text-stone-800')}` : `flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
-                document.getElementById('fi-group-' + t).style.display = isSelected ? 'block' : 'none';
-            });
-            document.getElementById('fi-voucher-label').innerText = type === 'petty' ? '憑證編號' : '傳票/憑證編號';
-        }
-
-        function saveFinanceRecord() {
-            const type = document.getElementById('fi-type').value;
-            const rowIndex = document.getElementById('fi-row-index').value;
-            const dateVal = document.getElementById('fi-date').value;
-            if(!dateVal) return showToast("請選擇日期", "error");
-
-            let newRecord = {};
-            if (type === 'income') {
-                newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-in-account').value, '服務項目(A/B/G/自費)': document.getElementById('fi-in-service').value, '摘要/對象': document.getElementById('fi-in-summary').value, '收款方式': document.getElementById('fi-in-method').value, '金額': document.getElementById('fi-in-amount').value || 0 };
-            } else if (type === 'expense') {
-                newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-ex-account').value, '摘要/用品': document.getElementById('fi-ex-summary').value, '發票號碼/統編': document.getElementById('fi-ex-invoice').value, '支付方式(轉帳/現金)': document.getElementById('fi-ex-method').value, '金額': document.getElementById('fi-ex-amount').value || 0 };
-            } else if (type === 'petty') {
-                newRecord = { '日期': dateVal, '憑證編號': document.getElementById('fi-voucher').value, '摘要/用途': document.getElementById('fi-pt-summary').value, '會計科目': document.getElementById('fi-pt-account').value, '撥入(補充零用金)': document.getElementById('fi-pt-inflow').value || "", '支出(報帳扣除)': document.getElementById('fi-pt-outflow').value || "", '目前結餘': document.getElementById('fi-pt-balance').value || "", '申請人/經手人': document.getElementById('fi-pt-handler').value };
-            }
-
-            closeAddFinanceModal(); showToast("正在同步至雲端...", "info");
-            const payload = { action: rowIndex ? 'editFinanceRecord' : 'addFinanceRecord', type: type, record: newRecord };
-            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
-            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(async r => { try { return JSON.parse(await r.text()); } catch(e) { throw new Error("後端異常"); }})
-            .then(res => { if(res.status === 'success') { showToast("✅ 儲存成功", "success"); triggerSync(true); } else showToast("儲存失敗", "error"); })
-            .catch(err => showToast("連線異常", "error"));
-        }
-
-        function rebuildHRMonthFilter() {
-            let months = new Set();
-            if(Array.isArray(hrDataRaw.payroll)) {
-                hrDataRaw.payroll.forEach(row => {
-                    if(!row) return;
-                    let m = row['月份'];
-                    if (m && String(m).trim() !== '') months.add(String(m).trim());
-                });
-            }
-
-            let filterSelect = document.getElementById('hr-month-filter');
-            if(!filterSelect) return;
-            
-            let prevVal = filterSelect.value;
-            filterSelect.innerHTML = '<option value="all">全部月份</option>';
-            Array.from(months).sort().reverse().forEach(m => {
-                let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt);
-            });
-            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal;
-            else filterSelect.value = 'all';
-        }
-
-        function applyHRFilter() {
-            let filterSelect = document.getElementById('hr-month-filter');
-            let selM = filterSelect ? filterSelect.value : 'all';
-            if(!selM) selM = 'all';
-            
-            let searchInput = document.getElementById('hr-search-filter');
-            let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-            let hPer = Array.isArray(hrDataRaw.personnel) ? hrDataRaw.personnel : [];
-            let hPay = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll : [];
-            let hAA = Array.isArray(hrDataRaw.aabonus) ? hrDataRaw.aabonus : [];
-            
-            if (selM !== 'all') {
-                hPay = hPay.filter(r => String(r['月份'] || '').trim() === selM);
-            }
-
-            if (keyword) {
-                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
-                hPer = hPer.filter(matchKeyword);
-                hPay = hPay.filter(matchKeyword);
-                hAA = hAA.filter(matchKeyword);
-            }
-
-            renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '身分證', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
-            
-            renderTable('hr-payroll-tbody', hPay, [
-                '月份', '員工編號', '姓名', '薪資模式', '薪資級距', '時薪', '總時數', '轉場時間',
-                '平日薪資(含月薪)', '總薪資', '實發總額(匯款)', '公司總成本'
-            ], 'hr-payroll');
-
-            renderTable('hr-aabonus-tbody', hAA, [
-                '服務人員身分證', '姓名', 'AA04 次數', 'AA05 次數', 'AA06 次數', 'AA07 次數', '金額總計'
-            ], 'hr-aabonus');
-        }
-
-        function openAddHRModal() {
-            document.getElementById('hr-add-form').reset();
-            document.getElementById('hr-row-index').value = '';
-            document.getElementById('btn-submit-hr').innerText = '確認新增';
-            switchHRFormType('personnel');
-            populateNameDropdowns('', '');
-            
-            const modal = document.getElementById('add-hr-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('add-hr-modal-box').classList.remove('scale-95'); 
-            });
-        }
-
-        function openEditHRModal(type, rowIndex, record) {
-            document.getElementById('hr-add-form').reset();
-            document.getElementById('hr-row-index').value = rowIndex;
-            let formType = type.replace('hr-', '');
-            switchHRFormType(formType);
-            
-            if(formType === 'personnel') {
-                document.getElementById('hr-emp-id').value = record['員工編號'] || '';
-                document.getElementById('hr-emp-name').value = record['姓名'] || '';
-                document.getElementById('hr-emp-sid').value = record['身分證'] || '';
-                document.getElementById('hr-emp-role').value = record['職位'] || '居服員';
-                if(record['到職日']) {
-                    let parts = String(record['到職日']).split(/[-/]/);
-                    if (parts.length >= 3) document.getElementById('hr-emp-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-                }
-                document.getElementById('hr-emp-status').value = record['狀態'] || '在職中';
-                document.getElementById('hr-emp-memo').value = record['備註'] || '';
-            } else if(formType === 'payroll') {
-                populateNameDropdowns(record['姓名'], '');
-                if(record['月份']) {
-                    let mStr = String(record['月份']).replace('/', '-');
-                    document.getElementById('hr-pay-month').value = mStr;
-                }
-                document.getElementById('hr-pay-empid').value = record['員工編號'] || '';
-                document.getElementById('hr-pay-mode').value = record['薪資模式'] || '月薪';
-                document.getElementById('hr-pay-range').value = record['薪資級距'] || '';
-                
-                document.getElementById('hr-pay-hours-total').value = record['總時數'] || '';
-                document.getElementById('hr-pay-hours-weekday').value = record['平日時數'] || '';
-                document.getElementById('hr-pay-transit-time').value = record['轉場時間'] || '';
-                document.getElementById('hr-pay-admin-hours').value = record['行政會議出席時數'] || '';
-                
-                document.getElementById('hr-pay-ot-w1').value = record['平日加班(1.34時)'] || '';
-                document.getElementById('hr-pay-ot-w2').value = record['平日加班(1.67時)'] || '';
-                document.getElementById('hr-pay-ot-r1').value = record['休息日加班(1.34時)'] || '';
-                document.getElementById('hr-pay-ot-r2').value = record['休息日加班(1.67時)'] || '';
-                
-                document.getElementById('hr-pay-holiday-time').value = record['假日喘息時數'] || '';
-                document.getElementById('hr-pay-national-hol').value = record['國定假(2時)'] || '';
-                
-                document.getElementById('hr-pay-license-bonus').value = record['證照加給(單一級)'] || '';
-                document.getElementById('hr-pay-holiday-fee').value = record['假日喘息費用'] || '';
-                document.getElementById('hr-pay-aa-bonus').value = record['AA碼獎金'] || '';
-                document.getElementById('hr-pay-ga-bonus').value = record['GA碼獎金'] || '';
-            } else if (formType === 'aabonus') {
-                populateNameDropdowns('', record['姓名']);
-                document.getElementById('hr-aa-id').value = record['服務人員身分證'] || '';
-                document.getElementById('hr-aa-04').value = record['AA04 次數'] || '';
-                document.getElementById('hr-aa-05').value = record['AA05 次數'] || '';
-                document.getElementById('hr-aa-06').value = record['AA06 次數'] || '';
-                document.getElementById('hr-aa-07').value = record['AA07 次數'] || '';
-                document.getElementById('hr-aa-total').value = String(record['金額總計']).replace(/,/g, '') || '';
-            }
-
-            document.getElementById('btn-submit-hr').innerText = '儲存修改';
-
-            const modal = document.getElementById('add-hr-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('add-hr-modal-box').classList.remove('scale-95'); 
-            });
-        }
-
-        function closeAddHRModal() {
-            const modal = document.getElementById('add-hr-modal'); 
-            document.getElementById('add-hr-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); document.getElementById('hr-add-form').reset(); }, 300);
-        }
-
-        function switchHRFormType(type) {
-            document.getElementById('hr-type').value = type;
-            ['personnel', 'payroll', 'aabonus'].forEach(t => {
-                const btn = document.getElementById('btn-hr-type-' + t);
-                const isSelected = (t === type);
-                btn.className = isSelected 
-                    ? `px-6 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all text-orange-500`
-                    : `px-6 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
-                
-                document.getElementById('hr-group-' + t).style.display = isSelected ? 'block' : 'none';
-            });
-        }
-
-        function saveHRRecord() {
-            const type = document.getElementById('hr-type').value;
-            const rowIndex = document.getElementById('hr-row-index').value;
-
-            let newRecord = {};
-            
-            if (type === 'personnel') {
-                if(!document.getElementById('hr-emp-name').value) return showToast("請輸入員工姓名", "error");
-                newRecord = {
-                    '員工編號': document.getElementById('hr-emp-id').value,
-                    '姓名': document.getElementById('hr-emp-name').value,
-                    '身分證': document.getElementById('hr-emp-sid').value,
-                    '職位': document.getElementById('hr-emp-role').value,
-                    '到職日': document.getElementById('hr-emp-date').value,
-                    '狀態': document.getElementById('hr-emp-status').value,
-                    '備註': document.getElementById('hr-emp-memo').value
-                };
-            } 
-            else if (type === 'payroll') {
-                if(!document.getElementById('hr-pay-month').value) return showToast("請選擇歸屬月份", "error");
-                if(!document.getElementById('hr-pay-name').value) return showToast("請選擇員工姓名", "error");
-                
-                let monthStr = document.getElementById('hr-pay-month').value.replace('-', '/');
-
-                newRecord = {
-                    '月份': monthStr,
-                    '員工編號': document.getElementById('hr-pay-empid').value,
-                    '姓名': document.getElementById('hr-pay-name').value,
-                    '薪資模式': document.getElementById('hr-pay-mode').value,
-                    '薪資級距': document.getElementById('hr-pay-range').value,
-                    '總時數': document.getElementById('hr-pay-hours-total').value || 0,
-                    '平日時數': document.getElementById('hr-pay-hours-weekday').value || 0,
-                    '平日加班(1.34時)': document.getElementById('hr-pay-ot-w1').value || 0,
-                    '平日加班(1.67時)': document.getElementById('hr-pay-ot-w2').value || 0,
-                    '休息日加班(1.34時)': document.getElementById('hr-pay-ot-r1').value || 0,
-                    '休息日加班(1.67時)': document.getElementById('hr-pay-ot-r2').value || 0,
-                    '假日喘息時數': document.getElementById('hr-pay-holiday-time').value || 0,
-                    '國定假(2時)': document.getElementById('hr-pay-national-hol').value || 0,
-                    '轉場時間': document.getElementById('hr-pay-transit-time').value || 0,
-                    '行政會議出席時數': document.getElementById('hr-pay-admin-hours').value || 0,
-                    '證照加給(單一級)': document.getElementById('hr-pay-license-bonus').value || 0,
-                    '假日喘息費用': document.getElementById('hr-pay-holiday-fee').value || 0,
-                    'AA碼獎金': document.getElementById('hr-pay-aa-bonus').value || 0,
-                    'GA碼獎金': document.getElementById('hr-pay-ga-bonus').value || 0
-                };
-            }
-            else if (type === 'aabonus') {
-                if(!document.getElementById('hr-aa-name').value) return showToast("請選擇員工姓名", "error");
-                
-                newRecord = {
-                    '服務人員身分證': document.getElementById('hr-aa-id').value,
-                    '姓名': document.getElementById('hr-aa-name').value,
-                    'AA04 次數': document.getElementById('hr-aa-04').value || 0,
-                    'AA05 次數': document.getElementById('hr-aa-05').value || 0,
-                    'AA06 次數': document.getElementById('hr-aa-06').value || 0,
-                    'AA07 次數': document.getElementById('hr-aa-07').value || 0,
-                    '金額總計': document.getElementById('hr-aa-total').value || 0
-                };
-            }
-
-            closeAddHRModal();
-            showToast("正在同步至雲端...", "info");
-
-            const actionName = rowIndex ? 'editHRRecord' : 'addHRRecord';
-            const payload = { action: actionName, type: type, record: newRecord };
-            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            }).then(async r => {
-                const text = await r.text();
-                try { return JSON.parse(text); } 
-                catch(e) { throw new Error("請至 Google 雲端更新 Apps Script 後端程式碼"); }
-            }).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 儲存成功，正在載入最新數據...", "success");
-                    triggerSync(true); 
-                } else showToast("後端儲存異常", "error");
-            }).catch(err => {
-                showToast(err.message || "無法連線雲端", "error");
-            });
-        }
-
-        function populateNameDropdowns(payName, aaName) {
-            const payNameSelect = document.getElementById('hr-pay-name');
-            const aaNameSelect = document.getElementById('hr-aa-name');
-            if(!payNameSelect || !aaNameSelect) return;
-
-            let optionsHtml = '<option value="">請選擇人員</option>';
-            hrDataRaw.personnel.forEach(p => {
-                const name = p['姓名'];
-                const empId = p['員工編號'] || '';
-                const sid = p['身分證'] || '';
-                if(name) {
-                    optionsHtml += `<option value="${name}" data-empid="${empId}" data-sid="${sid}">${name} (${empId})</option>`;
-                }
-            });
-
-            payNameSelect.innerHTML = optionsHtml;
-            aaNameSelect.innerHTML = optionsHtml;
-
-            if(payName) payNameSelect.value = payName;
-            if(aaName) aaNameSelect.value = aaName;
-        }
-
-        function updateNameDropdowns() {
-            const payNameSelect = document.getElementById('hr-pay-name');
-            const aaNameSelect = document.getElementById('hr-aa-name');
-            if(!payNameSelect || !aaNameSelect) return;
-
-            const currentPayName = payNameSelect.value;
-            const currentAaName = aaNameSelect.value;
-
-            let optionsHtml = '<option value="">請選擇人員</option>';
-            hrDataRaw.personnel.forEach(p => {
-                const name = p['姓名'];
-                const empId = p['員工編號'] || '';
-                const sid = p['身分證'] || '';
-                if(name) {
-                    optionsHtml += `<option value="${name}" data-empid="${empId}" data-sid="${sid}">${name} (${empId})</option>`;
-                }
-            });
-
-            payNameSelect.innerHTML = optionsHtml;
-            aaNameSelect.innerHTML = optionsHtml;
-
-            if(currentPayName) payNameSelect.value = currentPayName;
-            if(currentAaName) aaNameSelect.value = currentAaName;
-        }
-
-        function autoFillEmpId(type, name) {
-            const matched = hrDataRaw.personnel.find(p => p['姓名'] === name);
-            if (matched) {
-                if (type === 'payroll') {
-                    document.getElementById('hr-pay-empid').value = matched['員工編號'] || '';
-                } else if (type === 'aabonus') {
-                    document.getElementById('hr-aa-id').value = matched['身分證'] || '';
-                }
-            }
-        }
-
-        function openPayslipPublishModal() {
-            let months = new Set();
-            if(Array.isArray(hrDataRaw.payroll)) {
-                hrDataRaw.payroll.forEach(r => { if(r['月份']) months.add(String(r['月份']).trim()); });
-            }
-            let sortedMonths = Array.from(months).sort().reverse();
-            
-            const listContainer = document.getElementById('publish-months-list');
-            listContainer.innerHTML = '';
-            
-            if(sortedMonths.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-sm font-bold text-stone-400 py-4">目前還沒有任何薪資紀錄</p>';
-            } else {
-                sortedMonths.forEach(m => {
-                    const isChecked = publishedPayslipMonths.includes(m) ? 'checked' : '';
-                    const html = `
-                        <div class="flex items-center justify-between p-4 bg-stone-50 rounded-xl border border-stone-200">
-                            <span class="font-black text-gray-800">${m} 薪資單</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                              <input type="checkbox" class="sr-only peer month-publish-toggle" value="${m}" ${isChecked}>
-                              <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                            </label>
-                        </div>
-                    `;
-                    listContainer.innerHTML += html;
-                });
-            }
-
-            const modal = document.getElementById('payslip-publish-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('payslip-publish-modal-box').classList.remove('scale-95'); 
-            });
-        }
-
-        function closePayslipPublishModal() {
-            const modal = document.getElementById('payslip-publish-modal'); 
-            document.getElementById('payslip-publish-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        function savePayslipPublishSettings() {
-            const checkboxes = document.querySelectorAll('.month-publish-toggle');
-            let newlyPublished = [];
-            checkboxes.forEach(cb => {
-                if(cb.checked) newlyPublished.push(cb.value);
-            });
-            
-            publishedPayslipMonths = newlyPublished;
-            const publishedStr = publishedPayslipMonths.join(',');
-            
-            showToast("正在儲存發佈設定...", "info");
-            fetch(GOOGLE_APPS_SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: 'saveContent', sectionId: 'payslip_published_months', content: publishedStr }) 
-            })
-            .then(res => res.json())
-            .then(res => { 
-                if(res.status === 'success') {
-                    showToast('✅ 發佈設定已更新', 'success'); 
-                    closePayslipPublishModal();
-                    initMyPayslip(); 
-                } else showToast('雲端儲存失敗', 'error'); 
-            })
-            .catch(() => showToast("連線異常", "error"));
-        }
-
-        function initMyPayslip() {
-            let targetName = currentUserDisplayName;
-            
-            if (currentRole === 'admin') {
-                const previewSelect = document.getElementById('admin-preview-emp');
-                if(previewSelect && previewSelect.value) {
-                    targetName = previewSelect.value;
-                }
-            }
-
-            let myPayroll = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.filter(r => {
-                let recName = String(r['姓名'] || '').trim();
-                return recName === targetName || recName === currentUserName;
-            }) : [];
-            
-            if (currentRole !== 'admin') {
-                let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
-                myPayroll = myPayroll.filter(r => {
-                    let mStr = String(r['月份'] || '').replace(/[\/\-]/g, '').trim();
-                    return normalizedMonths.includes(mStr);
-                });
-            }
-            
-            let months = new Set();
-            myPayroll.forEach(r => { if(r['月份']) months.add(String(r['月份']).trim()); });
-            
-            let selector = document.getElementById('my-payslip-month');
-            if(!selector) return;
-            selector.innerHTML = '';
-            
-            if(months.size === 0) {
-                selector.innerHTML = '<option value="">無薪資紀錄</option>';
-                renderMyPayslip();
-                return;
-            }
-
-            Array.from(months).sort().reverse().forEach(m => {
-                let opt = document.createElement('option'); 
-                opt.value = m; opt.innerText = m; 
-                selector.appendChild(opt);
-            });
-
-            renderMyPayslip();
-        }
-
-        function renderMyPayslip() {
-            const monthSelect = document.getElementById('my-payslip-month');
-            if(!monthSelect) return;
-            const month = monthSelect.value;
-            const container = document.getElementById('my-digital-payslip');
-            if(!container) return;
-            
-            if(!month) {
-                container.innerHTML = `<div class="text-center py-10 text-stone-400 font-bold"><i class="ph-bold ph-ghost text-4xl mb-3 block"></i>目前系統中查無您的薪資或獎金紀錄。</div>`;
-                return;
-            }
-
-            let targetName = currentUserDisplayName;
-            
-            if (currentRole === 'admin') {
-                const previewSelect = document.getElementById('admin-preview-emp');
-                if(previewSelect && previewSelect.value) {
-                    targetName = previewSelect.value;
-                }
-            }
-
-            let pr = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.find(r => {
-                let recName = String(r['姓名'] || '').trim();
-                return (recName === targetName || recName === currentUserName) && String(r['月份']).trim() === month;
-            }) : null;
-            
-
-            if(!pr) {
-                container.innerHTML = `<div class="text-center py-10 text-stone-400 font-bold">此月份尚無您的薪資資料。</div>`;
-                return;
-            }
-
-            const fmt = (val) => {
-                let n = Number(String(val).replace(/,/g, '').trim());
-                if (isNaN(n) || n === 0) return '<span class="text-stone-300">-</span>';
-                return `<span class="${n < 0 ? 'text-red-500' : 'text-gray-800'}">$${n.toLocaleString()}</span>`;
-            };
-
-            const netPay = Number(String(pr['實發總額(匯款)']).replace(/,/g, '').trim()) || 0;
-            
-            let badgeHtml = '';
-            if (currentRole === 'admin') {
-                let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
-                let normalizedCurrentMonth = month.replace(/[\/\-]/g, '').trim();
-                const isPublished = normalizedMonths.includes(normalizedCurrentMonth);
-                
-                badgeHtml = isPublished 
-                    ? `<span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">✅ 已對員工發佈</span>`
-                    : `<span class="bg-red-100 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">🔒 尚未發佈 (員工不可見)</span>`;
-            }
-
-            const html = `
-                <div id="digital-payslip-card" class="bg-white">
-                    <div class="border-b-2 border-stone-800 pb-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                        <div>
-                            <div class="text-[10px] font-black text-orange-500 tracking-widest mb-1 uppercase">Digital Payslip</div>
-                            <h2 class="text-3xl font-black text-gray-800 tracking-tight">暖暖居家長照機構</h2>
-                            <p class="text-stone-500 font-bold mt-1">結算月份：${month} ${badgeHtml}<br><span class="text-xs mt-1 block">員工姓名：${pr['姓名']}</span></p>
-                        </div>
-                        <div class="text-left md:text-right w-full md:w-auto bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                            <div class="text-xs font-black text-orange-600 mb-1">本月實發總額</div>
-                            <div class="text-4xl font-black text-orange-500 tracking-tighter">$${netPay.toLocaleString()}</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <div>
-                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">基本薪資</h4>
-                                <div class="space-y-2 text-sm font-bold">
-                                    <div class="flex justify-between"><span>薪資模式</span><span class="text-gray-800">${pr['薪薪資模式'] || pr['薪資模式'] || '-'}</span></div>
-                                    <div class="flex justify-between"><span>薪資級距 (時薪)</span><span class="text-gray-800">${pr['薪資級距'] || '-'} (${pr['時薪'] || '0'}/hr)</span></div>
-                                    <div class="flex justify-between"><span>平日薪資 (含月薪)</span>${fmt(pr['平日薪資(含月薪)'])}</div>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">出勤與轉場</h4>
-                                <div class="space-y-2 text-sm font-bold">
-                                    <div class="flex justify-between"><span>平日時數</span><span class="text-gray-800">${pr['平日時數'] || '-'} 小時</span></div>
-                                    <div class="flex justify-between"><span>行政會議費用 <span class="text-xs text-stone-400 ml-1">(${pr['行政會議出席時數'] || 0}h)</span></span>${fmt(pr['行政會議費用'])}</div>
-                                    <div class="flex justify-between"><span>轉場費用 <span class="text-xs text-stone-400 ml-1">(${pr['轉場時間'] || 0}h)</span></span>${fmt(pr['轉場費用'])}</div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">加班費明細</h4>
-                                <div class="space-y-2 text-sm font-bold text-stone-500">
-                                    <div class="flex justify-between"><span>平日加班 (1.34) <span class="text-xs text-stone-400 ml-1">(${pr['平日加班(1.34時)'] || 0}h)</span></span>${fmt(pr['平日加班費(1.34)'])}</div>
-                                    <div class="flex justify-between"><span>平日加班 (1.67) <span class="text-xs text-stone-400 ml-1">(${pr['平日加班(1.67時)'] || 0}h)</span></span>${fmt(pr['平日加班費(1.67)'])}</div>
-                                    <div class="flex justify-between"><span>休息日加班 (1.34) <span class="text-xs text-stone-400 ml-1">(${pr['休息日加班(1.34時)'] || 0}h)</span></span>${fmt(pr['休息日加班費(1.34)'])}</div>
-                                    <div class="flex justify-between"><span>休息日加班 (1.67) <span class="text-xs text-stone-400 ml-1">(${pr['休息日加班(1.67時)'] || 0}h)</span></span>${fmt(pr['休息日加班費(1.67)'])}</div>
-                                    <div class="flex justify-between"><span>假日喘息費用 <span class="text-xs text-stone-400 ml-1">(${pr['假日喘息時數'] || 0}h)</span></span>${fmt(pr['假日喘息費用'])}</div>
-                                    <div class="flex justify-between"><span>國定假日加班費 (2) <span class="text-xs text-stone-400 ml-1">(${pr['國定假(2時)'] || 0}h)</span></span>${fmt(pr['國定假日加班費(2)'])}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div>
-                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">加給與拆帳</h4>
-                                <div class="space-y-2 text-sm font-bold">
-                                    <div class="flex justify-between"><span>證照加給 (單一級)</span>${fmt(pr['證照加給(單一級)'])}</div>
-                                    <div class="flex justify-between"><span>AA碼獎金</span>${fmt(pr['AA碼獎金'])}</div>
-                                    <div class="flex justify-between"><span>GA碼獎金</span>${fmt(pr['GA碼獎金'])}</div>
-                                </div>
-                            </div>
-
-                            <div class="bg-stone-50 p-4 rounded-xl border border-stone-100">
-                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">代扣項目</h4>
-                                <div class="space-y-2 text-sm font-bold text-red-500">
-                                    <div class="flex justify-between"><span>代扣勞保 (員工負擔)</span>${fmt('-' + pr['代扣勞保(員工)'])}</div>
-                                    <div class="flex justify-between"><span>代扣健保 (員工負擔)</span>${fmt('-' + pr['代扣健保(員工)'])}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="pt-4 border-t-2 border-stone-200 flex justify-between items-center">
-                                <span class="font-black text-stone-500">應稅薪資總額</span>
-                                <span class="text-xl font-black text-gray-800">$${Number(String(pr['應稅薪資總額'] || 0).replace(/,/g, '')).toLocaleString()}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
         }
 
         function renderTable(id, rows, cols, typeName) {
@@ -2615,8 +1639,8 @@
                 if (currentRole === 'admin') {
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
-                            <button onclick='openEditFormModal("${typeName}", ${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick='deleteRecordAPI("${typeName}", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                            <button onclick="openEditFormModal('${typeName}', ${r._rowIndex}, ${escapeHtml(r)})" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="openDeleteRecord('${typeName}', ${r._rowIndex}, '行號: ${r._rowIndex}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     `;
                 } else {
@@ -2628,48 +1652,727 @@
         }
 
         function openEditFormModal(type, rowIndex, record) {
-            if(type === 'income' || type === 'expense' || type === 'petty') {
-                openEditFinanceModal(type, rowIndex, record);
-            } else if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') {
-                openEditHRModal(type, rowIndex, record);
-            }
+            if(type === 'income' || type === 'expense' || type === 'petty') openEditFinanceModal(type, rowIndex, record);
+            else if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') openEditHRModal(type, rowIndex, record);
         }
 
-        // ✅ 已擴充: 支援「開發個案審核清冊」的刪除功能
-        function deleteRecordAPI(type, rowIndex) {
-            let actionName = 'deleteFinanceRecord';
-            let dataType = type;
-            if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') {
-                actionName = 'deleteHRRecord';
-                dataType = type.replace('hr-', '');
-            } else if (type === 'visit') {
-                actionName = 'deleteVisitRecord';
-            } else if (type === 'applyList') {
-                actionName = 'deleteApplyRecord'; 
-                dataType = 'applyList';
-            }
-
-            currentDeleteFileId = rowIndex; 
+        // ====== 共用刪除機制 (檔案、表單紀錄) ======
+        function openDeleteRecord(type, rowIndex, name) {
+            currentDeleteType = type; currentDeleteIndex = rowIndex;
+            document.getElementById('delete-modal-filename').innerText = `刪除對象：${name}`;
+            
             currentDeleteFunction = () => {
-                showToast("正在刪除紀錄...", "info");
+                let actionName = ''; let dataType = currentDeleteType;
+                if (currentDeleteType === 'applyList') actionName = 'deleteApplyRecord'; 
+                else if (currentDeleteType === 'visit') actionName = 'deleteVisitRecord';
+                else {
+                    actionName = 'deleteFinanceRecord'; 
+                    if (['personnel', 'payroll', 'aabonus'].includes(currentDeleteType)) actionName = 'deleteHRRecord';
+                }
+                showToast("正在刪除紀錄並同步雲端...", "info");
                 fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: actionName, type: dataType, rowIndex: rowIndex })
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: actionName, type: dataType, rowIndex: currentDeleteIndex })
                 }).then(r => r.json()).then(res => {
                     if(res.status === 'success') {
-                        showToast("✅ 紀錄已成功刪除，重新整理中...", "success");
-                        closeDeleteModal();
-                        triggerSync(true); 
+                        showToast("✅ 紀錄已成功刪除", "success");
+                        closeDeleteModal(); triggerSync(true); 
                     } else showToast("刪除失敗", "error");
                 }).catch(() => showToast("連線異常", "error"));
             };
 
-            document.getElementById('delete-modal-filename').innerText = `行號或 ID: ${rowIndex}`;
-            const modal = document.getElementById('delete-modal'); modal.classList.remove('hidden');
+            const modal = document.getElementById('delete-modal'); 
+            modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
         }
 
-        // ✅ 修正申請清冊表格渲染，加入刪除按鈕
+        function openDeleteModal(fileId, fileName) { 
+            currentDeleteType = 'file'; currentDeleteFileId = fileId; 
+            document.getElementById('delete-modal-filename').innerText = fileName; 
+            
+            currentDeleteFunction = () => {
+                showToast("正在刪除檔案...", "info");
+                for(let cat in allDriveFiles) allDriveFiles[cat] = allDriveFiles[cat].filter(f => f.id !== currentDeleteFileId);
+                renderManageTable(); renderPublicFiles(); closeDeleteModal();
+                fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deleteFile', fileId: currentDeleteFileId }) 
+                })
+                .then(res => res.json()).then(res => { if(res.status === 'success') { showToast("✅ 檔案已移至垃圾桶", "success"); setTimeout(() => triggerSync(true), 2000); } else showToast("刪除失敗", "error"); })
+                .catch(() => showToast("刪除異常", "error"));
+            };
+
+            const modal = document.getElementById('delete-modal'); 
+            modal.classList.remove('hidden'); 
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); }); 
+        }
+
+        function closeDeleteModal() { 
+            const modal = document.getElementById('delete-modal'); 
+            document.getElementById('delete-modal-box').classList.add('scale-95'); 
+            modal.classList.add('opacity-0'); 
+            setTimeout(() => { modal.classList.add('hidden'); currentDeleteFunction = null; }, 300); 
+        }
+        
+        function confirmDeleteAction() { if(currentDeleteFunction) currentDeleteFunction(); }
+
+        // ====== 雲端檔案發佈與上傳 ======
+        const uploader = document.getElementById('fileUploader');
+        if(uploader) {
+            uploader.addEventListener('change', e => {
+                const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
+                r.onload = ev => {
+                    showToast("正在上傳至雲端...", "info");
+                    fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) 
+                    })
+                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
+                    .catch(() => showToast("上傳連線異常", "error"));
+                }; 
+                r.readAsDataURL(f); e.target.value = '';
+            });
+        }
+
+        function renderManageTable() {
+            const b = document.getElementById('manage-files-tbody'); if(!b) return; b.innerHTML = '';
+            for(let cat in allDriveFiles) {
+                const subFolderMap = {};
+                (allDriveFiles[cat] || []).forEach(f => {
+                    const fn = f.folderName || "主目錄";
+                    if(!subFolderMap[fn]) subFolderMap[fn] = []; subFolderMap[fn].push(f);
+                });
+                for(let sn in subFolderMap) {
+                    let h = document.createElement('tr'); h.innerHTML = `<td colspan="4" class="folder-group-header"><i class="ph-bold ph-folder-open"></i> ${cat} / ${sn}</td>`; b.appendChild(h);
+                    subFolderMap[sn].forEach(f => {
+                        let curT = f.publishTarget;
+                        if (curT === 'none' && f.isPublished) curT = cat.includes("股東") ? 'shareholder' : 'policies';
+                        let style = curT !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `<td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td><td>${f.date}</td><td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td><td><div class="flex gap-2"><button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button><button onclick="openDeleteModal('${f.id}', '${f.name}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-50 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button></div></td>`;
+                        b.appendChild(tr);
+                    });
+                }
+            }
+        }
+
+        function openPublishModal(fileId, fileName, currentTarget) { currentPublishFileId = fileId; document.getElementById('modal-filename').innerText = fileName; document.getElementsByName('publish_target').forEach(r => { if(r.value === currentTarget) r.checked = true; }); const modal = document.getElementById('publish-modal'); modal.classList.remove('hidden'); requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('publish-modal-box').classList.remove('scale-95'); }); }
+        function closePublishModal() { const modal = document.getElementById('publish-modal'); document.getElementById('publish-modal-box').classList.add('scale-95'); modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); currentPublishFileId = null; }, 300); }
+        
+        function confirmPublishTarget() {
+            if(!currentPublishFileId) return; const targetValue = document.querySelector('input[name="publish_target"]:checked').value; showToast("正在同步發佈狀態...", "info");
+            for(let cat in allDriveFiles) { allDriveFiles[cat].forEach(f => { if(f.id === currentPublishFileId) { f.publishTarget = targetValue; f.isPublished = (targetValue !== 'none'); } }); }
+            renderManageTable(); renderPublicFiles(); closePublishModal();
+            fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'setPublishTarget', fileId: currentPublishFileId, target: targetValue }) 
+            }).then(res => res.json()).then(() => { setTimeout(() => { triggerSync(true); }, 2500); }).catch(() => showToast("同步異常", "error"));
+        }
+
+        function renderPublicFiles() {
+            const containers = { 'announcement': document.getElementById('announcement-files-container'), 'policies': document.getElementById('policy-files-container'), 'contract': document.getElementById('contract-files-container'), 'shareholder': document.getElementById('finance-files-container'), 'salary': document.getElementById('salary-files-container') };
+            Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
+            for(let cat in allDriveFiles) {
+                (allDriveFiles[cat] || []).forEach(f => {
+                    let t = f.publishTarget; if (t === 'none' && f.isPublished) t = cat.includes("股東") ? 'shareholder' : 'policies';
+                    if (t !== 'none' && containers[t]) {
+                        if ((t === 'salary' || t === 'contract') && currentRole !== 'admin' && !f.name.toLowerCase().includes(currentUserName.toLowerCase())) return;
+                        const icon = cat.includes('股東') ? 'ph-file-xls text-green-500' : 'ph-file-pdf text-red-400';
+                        const signBtnHtml = signedFilesList.includes(f.id) ? `<button disabled class="mt-4 px-3 py-1.5 bg-green-50 border border-green-200 text-green-600 rounded-lg text-[10px] font-black flex items-center gap-1 w-max"><i class="ph-bold ph-check-circle text-sm"></i> ✅ 已詳閱簽收</button>` : `<button onclick="event.stopPropagation(); signDocument('${f.id}')" class="mt-4 px-3 py-1.5 bg-stone-100 border border-stone-200 text-stone-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 rounded-lg text-[10px] font-black transition-colors flex items-center gap-1 w-max shadow-sm"><i class="ph-bold ph-pen text-sm"></i> 📝 我已詳閱並同意</button>`;
+                        let displaySignBtn = !(t === 'announcement' || t === 'policies' || t === 'contract');
+                        let btnSection = displaySignBtn ? `<div class="border-t border-stone-100 mt-4 pt-1 flex justify-end">${signBtnHtml}</div>` : '';
+                        containers[t].innerHTML += `<div onclick="window.open('${f.url}', '_blank')" class="content-card flex flex-col justify-between cursor-pointer group animate-page relative"><div class="flex items-start gap-4"><i class="ph-fill ${icon} text-4xl group-hover:scale-110 transition-transform"></i><div><h4 class="font-black text-gray-800 leading-tight" title="${f.name}">${formatDisplayName(f.name)}</h4><p class="text-[10px] text-stone-400 font-bold mt-1">${f.date}</p></div></div>${btnSection}</div>`;
+                    }
+                });
+            }
+        }
+
+        function signDocument(fileId) {
+            showToast("正在處理簽收...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'signFile', fileId: fileId, email: currentUserEmail, name: currentUserDisplayName })
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') { showToast("✅ 檔案已成功簽收", "success"); triggerSync(true); } else showToast("簽收紀錄失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        function toggleEdit(sectionId) {
+            const contentDiv = document.getElementById('text-' + sectionId);
+            const btn = document.getElementById('btn-edit-' + sectionId);
+            if (contentDiv.isContentEditable) {
+                contentDiv.contentEditable = false; contentDiv.classList.remove('editable-active');
+                btn.innerHTML = '<i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文';
+                const newContent = contentDiv.innerHTML;
+                localStorage.setItem('content_' + sectionId, newContent);
+                showToast('正在同步內文至雲端...', 'info');
+                fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'saveContent', sectionId: sectionId, content: newContent }) 
+                })
+                .then(res => res.json()).then(res => { 
+                    if(res.status === 'success') showToast('✅ 內文已儲存', 'success'); 
+                    else showToast('雲端儲存失敗', 'error'); 
+                }).catch(() => showToast("連線異常，已暫存於本機", "error"));
+            } else {
+                contentDiv.contentEditable = true; contentDiv.focus(); contentDiv.classList.add('editable-active');
+                btn.innerHTML = '<i class="ph-bold ph-check text-lg"></i> 完成儲存';
+            }
+        }
+
+        // ====== 權限與員工管理 ======
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-tbody');
+            if(!tbody) return; tbody.innerHTML = '';
+            if(allUsersList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-stone-400 font-bold">目前無員工資料</td></tr>'; return; }
+            allUsersList.forEach(u => {
+                let roleText = u.role === 'admin' ? '管理員' : (u.role === 'shareholder' ? '股東' : '居服員');
+                let roleStyle = u.role === 'admin' ? 'text-red-600 bg-red-50 border border-red-200' : (u.role === 'shareholder' ? 'text-orange-600 bg-orange-50 border border-orange-200' : 'text-blue-600 bg-blue-50 border border-blue-200');
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td class="font-bold text-gray-700 tracking-wide">${u.email}</td><td class="font-black text-gray-800">${u.name || '<span class="text-stone-300">未填寫</span>'}</td><td><span class="px-3 py-1 rounded-md text-[10px] font-black ${roleStyle}">${roleText}</span></td><td><button onclick="handleDeleteUser('${u.email}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors" title="移除存取權限"><i class="ph-bold ph-trash"></i> 移除</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleAddUser() {
+            const name = document.getElementById('new-user-name').value.trim();
+            const email = document.getElementById('new-user-email').value.trim().toLowerCase();
+            const role = document.getElementById('new-user-role').value;
+            if(!name) return showToast("請輸入員工姓名", "error");
+            if(!email || !email.includes('@')) return showToast("信箱格式錯誤", "error");
+            showToast("正在更新權限...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'updateUserRole', email: email, name: name, role: role }) 
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') { showToast("✅ 權限已生效", "success"); document.getElementById('new-user-name').value = ''; document.getElementById('new-user-email').value = ''; triggerSync(true); } else showToast("更新失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        function handleDeleteUser(email) {
+            if(!confirm(`確定要移除「${email}」的系統登入權限嗎？\n移除後該帳號將無法登入系統。`)) return;
+            showToast("正在移除權限...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'deleteUserRole', email: email }) 
+            }).then(r => r.json()).then(res => {
+                if(res.status === 'success') { showToast("✅ 權限已移除", "success"); triggerSync(true); } else showToast("移除失敗", "error");
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        // ====== 財務系統 ======
+        function getMonthStr(row, monthField = '月份歸屬(自動)') {
+            if(!row) return '未知';
+            let monthVal = row[monthField]; 
+            if (monthVal && String(monthVal).trim() !== '') return String(monthVal).trim().replace('-', '/');
+            let dateStr = row['日期'];
+            if (!dateStr) return '未知';
+            let m = String(dateStr).match(/^(\d{4})[-/年](\d{1,2})/);
+            return m ? `${m[1]}/${m[2].padStart(2, '0')}` : '其他';
+        }
+
+        function rebuildMonthFilter() {
+            let months = new Set();
+            const addM = (row) => { if(!row) return; let m = getMonthStr(row); if (m !== '其他' && m !== '未知') months.add(m); };
+            if(Array.isArray(financeDataRaw.income)) financeDataRaw.income.forEach(addM); 
+            if(Array.isArray(financeDataRaw.expense)) financeDataRaw.expense.forEach(addM); 
+            if(Array.isArray(financeDataRaw.petty)) financeDataRaw.petty.forEach(addM);
+            let filterSelect = document.getElementById('finance-month-filter'); if(!filterSelect) return;
+            let prevVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">全部月份</option>';
+            Array.from(months).sort().reverse().forEach(m => { let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt); });
+            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal; else filterSelect.value = 'all';
+        }
+
+        function applyFinanceFilter() {
+            let filterSelect = document.getElementById('finance-month-filter');
+            let selM = filterSelect ? filterSelect.value : 'all'; if(!selM) selM = 'all';
+            let searchInput = document.getElementById('finance-search-filter');
+            let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let fI = Array.isArray(financeDataRaw.income) ? financeDataRaw.income : [];
+            let fE = Array.isArray(financeDataRaw.expense) ? financeDataRaw.expense : [];
+            let fP = Array.isArray(financeDataRaw.petty) ? financeDataRaw.petty : [];
+            
+            if (selM !== 'all') {
+                fI = fI.filter(r => getMonthStr(r) === selM);
+                fE = fE.filter(r => getMonthStr(r) === selM);
+                fP = fP.filter(r => getMonthStr(r) === selM);
+                document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(${selM})`);
+            } else { document.querySelectorAll('.filter-hint').forEach(el => el.innerText = `(累計)`); }
+
+            if (keyword) {
+                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
+                fI = fI.filter(matchKeyword); fE = fE.filter(matchKeyword); fP = fP.filter(matchKeyword);
+            }
+
+            let totalR = 0; fI.forEach(r => totalR += parseFloat(String((r && r['金額']) || 0).replace(/,/g,''))||0);
+            let totalE = 0; fE.forEach(r => totalE += parseFloat(String((r && r['金額']) || 0).replace(/,/g,''))||0);
+            
+            const revEl = document.getElementById('display-revenue'); if(revEl) revEl.innerText = '$' + totalR.toLocaleString();
+            const expEl = document.getElementById('display-expense'); if(expEl) expEl.innerText = '-$' + Math.abs(totalE).toLocaleString();
+            const netEl = document.getElementById('display-net'); if(netEl) netEl.innerText = '$' + (totalR - totalE).toLocaleString();
+
+            renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額'], 'income');
+            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額'], 'expense');
+            renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人'], 'petty');
+        }
+
+        function openAddFinanceModal() {
+            document.getElementById('finance-add-form').reset();
+            document.getElementById('fi-row-index').value = '';
+            document.getElementById('fi-date').valueAsDate = new Date();
+            document.getElementById('btn-submit-finance').innerText = '確認新增';
+            switchFinanceFormType('income');
+            const modal = document.getElementById('add-finance-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-finance-modal-box').classList.remove('scale-95'); });
+        }
+
+        function openEditFinanceModal(type, rowIndex, record) {
+            document.getElementById('finance-add-form').reset();
+            document.getElementById('fi-row-index').value = rowIndex;
+            switchFinanceFormType(type);
+            if(record['日期']) {
+                let rawDate = String(record['日期']); let parts = rawDate.split(/[-/]/);
+                if (parts.length >= 3) document.getElementById('fi-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+            }
+            if(type === 'income') {
+                document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
+                document.getElementById('fi-in-account').value = record['會計科目'] || '';
+                document.getElementById('fi-in-service').value = record['服務項目(A/B/G/自費)'] || '其他';
+                document.getElementById('fi-in-summary').value = record['摘要/對象'] || '';
+                document.getElementById('fi-in-method').value = record['收款方式'] || '匯款';
+                document.getElementById('fi-in-amount').value = String(record['金額']).replace(/,/g, '') || '';
+            } else if(type === 'expense') {
+                document.getElementById('fi-voucher').value = record['傳票/憑證編號'] || '';
+                document.getElementById('fi-ex-account').value = record['會計科目'] || '';
+                document.getElementById('fi-ex-invoice').value = record['發票號碼/統編'] || '';
+                document.getElementById('fi-ex-summary').value = record['摘要/用品'] || '';
+                document.getElementById('fi-ex-method').value = record['支付方式(轉帳/現金)'] || '轉帳';
+                document.getElementById('fi-ex-amount').value = String(record['金額']).replace(/,/g, '') || '';
+            } else if(type === 'petty') {
+                document.getElementById('fi-voucher').value = record['憑證編號'] || '';
+                document.getElementById('fi-pt-account').value = record['會計科目'] || '';
+                document.getElementById('fi-pt-handler').value = record['申請人/經手人'] || '';
+                document.getElementById('fi-pt-summary').value = record['摘要/用途'] || '';
+                document.getElementById('fi-pt-inflow').value = String(record['撥入(補充零用金)']).replace(/,/g, '') || '';
+                document.getElementById('fi-pt-outflow').value = String(record['支出(報帳扣除)']).replace(/,/g, '') || '';
+                document.getElementById('fi-pt-balance').value = String(record['目前結餘']).replace(/,/g, '') || '';
+            }
+            document.getElementById('btn-submit-finance').innerText = '儲存修改';
+            const modal = document.getElementById('add-finance-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-finance-modal-box').classList.remove('scale-95'); });
+        }
+
+        function closeAddFinanceModal() {
+            const modal = document.getElementById('add-finance-modal'); document.getElementById('add-finance-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); document.getElementById('finance-add-form').reset(); }, 300);
+        }
+
+        function switchFinanceFormType(type) {
+            document.getElementById('fi-type').value = type;
+            ['income', 'expense', 'petty'].forEach(t => {
+                const btn = document.getElementById('btn-type-' + t); const isSelected = (t === type);
+                btn.className = isSelected ? `flex-1 py-2 rounded-lg text-sm font-black bg-white shadow-sm transition-all ${t==='income'?'text-orange-500':(t==='expense'?'text-red-500':'text-stone-800')}` : `flex-1 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
+                document.getElementById('fi-group-' + t).style.display = isSelected ? 'block' : 'none';
+            });
+            document.getElementById('fi-voucher-label').innerText = type === 'petty' ? '憑證編號' : '傳票/憑證編號';
+        }
+
+        function saveFinanceRecord() {
+            const type = document.getElementById('fi-type').value;
+            const rowIndex = document.getElementById('fi-row-index').value;
+            const dateVal = document.getElementById('fi-date').value;
+            if(!dateVal) return showToast("請選擇日期", "error");
+
+            let newRecord = {};
+            if (type === 'income') {
+                newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-in-account').value, '服務項目(A/B/G/自費)': document.getElementById('fi-in-service').value, '摘要/對象': document.getElementById('fi-in-summary').value, '收款方式': document.getElementById('fi-in-method').value, '金額': document.getElementById('fi-in-amount').value || 0 };
+            } else if (type === 'expense') {
+                newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-ex-account').value, '摘要/用品': document.getElementById('fi-ex-summary').value, '發票號碼/統編': document.getElementById('fi-ex-invoice').value, '支付方式(轉帳/現金)': document.getElementById('fi-ex-method').value, '金額': document.getElementById('fi-ex-amount').value || 0 };
+            } else if (type === 'petty') {
+                newRecord = { '日期': dateVal, '憑證編號': document.getElementById('fi-voucher').value, '摘要/用途': document.getElementById('fi-pt-summary').value, '會計科目': document.getElementById('fi-pt-account').value, '撥入(補充零用金)': document.getElementById('fi-pt-inflow').value || "", '支出(報帳扣除)': document.getElementById('fi-pt-outflow').value || "", '目前結餘': document.getElementById('fi-pt-balance').value || "", '申請人/經手人': document.getElementById('fi-pt-handler').value };
+            }
+
+            closeAddFinanceModal(); showToast("正在同步至雲端...", "info");
+            const payload = { action: rowIndex ? 'editFinanceRecord' : 'addFinanceRecord', type: type, record: newRecord };
+            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+            .then(async r => { try { return JSON.parse(await r.text()); } catch(e) { throw new Error("後端異常"); }})
+            .then(res => { if(res.status === 'success') { showToast("✅ 儲存成功", "success"); triggerSync(true); } else showToast("儲存失敗", "error"); })
+            .catch(err => showToast("連線異常", "error"));
+        }
+
+        // ====== 人資與薪資系統 ======
+        function rebuildHRMonthFilter() {
+            let months = new Set();
+            if(Array.isArray(hrDataRaw.payroll)) { hrDataRaw.payroll.forEach(row => { if(!row) return; let m = row['月份']; if (m && String(m).trim() !== '') months.add(String(m).trim()); }); }
+            let filterSelect = document.getElementById('hr-month-filter'); if(!filterSelect) return;
+            let prevVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">全部月份</option>';
+            Array.from(months).sort().reverse().forEach(m => { let opt = document.createElement('option'); opt.value = m; opt.innerText = m; filterSelect.appendChild(opt); });
+            if (Array.from(months).includes(prevVal)) filterSelect.value = prevVal; else filterSelect.value = 'all';
+        }
+
+        function applyHRFilter() {
+            let filterSelect = document.getElementById('hr-month-filter'); let selM = filterSelect ? filterSelect.value : 'all'; if(!selM) selM = 'all';
+            let searchInput = document.getElementById('hr-search-filter'); let keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let hPer = Array.isArray(hrDataRaw.personnel) ? hrDataRaw.personnel : [];
+            let hPay = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll : [];
+            let hAA = Array.isArray(hrDataRaw.aabonus) ? hrDataRaw.aabonus : [];
+            
+            if (selM !== 'all') { hPay = hPay.filter(r => String(r['月份'] || '').trim() === selM); }
+
+            if (keyword) {
+                const matchKeyword = (row) => Object.values(row).some(val => String(val).toLowerCase().includes(keyword));
+                hPer = hPer.filter(matchKeyword); hPay = hPay.filter(matchKeyword); hAA = hAA.filter(matchKeyword);
+            }
+
+            renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '身分證', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
+            renderTable('hr-payroll-tbody', hPay, ['月份', '員工編號', '姓名', '薪資模式', '薪資級距', '時薪', '總時數', '轉場時間', '平日薪資(含月薪)', '總薪資', '實發總額(匯款)', '公司總成本'], 'hr-payroll');
+            renderTable('hr-aabonus-tbody', hAA, ['服務人員身分證', '姓名', 'AA04 次數', 'AA05 次數', 'AA06 次數', 'AA07 次數', '金額總計'], 'hr-aabonus');
+        }
+
+        function openAddHRModal() {
+            document.getElementById('hr-add-form').reset();
+            document.getElementById('hr-row-index').value = '';
+            document.getElementById('btn-submit-hr').innerText = '確認新增';
+            switchHRFormType('personnel'); populateNameDropdowns('', '');
+            const modal = document.getElementById('add-hr-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-hr-modal-box').classList.remove('scale-95'); });
+        }
+
+        function openEditHRModal(type, rowIndex, record) {
+            document.getElementById('hr-add-form').reset();
+            document.getElementById('hr-row-index').value = rowIndex;
+            let formType = type.replace('hr-', ''); switchHRFormType(formType);
+            
+            if(formType === 'personnel') {
+                document.getElementById('hr-emp-id').value = record['員工編號'] || '';
+                document.getElementById('hr-emp-name').value = record['姓名'] || '';
+                document.getElementById('hr-emp-sid').value = record['身分證'] || '';
+                document.getElementById('hr-emp-role').value = record['職位'] || '居服員';
+                if(record['到職日']) {
+                    let parts = String(record['到職日']).split(/[-/]/);
+                    if (parts.length >= 3) document.getElementById('hr-emp-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                }
+                document.getElementById('hr-emp-status').value = record['狀態'] || '在職中';
+                document.getElementById('hr-emp-memo').value = record['備註'] || '';
+            } else if(formType === 'payroll') {
+                populateNameDropdowns(record['姓名'], '');
+                if(record['月份']) { let mStr = String(record['月份']).replace('/', '-'); document.getElementById('hr-pay-month').value = mStr; }
+                document.getElementById('hr-pay-empid').value = record['員工編號'] || '';
+                document.getElementById('hr-pay-mode').value = record['薪資模式'] || '月薪';
+                document.getElementById('hr-pay-range').value = record['薪資級距'] || '';
+                document.getElementById('hr-pay-hours-total').value = record['總時數'] || '';
+                document.getElementById('hr-pay-hours-weekday').value = record['平日時數'] || '';
+                document.getElementById('hr-pay-transit-time').value = record['轉場時間'] || '';
+                document.getElementById('hr-pay-admin-hours').value = record['行政會議出席時數'] || '';
+                document.getElementById('hr-pay-ot-w1').value = record['平日加班(1.34時)'] || '';
+                document.getElementById('hr-pay-ot-w2').value = record['平日加班(1.67時)'] || '';
+                document.getElementById('hr-pay-ot-r1').value = record['休息日加班(1.34時)'] || '';
+                document.getElementById('hr-pay-ot-r2').value = record['休息日加班(1.67時)'] || '';
+                document.getElementById('hr-pay-holiday-time').value = record['假日喘息時數'] || '';
+                document.getElementById('hr-pay-national-hol').value = record['國定假(2時)'] || '';
+                document.getElementById('hr-pay-license-bonus').value = record['證照加給(單一級)'] || '';
+                document.getElementById('hr-pay-holiday-fee').value = record['假日喘息費用'] || '';
+                document.getElementById('hr-pay-aa-bonus').value = record['AA碼獎金'] || '';
+                document.getElementById('hr-pay-ga-bonus').value = record['GA碼獎金'] || '';
+            } else if (formType === 'aabonus') {
+                populateNameDropdowns('', record['姓名']);
+                document.getElementById('hr-aa-id').value = record['服務人員身分證'] || '';
+                document.getElementById('hr-aa-04').value = record['AA04 次數'] || '';
+                document.getElementById('hr-aa-05').value = record['AA05 次數'] || '';
+                document.getElementById('hr-aa-06').value = record['AA06 次數'] || '';
+                document.getElementById('hr-aa-07').value = record['AA07 次數'] || '';
+                document.getElementById('hr-aa-total').value = String(record['金額總計']).replace(/,/g, '') || '';
+            }
+            document.getElementById('btn-submit-hr').innerText = '儲存修改';
+            const modal = document.getElementById('add-hr-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-hr-modal-box').classList.remove('scale-95'); });
+        }
+
+        function closeAddHRModal() {
+            const modal = document.getElementById('add-hr-modal'); document.getElementById('add-hr-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); document.getElementById('hr-add-form').reset(); }, 300);
+        }
+
+        function saveHRRecord() {
+            const type = document.getElementById('hr-type').value;
+            const rowIndex = document.getElementById('hr-row-index').value;
+            let newRecord = {};
+            
+            if (type === 'personnel') {
+                if(!document.getElementById('hr-emp-name').value) return showToast("請輸入員工姓名", "error");
+                newRecord = {
+                    '員工編號': document.getElementById('hr-emp-id').value,
+                    '姓名': document.getElementById('hr-emp-name').value,
+                    '身分證': document.getElementById('hr-emp-sid').value,
+                    '職位': document.getElementById('hr-emp-role').value,
+                    '到職日': document.getElementById('hr-emp-date').value,
+                    '狀態': document.getElementById('hr-emp-status').value,
+                    '備註': document.getElementById('hr-emp-memo').value
+                };
+            } 
+            else if (type === 'payroll') {
+                if(!document.getElementById('hr-pay-month').value) return showToast("請選擇歸屬月份", "error");
+                if(!document.getElementById('hr-pay-name').value) return showToast("請選擇員工姓名", "error");
+                let monthStr = document.getElementById('hr-pay-month').value.replace('-', '/');
+                newRecord = {
+                    '月份': monthStr,
+                    '員工編號': document.getElementById('hr-pay-empid').value,
+                    '姓名': document.getElementById('hr-pay-name').value,
+                    '薪資模式': document.getElementById('hr-pay-mode').value,
+                    '薪資級距': document.getElementById('hr-pay-range').value,
+                    '總時數': document.getElementById('hr-pay-hours-total').value || 0,
+                    '平日時數': document.getElementById('hr-pay-hours-weekday').value || 0,
+                    '平日加班(1.34時)': document.getElementById('hr-pay-ot-w1').value || 0,
+                    '平日加班(1.67時)': document.getElementById('hr-pay-ot-w2').value || 0,
+                    '休息日加班(1.34時)': document.getElementById('hr-pay-ot-r1').value || 0,
+                    '休息日加班(1.67時)': document.getElementById('hr-pay-ot-r2').value || 0,
+                    '假日喘息時數': document.getElementById('hr-pay-holiday-time').value || 0,
+                    '國定假(2時)': document.getElementById('hr-pay-national-hol').value || 0,
+                    '轉場時間': document.getElementById('hr-pay-transit-time').value || 0,
+                    '行政會議出席時數': document.getElementById('hr-pay-admin-hours').value || 0,
+                    '證照加給(單一級)': document.getElementById('hr-pay-license-bonus').value || 0,
+                    '假日喘息費用': document.getElementById('hr-pay-holiday-fee').value || 0,
+                    'AA碼獎金': document.getElementById('hr-pay-aa-bonus').value || 0,
+                    'GA碼獎金': document.getElementById('hr-pay-ga-bonus').value || 0
+                };
+            }
+            else if (type === 'aabonus') {
+                if(!document.getElementById('hr-aa-name').value) return showToast("請選擇員工姓名", "error");
+                newRecord = {
+                    '服務人員身分證': document.getElementById('hr-aa-id').value,
+                    '姓名': document.getElementById('hr-aa-name').value,
+                    'AA04 次數': document.getElementById('hr-aa-04').value || 0,
+                    'AA05 次數': document.getElementById('hr-aa-05').value || 0,
+                    'AA06 次數': document.getElementById('hr-aa-06').value || 0,
+                    'AA07 次數': document.getElementById('hr-aa-07').value || 0,
+                    '金額總計': document.getElementById('hr-aa-total').value || 0
+                };
+            }
+
+            closeAddHRModal(); showToast("正在同步至雲端...", "info");
+            const actionName = rowIndex ? 'editHRRecord' : 'addHRRecord';
+            const payload = { action: actionName, type: type, record: newRecord };
+            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+            .then(async r => { const text = await r.text(); try { return JSON.parse(text); } catch(e) { throw new Error("後端回傳格式錯誤"); } })
+            .then(res => { if(res.status === 'success') { showToast("✅ 儲存成功", "success"); triggerSync(true); } else showToast("後端儲存異常", "error"); })
+            .catch(err => { showToast(err.message || "無法連線雲端", "error"); });
+        }
+
+        function populateNameDropdowns(payName, aaName) {
+            const payNameSelect = document.getElementById('hr-pay-name'); const aaNameSelect = document.getElementById('hr-aa-name');
+            if(!payNameSelect || !aaNameSelect) return;
+            let optionsHtml = '<option value="">請選擇人員</option>';
+            hrDataRaw.personnel.forEach(p => {
+                const name = p['姓名']; const empId = p['員工編號'] || ''; const sid = p['身分證'] || '';
+                if(name) optionsHtml += `<option value="${name}" data-empid="${empId}" data-sid="${sid}">${name} (${empId})</option>`;
+            });
+            payNameSelect.innerHTML = optionsHtml; aaNameSelect.innerHTML = optionsHtml;
+            if(payName) payNameSelect.value = payName; if(aaName) aaNameSelect.value = aaName;
+        }
+
+        function updateNameDropdowns() {
+            const payNameSelect = document.getElementById('hr-pay-name'); const aaNameSelect = document.getElementById('hr-aa-name');
+            if(!payNameSelect || !aaNameSelect) return;
+            const currentPayName = payNameSelect.value; const currentAaName = aaNameSelect.value;
+            let optionsHtml = '<option value="">請選擇人員</option>';
+            hrDataRaw.personnel.forEach(p => {
+                const name = p['姓名']; const empId = p['員工編號'] || ''; const sid = p['身分證'] || '';
+                if(name) optionsHtml += `<option value="${name}" data-empid="${empId}" data-sid="${sid}">${name} (${empId})</option>`;
+            });
+            payNameSelect.innerHTML = optionsHtml; aaNameSelect.innerHTML = optionsHtml;
+            if(currentPayName) payNameSelect.value = currentPayName; if(currentAaName) aaNameSelect.value = currentAaName;
+        }
+
+        function autoFillEmpId(type, name) {
+            const matched = hrDataRaw.personnel.find(p => p['姓名'] === name);
+            if (matched) {
+                if (type === 'payroll') document.getElementById('hr-pay-empid').value = matched['員工編號'] || '';
+                else if (type === 'aabonus') document.getElementById('hr-aa-id').value = matched['身分證'] || '';
+            }
+        }
+
+        // ====== 個人薪資明細 ======
+        function openPayslipPublishModal() {
+            let months = new Set();
+            if(Array.isArray(hrDataRaw.payroll)) { hrDataRaw.payroll.forEach(r => { if(r['月份']) months.add(String(r['月份']).trim()); }); }
+            let sortedMonths = Array.from(months).sort().reverse();
+            const listContainer = document.getElementById('publish-months-list'); listContainer.innerHTML = '';
+            if(sortedMonths.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-sm font-bold text-stone-400 py-4">目前還沒有任何薪資紀錄</p>';
+            } else {
+                sortedMonths.forEach(m => {
+                    const isChecked = publishedPayslipMonths.includes(m) ? 'checked' : '';
+                    listContainer.innerHTML += `
+                        <div class="flex items-center justify-between p-4 bg-stone-50 rounded-xl border border-stone-200">
+                            <span class="font-black text-gray-800">${m} 薪資單</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer month-publish-toggle" value="${m}" ${isChecked}>
+                              <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                            </label>
+                        </div>
+                    `;
+                });
+            }
+            const modal = document.getElementById('payslip-publish-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('payslip-publish-modal-box').classList.remove('scale-95'); });
+        }
+
+        function closePayslipPublishModal() {
+            const modal = document.getElementById('payslip-publish-modal'); document.getElementById('payslip-publish-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function savePayslipPublishSettings() {
+            const checkboxes = document.querySelectorAll('.month-publish-toggle');
+            let newlyPublished = []; checkboxes.forEach(cb => { if(cb.checked) newlyPublished.push(cb.value); });
+            publishedPayslipMonths = newlyPublished; const publishedStr = publishedPayslipMonths.join(',');
+            showToast("正在儲存發佈設定...", "info");
+            fetch(GOOGLE_APPS_SCRIPT_URL, { 
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveContent', sectionId: 'payslip_published_months', content: publishedStr }) 
+            }).then(res => res.json()).then(res => { 
+                if(res.status === 'success') { showToast('✅ 發佈設定已更新', 'success'); closePayslipPublishModal(); initMyPayslip(); } 
+                else showToast('雲端儲存失敗', 'error'); 
+            }).catch(() => showToast("連線異常", "error"));
+        }
+
+        function initMyPayslip() {
+            let targetName = currentUserDisplayName;
+            if (currentRole === 'admin') {
+                const previewSelect = document.getElementById('admin-preview-emp');
+                if(previewSelect && previewSelect.value) targetName = previewSelect.value;
+            }
+
+            let myPayroll = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.filter(r => {
+                let recName = String(r['姓名'] || '').trim(); return recName === targetName || recName === currentUserName;
+            }) : [];
+            
+            if (currentRole !== 'admin') {
+                let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
+                myPayroll = myPayroll.filter(r => {
+                    let mStr = String(r['月份'] || '').replace(/[\/\-]/g, '').trim(); return normalizedMonths.includes(mStr);
+                });
+            }
+            
+            let months = new Set(); myPayroll.forEach(r => { if(r['月份']) months.add(String(r['月份']).trim()); });
+            let selector = document.getElementById('my-payslip-month'); if(!selector) return; selector.innerHTML = '';
+            
+            if(months.size === 0) { selector.innerHTML = '<option value="">無薪資紀錄</option>'; renderMyPayslip(); return; }
+
+            Array.from(months).sort().reverse().forEach(m => { let opt = document.createElement('option'); opt.value = m; opt.innerText = m; selector.appendChild(opt); });
+            renderMyPayslip();
+        }
+
+        function renderMyPayslip() {
+            const monthSelect = document.getElementById('my-payslip-month'); if(!monthSelect) return;
+            const month = monthSelect.value; const container = document.getElementById('my-digital-payslip'); if(!container) return;
+            
+            if(!month) { container.innerHTML = `<div class="text-center py-10 text-stone-400 font-bold"><i class="ph-bold ph-ghost text-4xl mb-3 block"></i>目前系統中查無您的薪資或獎金紀錄。</div>`; return; }
+
+            let targetName = currentUserDisplayName;
+            if (currentRole === 'admin') {
+                const previewSelect = document.getElementById('admin-preview-emp');
+                if(previewSelect && previewSelect.value) targetName = previewSelect.value;
+            }
+
+            let pr = Array.isArray(hrDataRaw.payroll) ? hrDataRaw.payroll.find(r => {
+                let recName = String(r['姓名'] || '').trim(); return (recName === targetName || recName === currentUserName) && String(r['月份']).trim() === month;
+            }) : null;
+
+            if(!pr) { container.innerHTML = `<div class="text-center py-10 text-stone-400 font-bold">此月份尚無您的薪資資料。</div>`; return; }
+
+            const fmt = (val) => {
+                let n = Number(String(val).replace(/,/g, '').trim());
+                if (isNaN(n) || n === 0) return '<span class="text-stone-300">-</span>';
+                return `<span class="${n < 0 ? 'text-red-500' : 'text-gray-800'}">$${n.toLocaleString()}</span>`;
+            };
+
+            const netPay = Number(String(pr['實發總額(匯款)']).replace(/,/g, '').trim()) || 0;
+            let badgeHtml = '';
+            if (currentRole === 'admin') {
+                let normalizedMonths = publishedPayslipMonths.map(m => String(m).replace(/[\/\-]/g, '').trim());
+                let normalizedCurrentMonth = month.replace(/[\/\-]/g, '').trim();
+                const isPublished = normalizedMonths.includes(normalizedCurrentMonth);
+                badgeHtml = isPublished ? `<span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">✅ 已對員工發佈</span>` : `<span class="bg-red-100 text-red-500 px-2 py-0.5 rounded-md text-[10px] font-black ml-2 align-middle">🔒 尚未發佈 (員工不可見)</span>`;
+            }
+
+            container.innerHTML = `
+                <div id="digital-payslip-card" class="bg-white">
+                    <div class="border-b-2 border-stone-800 pb-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                        <div>
+                            <div class="text-[10px] font-black text-orange-500 tracking-widest mb-1 uppercase">Digital Payslip</div>
+                            <h2 class="text-3xl font-black text-gray-800 tracking-tight">暖暖居家長照機構</h2>
+                            <p class="text-stone-500 font-bold mt-1">結算月份：${month} ${badgeHtml}<br><span class="text-xs mt-1 block">員工姓名：${pr['姓名']}</span></p>
+                        </div>
+                        <div class="text-left md:text-right w-full md:w-auto bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                            <div class="text-xs font-black text-orange-600 mb-1">本月實發總額</div>
+                            <div class="text-4xl font-black text-orange-500 tracking-tighter">$${netPay.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">基本薪資</h4>
+                                <div class="space-y-2 text-sm font-bold">
+                                    <div class="flex justify-between"><span>薪資模式</span><span class="text-gray-800">${pr['薪資模式'] || '-'}</span></div>
+                                    <div class="flex justify-between"><span>薪資級距 (時薪)</span><span class="text-gray-800">${pr['薪資級距'] || '-'} (${pr['時薪'] || '0'}/hr)</span></div>
+                                    <div class="flex justify-between"><span>平日薪資 (含月薪)</span>${fmt(pr['平日薪資(含月薪)'])}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">出勤與轉場</h4>
+                                <div class="space-y-2 text-sm font-bold">
+                                    <div class="flex justify-between"><span>平日時數</span><span class="text-gray-800">${pr['平日時數'] || '-'} 小時</span></div>
+                                    <div class="flex justify-between"><span>行政會議費用 <span class="text-xs text-stone-400 ml-1">(${pr['行政會議出席時數'] || 0}h)</span></span>${fmt(pr['行政會議費用'])}</div>
+                                    <div class="flex justify-between"><span>轉場費用 <span class="text-xs text-stone-400 ml-1">(${pr['轉場時間'] || 0}h)</span></span>${fmt(pr['轉場費用'])}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">加班費明細</h4>
+                                <div class="space-y-2 text-sm font-bold text-stone-500">
+                                    <div class="flex justify-between"><span>平日加班 (1.34) <span class="text-xs text-stone-400 ml-1">(${pr['平日加班(1.34時)'] || 0}h)</span></span>${fmt(pr['平日加班費(1.34)'])}</div>
+                                    <div class="flex justify-between"><span>平日加班 (1.67) <span class="text-xs text-stone-400 ml-1">(${pr['平日加班(1.67時)'] || 0}h)</span></span>${fmt(pr['平日加班費(1.67)'])}</div>
+                                    <div class="flex justify-between"><span>休息日加班 (1.34) <span class="text-xs text-stone-400 ml-1">(${pr['休息日加班(1.34時)'] || 0}h)</span></span>${fmt(pr['休息日加班費(1.34)'])}</div>
+                                    <div class="flex justify-between"><span>休息日加班 (1.67) <span class="text-xs text-stone-400 ml-1">(${pr['休息日加班(1.67時)'] || 0}h)</span></span>${fmt(pr['休息日加班費(1.67)'])}</div>
+                                    <div class="flex justify-between"><span>假日喘息費用 <span class="text-xs text-stone-400 ml-1">(${pr['假日喘息時數'] || 0}h)</span></span>${fmt(pr['假日喘息費用'])}</div>
+                                    <div class="flex justify-between"><span>國定假日加班費 (2) <span class="text-xs text-stone-400 ml-1">(${pr['國定假(2時)'] || 0}h)</span></span>${fmt(pr['國定假日加班費(2)'])}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">加給與拆帳</h4>
+                                <div class="space-y-2 text-sm font-bold">
+                                    <div class="flex justify-between"><span>證照加給 (單一級)</span>${fmt(pr['證照加給(單一級)'])}</div>
+                                    <div class="flex justify-between"><span>AA碼獎金</span>${fmt(pr['AA碼獎金'])}</div>
+                                    <div class="flex justify-between"><span>GA碼獎金</span>${fmt(pr['GA碼獎金'])}</div>
+                                </div>
+                            </div>
+                            <div class="bg-stone-50 p-4 rounded-xl border border-stone-100">
+                                <h4 class="text-sm font-black text-stone-400 border-b border-stone-200 pb-2 mb-3 uppercase tracking-widest">代扣項目</h4>
+                                <div class="space-y-2 text-sm font-bold text-red-500">
+                                    <div class="flex justify-between"><span>代扣勞保 (員工負擔)</span>${fmt('-' + pr['代扣勞保(員工)'])}</div>
+                                    <div class="flex justify-between"><span>代扣健保 (員工負擔)</span>${fmt('-' + pr['代扣健保(員工)'])}</div>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t-2 border-stone-200 flex justify-between items-center">
+                                <span class="font-black text-stone-500">應稅薪資總額</span>
+                                <span class="text-xl font-black text-gray-800">$${Number(String(pr['應稅薪資總額'] || 0).replace(/,/g, '')).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ====== 開發個案申請書管理 ======
         function renderApplyListTable() {
             let filterValue = document.getElementById('apply-list-search-filter').value.toLowerCase().trim();
             let filteredData = applyListRaw;
@@ -2677,13 +2380,12 @@
             if (filterValue) {
                 filteredData = applyListRaw.filter(r => 
                     String(r['姓名'] || '').toLowerCase().includes(filterValue) ||
-                    String(r['申請人'] || '').toLowerCase().includes(filterValue)
+                    String(r['送件人(員工)姓名'] || '').toLowerCase().includes(filterValue)
                 );
             }
 
             const tbody = document.getElementById('apply-list-tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
+            if(!tbody) return; tbody.innerHTML = '';
             
             if(filteredData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-stone-300 font-bold">目前無開發個案申請資料</td></tr>';
@@ -2691,34 +2393,26 @@
             }
 
             [...filteredData].reverse().forEach((r) => {
-                let dateStr = r['申請日期'] || r['Timestamp'] || r['建立時間'] || '';
-                // 處理可能包含 T 的 ISO 格式，或是我們前端剛剛送出的 YYYY/MM/DD HH:mm:ss 格式
-                if(dateStr.includes('T')) {
-                    dateStr = dateStr.replace('T', ' ').substring(0, 16);
-                } else if (dateStr.length > 16) {
-                    dateStr = dateStr.substring(0, 16);
-                }
+                let dateStr = r['進件時間'] || r['申請日期'] || r['Timestamp'] || '';
+                if(dateStr.includes('T')) dateStr = dateStr.replace('T', ' ').substring(0, 16);
+                else if (dateStr.length > 16) dateStr = dateStr.substring(0, 16);
 
                 let services = r['服務項目'] || '-';
                 if(services.length > 20) services = services.substring(0, 20) + '...';
 
                 let tr = document.createElement('tr');
-                
-                // 加入刪除按鈕 (僅管理員可見)
                 let deleteBtnHtml = currentRole === 'admin' && r._rowIndex ? 
-                    `<button onclick='deleteRecordAPI("applyList", ${r._rowIndex})' class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors shadow-sm flex items-center gap-1"><i class="ph-bold ph-trash"></i></button>` : '';
+                    `<button onclick="openDeleteRecord('applyList', ${r._rowIndex}, '${r['姓名'] || '未知個案'}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors shadow-sm flex items-center gap-1"><i class="ph-bold ph-trash"></i></button>` : '';
 
                 tr.innerHTML = `
                     <td class="text-stone-500">${dateStr}</td>
                     <td class="font-black text-gray-800 text-base">${r['姓名'] || '-'}</td>
                     <td class="font-bold text-stone-500">${r['身分證'] || '-'}</td>
                     <td title="${r['服務項目'] || ''}">${services}</td>
-                    <td><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-[10px] font-black">${r['申請人'] || r['申請帳號'] || '-'}</span></td>
+                    <td><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-[10px] font-black">${r['送件人(員工)姓名'] || r['申請人'] || '-'}</span></td>
                     <td>
                         <div class="flex items-center gap-2">
-                            <button onclick='openApplyPreviewModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="px-4 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm flex items-center gap-1">
-                                <i class="ph-bold ph-printer"></i> 預覽與列印
-                            </button>
+                            <button onclick="openApplyPreviewModal(${escapeHtml(r)})" class="px-4 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm flex items-center gap-1"><i class="ph-bold ph-printer"></i> 預覽與列印</button>
                             ${deleteBtnHtml}
                         </div>
                     </td>
@@ -2726,28 +2420,20 @@
                 tbody.appendChild(tr);
             });
         }
-
         function applyApplyListFilter() { renderApplyListTable(); }
-
-        // 核取方塊文字輔助函數
-        function checkMark(value, targetStr) {
-            if(!value) return '☐';
-            return value.includes(targetStr) ? '☑' : '☐';
-        }
 
         function openApplyPreviewModal(record) {
             const container = document.getElementById('apply-print-container');
             if(!container) return;
 
-            // 格式化日期 (YYYY/MM/DD)
+            let rawDateStr = record['進件時間'] || record['申請日期'] || record['Timestamp'];
             let applyDate = new Date();
-            if(record['申請日期'] || record['Timestamp'] || record['建立時間']) {
-                // 如果是 YYYY/MM/DD 格式，先轉回標準格式以便 Date() 解析
-                let parseDateStr = String(record['申請日期'] || record['Timestamp'] || record['建立時間']).replace(/\//g, '-');
+            if(rawDateStr) {
+                let parseDateStr = String(rawDateStr).replace(/\//g, '-');
                 applyDate = new Date(parseDateStr);
             }
             
-            let applyYear = isNaN(applyDate.getFullYear()) ? '   ' : applyDate.getFullYear() - 1911; // 轉民國年
+            let applyYear = isNaN(applyDate.getFullYear()) ? '   ' : applyDate.getFullYear() - 1911;
             let applyMonth = isNaN(applyDate.getMonth()) ? '  ' : (applyDate.getMonth() + 1).toString().padStart(2, '0');
             let applyDay = isNaN(applyDate.getDate()) ? '  ' : applyDate.getDate().toString().padStart(2, '0');
 
@@ -2755,7 +2441,7 @@
             if(record['出生日期']) {
                 let d = new Date(record['出生日期']);
                 if(!isNaN(d)) {
-                    dobParts[0] = d.getFullYear() - 1911;
+                    dobParts[0] = d.getFullYear() > 1911 ? d.getFullYear() - 1911 : d.getFullYear();
                     dobParts[1] = (d.getMonth() + 1).toString().padStart(2, '0');
                     dobParts[2] = d.getDate().toString().padStart(2, '0');
                 }
@@ -2764,84 +2450,45 @@
             let srv = record['服務項目'] || '';
             let mainHosp = record['主要醫院'] || '';
             let isOtherHosp = !['部彰','彰基','員基','鹿基','二基','秀傳','濱秀','漢銘',''].includes(mainHosp) && mainHosp !== '';
-
             let disability = record['身障手冊'] || '否';
             let disLevel = disability.replace('是(', '').replace(')', '');
 
-            let html = `
-                <div class="header-note">
-                    <div>修訂日期:112.02.01<br>修訂日期:115.03.30</div>
-                    <div style="align-self: flex-end;">修訂日期:115.04.13</div>
-                </div>
-
+            container.innerHTML = `
+                <div class="header-note"><div>修訂日期:112.02.01<br>修訂日期:115.03.30</div><div style="align-self: flex-end;">修訂日期:115.04.13</div></div>
                 <div class="form-title">彰化縣政府長期照顧服務申請書</div>
-                
                 <div class="top-options">
-                    <div>
-                        <span class="check-box">☐</span> 電洽 1966 &nbsp;&nbsp;
-                        <span class="check-box">☐</span> 親洽 &nbsp;&nbsp;
-                        <span class="check-box">☐</span> 傳真 &nbsp;&nbsp;
-                        受理人：<span class="underline">　　　　</span>
-                    </div>
-                    <div>
-                        申請日期：<span class="underline">&nbsp;${applyYear}&nbsp;</span> 年 <span class="underline">&nbsp;${applyMonth}&nbsp;</span> 月 <span class="underline">&nbsp;${applyDay}&nbsp;</span> 日
-                    </div>
+                    <div><span class="check-box">☐</span> 電洽 1966 &nbsp;&nbsp;<span class="check-box">☐</span> 親洽 &nbsp;&nbsp;<span class="check-box">☐</span> 傳真 &nbsp;&nbsp;受理人：<span class="underline">　　　　</span></div>
+                    <div>申請日期：<span class="underline">&nbsp;${applyYear}&nbsp;</span> 年 <span class="underline">&nbsp;${applyMonth}&nbsp;</span> 月 <span class="underline">&nbsp;${applyDay}&nbsp;</span> 日</div>
                 </div>
-
                 <div class="section-title">一、需要服務者基本資料</div>
                 <table>
                     <tr>
                         <td width="33%">1. 姓名：${record['姓名'] || ''}</td>
-                        <td width="33%">2. 出生日期：民國<span class="underline">${dobParts[0]}</span>年<span class="underline">${dobParts[1]}</span>月<span class="underline">${dobParts[2]}</span>日</td>
+                        <td width="33%">2. 出生日期：民國<span class="underline">&nbsp;${dobParts[0]}&nbsp;</span>年<span class="underline">&nbsp;${dobParts[1]}&nbsp;</span>月<span class="underline">&nbsp;${dobParts[2]}&nbsp;</span>日</td>
                         <td width="34%">3. 身分證統一編號：${record['身分證'] || ''}</td>
                     </tr>
                     <tr>
-                        <td>4. 電話(手機)：${record['電話'] || ''}</td>
+                        <td>4. 電話(手機)：${record['電話(手機)'] || record['電話'] || ''}</td>
                         <td>5. 性別：<span class="check-box">${checkMark(record['性別'], '男')}</span>男 <span class="check-box">${checkMark(record['性別'], '女')}</span>女</td>
-                        <td>6. 目前居住狀況：<span class="check-box">${checkMark(record['居住狀況'], '獨居')}</span>獨居 <span class="check-box">${checkMark(record['居住狀況'], '固定同住')}</span>固定同住 <span class="check-box">${checkMark(record['居住狀況'], '輪流居住')}</span>輪流居住</td>
+                        <td>6. 目前居住狀況：<span class="check-box">${checkMark(record['居住狀況'], '獨居')}</span>獨居 <span class="check-box">${checkMark(record['居住狀況'], '固定')}</span>固定同住 <span class="check-box">${checkMark(record['居住狀況'], '輪流')}</span>輪流居住</td>
                     </tr>
+                    <tr><td colspan="3">7. 現居地址：${record['現居地址'] || ''}</td></tr>
+                    <tr><td colspan="3">8. 戶籍地址：<span class="check-box">${record['戶籍地址'] === record['現居地址'] ? '☑' : '☐'}</span>同上 &nbsp; <span class="check-box">${record['戶籍地址'] !== record['現居地址'] && record['戶籍地址'] ? '☑' : '☐'}</span>其他 <span class="underline">&nbsp;${record['戶籍地址'] !== record['現居地址'] ? (record['戶籍地址'] || '　　　　　　') : '　　　　　　'}&nbsp;</span></td></tr>
+                    <tr><td colspan="3">9. 目前是否領有身心障礙手冊：<span class="check-box">${disability === '否' ? '☑' : '☐'}</span>否 &nbsp; <span class="check-box">${disability !== '否' ? '☑' : '☐'}</span>是(障別：第<span class="underline">&nbsp;&nbsp;&nbsp;&nbsp;</span>類 / 程度：<span class="check-box">${checkMark(disLevel, '輕度')}</span>輕度 <span class="check-box">${checkMark(disLevel, '中度')}</span>中度 <span class="check-box">${checkMark(disLevel, '重度')}</span>重度 <span class="check-box">${checkMark(disLevel, '極重度')}</span>極重度)</td></tr>
+                    <tr><td colspan="3">10. 社會福利身分別：<span class="check-box">${checkMark(record['福利身分'], '一般戶')}</span>一般戶 &nbsp; <span class="check-box">${checkMark(record['福利身分'], '中低收入戶')}</span>中低收入戶 &nbsp; <span class="check-box">${checkMark(record['福利身分'], '低收入戶')}</span>低收入戶</td></tr>
+                    <tr><td colspan="3">11. 目前是否住在機構：<span class="check-box">${checkMark(record['住機構'], '否')}</span>否 &nbsp; <span class="check-box">${checkMark(record['住機構'], '是')}</span>是</td></tr>
+                    <tr><td colspan="3">12. 目前是否住院：<span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☑' : '☐'}</span>是，醫院名稱：<span class="underline">&nbsp;${record['住院'] && record['住院'] !== '否' ? record['住院'] : '　　　　　　'}&nbsp;</span></td></tr>
+                    <tr><td colspan="3" style="line-height: 1.8;">13. 主要就診醫療院所：<span class="check-box">${checkMark(mainHosp, '部彰')}</span>部彰 <span class="check-box">${checkMark(mainHosp, '彰基')}</span>彰基 <span class="check-box">${checkMark(mainHosp, '員基')}</span>員基 <span class="check-box">${checkMark(mainHosp, '鹿基')}</span>鹿基 <span class="check-box">${checkMark(mainHosp, '二基')}</span>二基 <span class="check-box">${checkMark(mainHosp, '秀傳')}</span>秀傳 <span class="check-box">${checkMark(mainHosp, '濱秀')}</span>濱秀 <span class="check-box">${checkMark(mainHosp, '漢銘')}</span>漢銘 <span class="check-box">${isOtherHosp ? '☑' : '☐'}</span>其他<span class="underline">&nbsp;${isOtherHosp ? mainHosp : '　　　'}&nbsp;</span></td></tr>
+                    <tr><td colspan="3">14. 目前是否聘請看護幫忙照顧：<span class="check-box">${checkMark(record['聘請看護'], '否')}</span>否 &nbsp; <span class="check-box">${record['聘請看護'] && String(record['聘請看護']).includes('是') ? '☑' : '☐'}</span>是(<span class="check-box">${checkMark(record['聘請看護'], '本籍')}</span>本籍 <span class="check-box">${checkMark(record['聘請看護'], '外籍')}</span>外籍) &nbsp; <span class="check-box">${checkMark(record['聘請看護'], '申請中')}</span>申請中</td></tr>
+                    <tr><td colspan="3">15. 是否罹患疾病：<span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☑' : '☐'}</span>是，疾病名稱：<span class="underline">&nbsp;${record['罹患疾病'] && record['罹患疾病'] !== '否' ? record['罹患疾病'] : '　　　　　　'}&nbsp;</span><br><div class="note-text" style="margin-top:4px;">備註:未領有身心障礙證明之失智症(請檢附「1年內」開立之失智症診斷證明書，並載明或檢附CDR 1分以上之檢查報告)</div></td></tr>
                     <tr>
-                        <td colspan="3">7. 現居地址：${record['現居地址'] || ''}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">8. 戶籍地址：<span class="check-box">${record['戶籍地址'] === record['現居地址'] ? '☑' : '☐'}</span>同上 &nbsp; <span class="check-box">${record['戶籍地址'] !== record['現居地址'] && record['戶籍地址'] ? '☑' : '☐'}</span>其他 <span class="underline">${record['戶籍地址'] !== record['現居地址'] ? (record['戶籍地址'] || '　　　　　　') : '　　　　　　'}</span></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">9. 目前是否領有身心障礙手冊：<span class="check-box">${disability === '否' ? '☑' : '☐'}</span>否 &nbsp; <span class="check-box">${disability !== '否' ? '☑' : '☐'}</span>是(障別：第<span class="underline">　</span>類 / 程度：<span class="check-box">${checkMark(disLevel, '輕度')}</span>輕度 <span class="check-box">${checkMark(disLevel, '中度')}</span>中度 <span class="check-box">${checkMark(disLevel, '重度')}</span>重度 <span class="check-box">${checkMark(disLevel, '極重度')}</span>極重度)</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">10. 社會福利身分別：<span class="check-box">${checkMark(record['福利身分'], '一般戶')}</span>一般戶 &nbsp; <span class="check-box">${checkMark(record['福利身分'], '中低收入戶')}</span>中低收入戶 &nbsp; <span class="check-box">${checkMark(record['福利身分'], '低收入戶')}</span>低收入戶</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">11. 目前是否住在機構：<span class="check-box">${checkMark(record['住機構'], '否')}</span>否 &nbsp; <span class="check-box">${checkMark(record['住機構'], '是')}</span>是</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">12. 目前是否住院：<span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['住院'] && record['住院'] !== '否' ? '☑' : '☐'}</span>是，醫院名稱：<span class="underline">${record['住院'] && record['住院'] !== '否' ? record['住院'] : '　　　　　　'}</span></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" style="line-height: 1.8;">
-                            13. 主要就診醫療院所：<span class="check-box">${checkMark(mainHosp, '部彰')}</span>部彰 <span class="check-box">${checkMark(mainHosp, '彰基')}</span>彰基 <span class="check-box">${checkMark(mainHosp, '員基')}</span>員基 <span class="check-box">${checkMark(mainHosp, '鹿基')}</span>鹿基 <span class="check-box">${checkMark(mainHosp, '二基')}</span>二基 <span class="check-box">${checkMark(mainHosp, '秀傳')}</span>秀傳 <span class="check-box">${checkMark(mainHosp, '濱秀')}</span>濱秀 <span class="check-box">${checkMark(mainHosp, '漢銘')}</span>漢銘 <span class="check-box">${isOtherHosp ? '☑' : '☐'}</span>其他<span class="underline">${isOtherHosp ? mainHosp : '　　　'}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">14. 目前是否聘請看護幫忙照顧：<span class="check-box">${checkMark(record['聘請看護'], '否')}</span>否 &nbsp; <span class="check-box">${record['聘請看護'] && record['聘請看護'].includes('是') ? '☑' : '☐'}</span>是(<span class="check-box">${checkMark(record['聘請看護'], '本籍')}</span>本籍 <span class="check-box">${checkMark(record['聘請看護'], '外籍')}</span>外籍) &nbsp; <span class="check-box">${checkMark(record['聘請看護'], '申請中')}</span>申請中</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">
-                            15. 是否罹患疾病：<span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☐' : '☑'}</span>否 &nbsp; <span class="check-box">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? '☑' : '☐'}</span>是，疾病名稱：<span class="underline">${record['罹患疾病'] && record['罹患疾病'] !== '否' ? record['罹患疾病'] : '　　　　　　'}</span><br>
-                            <div class="note-text" style="margin-top:4px;">備註:未領有身心障礙證明之失智症(請檢附「1年內」開立之失智症診斷證明書，並載明或檢附CDR 1分以上之檢查報告)</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" style="line-height: 1.8;">
-                            16. 欲申請服務項目：<br>
+                        <td colspan="3" style="line-height: 1.8;">16. 欲申請服務項目：<br>
                             <span class="check-box">${checkMark(srv, '居家服務')}</span>居家服務 &nbsp; <span class="check-box">${checkMark(srv, '日間照顧')}</span>日間照顧 &nbsp; <span class="check-box">${checkMark(srv, '家庭托顧')}</span>家庭托顧 &nbsp; <span class="check-box">${checkMark(srv, '老人營養餐飲')}</span>老人營養餐飲服務 &nbsp; <span class="check-box">${checkMark(srv, '交通接送')}</span>交通接送服務 &nbsp; <span class="check-box">${checkMark(srv, '喘息服務')}</span>喘息服務<br>
                             <span class="check-box">${checkMark(srv, '輔具')}</span>輔具購買、租借及居家無障礙環境改善 &nbsp; <span class="check-box">${checkMark(srv, '專業服務')}</span>專業服務(復能訓練、居家護理、吞嚥訓練)<br>
                             <span class="check-box">${checkMark(srv, '到宅沐浴')}</span>到宅沐浴車 &nbsp; <span class="check-box">${checkMark(srv, '定點乾燥')}</span>定點乾燥 &nbsp; <span class="check-box">${checkMark(srv, '機構安置')}</span>機構安置 &nbsp; <span class="check-box">${checkMark(srv, '短照')}</span>短期替代照顧服務(短照) &nbsp; <span class="check-box">${checkMark(srv, '其他')}</span>其他
                         </td>
                     </tr>
                 </table>
-
                 <div class="section-title">二、主要聯絡人資料</div>
                 <table>
                     <tr>
@@ -2851,7 +2498,6 @@
                         <td width="25%">4.電話：(住家)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(工作)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(手機) ${record['主聯絡人電話'] || ''}</td>
                     </tr>
                 </table>
-
                 <div class="section-title">三、次要聯絡人資料</div>
                 <table>
                     <tr>
@@ -2859,47 +2505,23 @@
                         <td width="50%">2. 手機：${record['次聯絡人手機'] || ''}</td>
                     </tr>
                 </table>
-
                 <div class="section-title" style="font-size: 15px;">以下由協助轉介單位填寫</div>
                 <table>
                     <tr>
-                        <td width="50%">申請單位/聯絡人：暖暖居家長照機構 / ${record['申請人'] || currentUserDisplayName}</td>
-                        <td width="50%">電話：(04) 751-0321</td>
+                        <td width="50%">申請單位/聯絡人：暖暖居家長照機構 / ${record['送件人(員工)姓名'] || record['申請人'] || currentUserDisplayName}</td>
+                        <td width="50%">電話：0901-071711 </td>
                     </tr>
-                    <tr>
-                        <td colspan="2" style="padding: 10px;">
-                            郵寄或傳真資料如下<br>
-                            服務申請書郵寄或傳真至彰化縣政府長期照顧管理中心地址:500彰化市曉陽路1號5樓。<br>
-                            電話:(04)7278503 &nbsp; 傳真:(04)7266569
-                        </td>
-                    </tr>
-                </table>
-
-                <div class="section-title" style="font-size: 15px;">以下由長照中心填寫</div>
-                <div style="font-weight: bold; text-align: center; margin: 8px 0;">彰化縣長期照顧管理中心服務聯絡概況記錄表</div>
-                <table style="text-align: center;">
-                    <tr>
-                        <th width="15%">日期</th><th width="20%">聯絡家屬姓名</th><th width="15%">關係</th><th width="30%">聯絡情況及內容</th><th width="10%">專員核章</th><th width="10%">主管核章</th>
-                    </tr>
-                    <tr style="height: 60px;"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td colspan="2" style="padding: 10px;">郵寄或傳真資料如下<br>服務申請書郵寄或傳真至彰化縣政府長期照顧管理中心地址:500彰化市曉陽路1號5樓。<br>電話:(04)7278503 &nbsp; 傳真:(04)7266569</td></tr>
                 </table>
             `;
-
-            container.innerHTML = html;
-
             const modal = document.getElementById('apply-preview-modal');
             modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('apply-preview-modal-box').classList.remove('scale-95'); 
-            });
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('apply-preview-modal-box').classList.remove('scale-95'); });
         }
 
         function closeApplyPreviewModal() {
-            const modal = document.getElementById('apply-preview-modal'); 
-            document.getElementById('apply-preview-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            const modal = document.getElementById('apply-preview-modal'); document.getElementById('apply-preview-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         function printApplyForm() {
@@ -2908,17 +2530,14 @@
             document.body.classList.remove('printing-apply');
         }
 
-        // ✅ 修正: 確保傳送時的時間戳記格式正確，避免時區問題導致存入試算表錯誤
         function submitApplication(event) {
             event.preventDefault();
             const btn = document.getElementById('btn-submit-apply');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 傳送中...`;
+            btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 傳送中...`;
 
             const selectedServices = [];
             document.querySelectorAll('.apply-services:checked').forEach(cb => selectedServices.push(cb.value));
 
-            // 使用本地時區產生標準格式字串 YYYY/MM/DD HH:mm:ss 
             const now = new Date();
             const formattedDate = now.getFullYear() + '/' + 
                 String(now.getMonth() + 1).padStart(2, '0') + '/' + 
@@ -2928,13 +2547,12 @@
                 String(now.getSeconds()).padStart(2, '0');
 
             const applyData = {
-                '申請人': currentUserDisplayName,
-                '申請日期': formattedDate, 
-                'Timestamp': formattedDate,
+                '進件時間': formattedDate, 
+                '送件人(員工)姓名': currentUserDisplayName,
                 '姓名': document.getElementById('apply-name').value,
                 '出生日期': document.getElementById('apply-dob').value,
                 '身分證': document.getElementById('apply-sid').value,
-                '電話': document.getElementById('apply-phone').value,
+                '電話(手機)': document.getElementById('apply-phone').value,
                 '性別': document.getElementById('apply-gender').value,
                 '居住狀況': document.getElementById('apply-living').value,
                 '現居地址': document.getElementById('apply-curr-address').value,
@@ -2956,46 +2574,32 @@
             };
 
             showToast("正在傳送申請資料...", "info");
-
             fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'submitCaseApplication', record: applyData })
             }).then(r => r.json()).then(res => {
                 showToast("✅ 申請書已成功送出！", "success");
-                
-                // 本地端加入時也加入 _rowIndex，這裡隨機給一個暫時的，之後觸發 triggerSync(true) 去要真實的 ID
                 applyData._rowIndex = res.rowIndex || new Date().getTime(); 
-                applyListRaw.push(applyData);
-                renderApplyListTable();
-                
-                document.getElementById('case-apply-form').reset();
-                setTimeout(() => triggerSync(true), 2000); // 確保從後端要回最正確帶有行號的資料
+                applyListRaw.push(applyData); renderApplyListTable(); document.getElementById('case-apply-form').reset();
+                setTimeout(() => triggerSync(true), 2000); 
             }).catch(err => {
                 showToast("✅ 申請書已暫存送出！(請通知行政端確認)", "success");
-                applyData._rowIndex = new Date().getTime(); // 暫時的行號
-                applyListRaw.push(applyData);
-                renderApplyListTable();
-                document.getElementById('case-apply-form').reset();
+                applyData._rowIndex = new Date().getTime(); 
+                applyListRaw.push(applyData); renderApplyListTable(); document.getElementById('case-apply-form').reset();
             }).finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="ph-bold ph-paper-plane-right"></i> 送出申請書`;
-                if(currentRole === 'admin') {
-                    switchTab('apply-list');
-                }
+                btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-paper-plane-right"></i> 送出申請書`;
+                if(currentRole === 'admin') switchTab('apply-list');
             });
         }
 
         function copyAddress(checkbox) {
-            if (checkbox.checked) {
-                document.getElementById('apply-reg-address').value = document.getElementById('apply-curr-address').value;
-            } else {
-                document.getElementById('apply-reg-address').value = '';
-            }
+            if (checkbox.checked) document.getElementById('apply-reg-address').value = document.getElementById('apply-curr-address').value;
+            else document.getElementById('apply-reg-address').value = '';
         }
 
+        // ====== 訪視紀錄系統 ======
         function updateCaseDropdown() {
-            const dataList = document.getElementById('case-name-list');
-            if(!dataList) return;
+            const dataList = document.getElementById('case-name-list'); if(!dataList) return;
             let options = '';
             let uniqueCases = [...new Set(caseListRaw.map(r => r['個案姓名']).filter(n => n))];
             uniqueCases.forEach(name => { options += `<option value="${name}"></option>`; });
@@ -3005,55 +2609,32 @@
         function renderCaseListTable() {
             let filterValue = document.getElementById('caselist-search-filter').value.toLowerCase().trim();
             let filteredData = caseListRaw;
-            if (filterValue) {
-                filteredData = caseListRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
-            }
+            if (filterValue) filteredData = caseListRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
 
-            const tbody = document.getElementById('caselist-tbody');
-            if(!tbody) return;
+            const tbody = document.getElementById('caselist-tbody'); if(!tbody) return;
             tbody.innerHTML = '';
-            
-            if(filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-stone-300 font-bold">目前無個案資料</td></tr>';
-                return;
-            }
+            if(filteredData.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-stone-300 font-bold">目前無個案資料</td></tr>'; return; }
 
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
+            const today = new Date(); const currentYear = today.getFullYear(); const currentMonth = today.getMonth();
 
             filteredData.forEach(r => {
                 const caseName = r['個案姓名'] || '-';
                 const validVisits = visitDataRaw.filter(v => v['個案姓名'] === caseName && !(v['狀態'] || '').includes('取消'));
-                validVisits.sort((a, b) => {
-                    let dA = new Date(a['訪視\n日期'] || a['訪視日期'] || 0);
-                    let dB = new Date(b['訪視\n日期'] || b['訪視日期'] || 0);
-                    return dB - dA;
-                });
+                validVisits.sort((a, b) => { return new Date(b['訪視\n日期'] || b['訪視日期'] || 0) - new Date(a['訪視\n日期'] || a['訪視日期'] || 0); });
 
-                let needsHomeVisit = true;
-                let needsMonthVisit = true;
-                let lastAnyVisitDate = null;
-
+                let needsHomeVisit = true, needsMonthVisit = true, lastAnyVisitDate = null;
                 if (validVisits.length > 0) {
                     lastAnyVisitDate = new Date(validVisits[0]['訪視\n日期'] || validVisits[0]['訪視日期']);
-                    if (lastAnyVisitDate.getFullYear() === currentYear && lastAnyVisitDate.getMonth() === currentMonth) {
-                        needsMonthVisit = false;
-                    }
+                    if (lastAnyVisitDate.getFullYear() === currentYear && lastAnyVisitDate.getMonth() === currentMonth) needsMonthVisit = false;
                     const lastHomeVisit = validVisits.find(v => (v['訪視方式'] || '').includes('家訪'));
                     if (lastHomeVisit) {
                         let hDate = new Date(lastHomeVisit['訪視\n日期'] || lastHomeVisit['訪視日期']);
-                        let monthDiff = (currentYear - hDate.getFullYear()) * 12 + (currentMonth - hDate.getMonth());
-                        if (monthDiff <= 2) { 
-                            needsHomeVisit = false;
-                        }
+                        if ((currentYear - hDate.getFullYear()) * 12 + (currentMonth - hDate.getMonth()) <= 2) needsHomeVisit = false;
                     }
                 }
 
-                let alertHtml = '';
-                if (needsHomeVisit) alertHtml = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-md text-[10px] font-black">🚨 需安排家訪</span>`;
-                else if (needsMonthVisit) alertHtml = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-md text-[10px] font-black">⚠️ 需本月電訪</span>`;
-                else alertHtml = `<span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-[10px] font-black">✅ 訪視達標</span>`;
+                let alertHtml = needsHomeVisit ? `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-md text-[10px] font-black">🚨 需安排家訪</span>` 
+                    : (needsMonthVisit ? `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-md text-[10px] font-black">⚠️ 需本月電訪</span>` : `<span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-[10px] font-black">✅ 訪視達標</span>`);
 
                 let lastDateStr = '<span class="text-stone-400 text-[10px] ml-2">無紀錄</span>';
                 if (lastAnyVisitDate) {
@@ -3069,42 +2650,22 @@
                 else statusBadge = `<span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-lg text-[10px] font-black">${statusBadge}</span>`;
 
                 let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${statusBadge}</td>
-                    <td class="font-bold text-stone-500">${r['自訂案號'] || '-'}</td>
-                    <td class="font-black text-gray-800 text-base">${caseName}</td>
-                    <td><span class="bg-stone-800 text-white px-2 py-1 rounded-md text-[10px] font-black">CMS ${r['CMS等級'] || '-'}</span></td>
-                    <td class="font-bold text-stone-600">${r['主責居服'] || '-'}</td>
-                    <td>${latestVisitInfo}</td>
-                    <td>
-                        <button onclick="openAddVisitModal('${caseName}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-plus"></i> 寫紀錄</button>
-                    </td>
-                `;
+                tr.innerHTML = `<td>${statusBadge}</td><td class="font-bold text-stone-500">${r['自訂案號'] || '-'}</td><td class="font-black text-gray-800 text-base">${caseName}</td><td><span class="bg-stone-800 text-white px-2 py-1 rounded-md text-[10px] font-black">CMS ${r['CMS等級'] || '-'}</span></td><td class="font-bold text-stone-600">${r['主責居服'] || '-'}</td><td>${latestVisitInfo}</td><td><button onclick="openAddVisitModal('${caseName}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-plus"></i> 寫紀錄</button></td>`;
                 tbody.appendChild(tr);
             });
         }
-
         function applyCaseListFilter() { renderCaseListTable(); }
 
         function renderVisitTable() {
             let filterValue = document.getElementById('visit-search-filter').value.toLowerCase().trim();
             let filteredData = visitDataRaw;
-            if (filterValue) {
-                filteredData = visitDataRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
-            }
+            if (filterValue) filteredData = visitDataRaw.filter(r => String(r['個案姓名'] || '').toLowerCase().includes(filterValue));
 
-            const tbody = document.getElementById('visit-tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-stone-300 font-bold">目前無訪視紀錄</td></tr>';
-                return;
-            }
+            const tbody = document.getElementById('visit-tbody'); if(!tbody) return; tbody.innerHTML = '';
+            if(filteredData.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-stone-300 font-bold">目前無訪視紀錄</td></tr>'; return; }
 
             [...filteredData].reverse().forEach(r => {
                 let statusBadge = r['狀態'] || '';
-                
                 if(statusBadge.includes('完成') || statusBadge.includes('輸出')) statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
                 else if(statusBadge.includes('未輸出') || statusBadge.includes('安排中')) statusBadge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
                 else if(statusBadge.includes('取消')) statusBadge = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-black">${r['狀態']}</span>`;
@@ -3112,109 +2673,71 @@
 
                 let summaryPreview = String(r['訪視概況'] || '');
                 if(summaryPreview.length > 25) summaryPreview = summaryPreview.substring(0, 25) + '...';
-
                 let dateStr = r['訪視\n日期'] || r['訪視日期'] || '';
                 if(dateStr.includes('T')) dateStr = dateStr.split('T')[0];
 
                 let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${statusBadge}</td>
-                    <td class="font-black text-gray-800">${r['個案姓名'] || '-'}</td>
-                    <td>${dateStr || '-'}</td>
-                    <td>${r['訪視\n時間'] || r['訪視時間'] || '-'}</td>
-                    <td>${r['訪視目的'] || '-'}</td>
-                    <td>${r['訪視方式'] || '-'}</td>
-                    <td class="text-stone-500 whitespace-normal text-xs" style="max-width: 250px;" title="${String(r['訪視概況'] || '').replace(/"/g, '&quot;')}">${summaryPreview}</td>
-                    <td>
-                        <div class="flex gap-2">
-                            <button onclick='openViewVisitModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors" title="檢視詳細內容"><i class="ph-bold ph-eye"></i></button>
-                            <button onclick='openEditVisitModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick='deleteRecordAPI("visit", ${r._rowIndex})' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
-                        </div>
-                    </td>
-                `;
+                tr.innerHTML = `<td>${statusBadge}</td><td class="font-black text-gray-800">${r['個案姓名'] || '-'}</td><td>${dateStr || '-'}</td><td>${r['訪視\n時間'] || r['訪視時間'] || '-'}</td><td>${r['訪視目的'] || '-'}</td><td>${r['訪視方式'] || '-'}</td><td class="text-stone-500 whitespace-normal text-xs" style="max-width: 250px;" title="${String(r['訪視概況'] || '').replace(/"/g, '&quot;')}">${summaryPreview}</td><td><div class="flex gap-2"><button onclick='openViewVisitModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors" title="檢視詳細內容"><i class="ph-bold ph-eye"></i></button><button onclick='openEditVisitModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button><button onclick='openDeleteRecord("visit", ${r._rowIndex}, "訪視紀錄")' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button></div></td>`;
                 tbody.appendChild(tr);
             });
         }
-
         function applyVisitFilter() { renderVisitTable(); }
 
         function openViewVisitModal(record) {
             document.getElementById('view-name').innerText = record['個案姓名'] || '-';
             document.getElementById('view-status').innerText = record['狀態'] || '-';
-            
             let dStr = record['訪視\n日期'] || record['訪視日期'] || '-';
             if(dStr && dStr.includes('T')) dStr = dStr.split('T')[0];
             document.getElementById('view-date').innerText = dStr;
-            
             document.getElementById('view-time').innerText = record['訪視\n時間'] || record['訪視時間'] || '-';
             document.getElementById('view-purpose').innerText = record['訪視目的'] || '-';
             document.getElementById('view-method').innerText = record['訪視方式'] || '-';
             document.getElementById('view-freq').innerText = record['服務頻率與時段'] || '-';
-            
             document.getElementById('view-notes').innerText = record['訪視概況'] || '無內容';
             document.getElementById('view-output').innerText = record['訪視紀錄產出'] || '尚未產出正式紀錄';
 
-            const modal = document.getElementById('view-visit-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => { 
-                modal.classList.remove('opacity-0'); 
-                document.getElementById('view-visit-modal-box').classList.remove('scale-95'); 
-            });
+            const modal = document.getElementById('view-visit-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('view-visit-modal-box').classList.remove('scale-95'); });
         }
 
         function closeViewVisitModal() {
-            const modal = document.getElementById('view-visit-modal'); 
-            document.getElementById('view-visit-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            const modal = document.getElementById('view-visit-modal'); document.getElementById('view-visit-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         function openAddVisitModal(prefillName = '') {
             document.getElementById('visit-add-form').reset();
             document.getElementById('vi-row-index').value = '';
             document.getElementById('btn-submit-visit').innerText = '確認新增紀錄';
-            
-            if (prefillName) {
-                document.getElementById('vi-name').value = prefillName;
-            }
-
-            const modal = document.getElementById('add-visit-modal');
-            modal.classList.remove('hidden');
+            if (prefillName) document.getElementById('vi-name').value = prefillName;
+            const modal = document.getElementById('add-visit-modal'); modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
         }
 
         function openEditVisitModal(rowIndex, record) {
             document.getElementById('visit-add-form').reset();
             document.getElementById('vi-row-index').value = rowIndex;
-            
             document.getElementById('vi-status').value = record['狀態'] || '✅ 已完成';
             document.getElementById('vi-name').value = record['個案姓名'] || '';
-            
             let dStr = record['訪視\n日期'] || record['訪視日期'] || '';
             if(dStr) {
                 let parts = String(dStr).split(/[-/]/);
                 if (parts.length >= 3) document.getElementById('vi-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].substring(0,2).padStart(2, '0')}`;
             }
-            
             document.getElementById('vi-time').value = record['訪視\n時間'] || record['訪視時間'] || '';
             document.getElementById('vi-purpose').value = record['訪視目的'] || '';
             document.getElementById('vi-method').value = record['訪視方式'] || '';
             document.getElementById('vi-freq').value = record['服務頻率與時段'] || '';
             document.getElementById('vi-notes').value = record['訪視概況'] || '';
             document.getElementById('vi-output').value = record['訪視紀錄產出'] || '';
-
             document.getElementById('btn-submit-visit').innerText = '儲存修改';
-            const modal = document.getElementById('add-visit-modal');
-            modal.classList.remove('hidden');
+            const modal = document.getElementById('add-visit-modal'); modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-visit-modal-box').classList.remove('scale-95'); });
         }
 
         function closeAddVisitModal() {
-            const modal = document.getElementById('add-visit-modal'); 
-            document.getElementById('add-visit-modal-box').classList.add('scale-95');
-            modal.classList.add('opacity-0'); 
-            setTimeout(() => { modal.classList.add('hidden'); document.getElementById('visit-add-form').reset(); }, 300);
+            const modal = document.getElementById('add-visit-modal'); document.getElementById('add-visit-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); document.getElementById('visit-add-form').reset(); }, 300);
         }
 
         function saveVisitRecord() {
@@ -3226,71 +2749,36 @@
             if(dateVal) dateVal = dateVal.replace(/-/g, '/'); 
 
             const newRecord = {
-                '狀態': document.getElementById('vi-status').value,
-                '個案姓名': name,
-                '訪視日期': dateVal,
-                '訪視時間': document.getElementById('vi-time').value,
-                '訪視目的': document.getElementById('vi-purpose').value,
-                '訪視方式': document.getElementById('vi-method').value,
-                '服務頻率與時段': document.getElementById('vi-freq').value,
-                '訪視概況': document.getElementById('vi-notes').value,
-                '訪視紀錄產出': document.getElementById('vi-output').value
+                '狀態': document.getElementById('vi-status').value, '個案姓名': name, '訪視日期': dateVal, '訪視時間': document.getElementById('vi-time').value,
+                '訪視目的': document.getElementById('vi-purpose').value, '訪視方式': document.getElementById('vi-method').value, '服務頻率與時段': document.getElementById('vi-freq').value,
+                '訪視概況': document.getElementById('vi-notes').value, '訪視紀錄產出': document.getElementById('vi-output').value
             };
 
-            closeAddVisitModal();
-            showToast("正在同步訪視紀錄至雲端...", "info");
-
+            closeAddVisitModal(); showToast("正在同步訪視紀錄至雲端...", "info");
             const actionName = rowIndex ? 'editVisitRecord' : 'addVisitRecord';
             const payload = { action: actionName, type: 'visit', record: newRecord };
             if (rowIndex) payload.rowIndex = parseInt(rowIndex);
 
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    showToast("✅ 儲存成功", "success");
-                    triggerSync(true); 
-                } else showToast("後端儲存異常", "error");
-            }).catch(err => {
-                showToast("無法連線雲端", "error");
-            });
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+            .then(r => r.json()).then(res => { if(res.status === 'success') { showToast("✅ 儲存成功", "success"); triggerSync(true); } else showToast("後端儲存異常", "error"); })
+            .catch(err => { showToast("無法連線雲端", "error"); });
         }
 
         function generateVisitRecordAI() {
-            const name = document.getElementById('vi-name').value;
-            const purpose = document.getElementById('vi-purpose').value;
-            const freq = document.getElementById('vi-freq').value;
-            const notes = document.getElementById('vi-notes').value;
+            const name = document.getElementById('vi-name').value; const purpose = document.getElementById('vi-purpose').value;
+            const freq = document.getElementById('vi-freq').value; const notes = document.getElementById('vi-notes').value;
 
             if(!name || !notes) return showToast("請先選擇個案並填寫訪視概況", "error");
 
             showToast("✨ AI 正在努力撰寫中，請稍候...", "info");
-            const btn = document.getElementById('btn-ai-gen');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 產出中...`;
+            const btn = document.getElementById('btn-ai-gen'); btn.disabled = true; btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> 產出中...`;
 
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    action: 'generateVisitRecordAI', 
-                    name: name, 
-                    purpose: purpose, 
-                    freq: freq, 
-                    notes: notes 
-                })
-            }).then(r => r.json()).then(res => {
-                if(res.status === 'success') {
-                    document.getElementById('vi-output').value = res.text;
-                    showToast("✅ AI 撰寫完成！您可以編修後點擊儲存。", "success");
-                } else {
-                    showToast("產生失敗：" + (res.message || "未知錯誤"), "error");
-                }
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'generateVisitRecordAI', name: name, purpose: purpose, freq: freq, notes: notes }) })
+            .then(r => r.json()).then(res => {
+                if(res.status === 'success') { document.getElementById('vi-output').value = res.text; showToast("✅ AI 撰寫完成！您可以編修後點擊儲存。", "success"); } 
+                else { showToast("產生失敗：" + (res.message || "未知錯誤"), "error"); }
             }).catch(() => showToast("連線異常", "error"))
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="ph-bold ph-magic-wand"></i> ✨ 一鍵智能產出`;
-            });
+            .finally(() => { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-magic-wand"></i> ✨ 一鍵智能產出`; });
         }
     </script>
 </body>

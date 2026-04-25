@@ -804,61 +804,130 @@
                             </div>
                         </div>
 
-                        <div class="content-card p-8">
-                            <h4 class="text-xl font-bold text-stone-800 mb-1">現場檢查清單</h4>
-                            <p class="text-sm text-stone-500 mb-6">受檢時請逐一確認</p>
-                            
-                            <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                <h5 class="font-bold text-orange-800 text-sm mt-2 mb-1 border-b border-orange-100 pb-1">傳染病篩檢</h5>
-                                
-                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="check-tb" class="w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                                        <span class="ml-3 text-sm text-stone-800 font-bold">胸部 X 光（大片）</span>
-                                    </div>
-                                    <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">篩檢肺結核，長照人員最基本傳染病防護指標。</div>
-                                </label>
+<div class="content-card p-8">
+    <h4 class="text-xl font-bold text-stone-800 mb-1">現場檢查清單</h4>
+    <p class="text-sm text-stone-500 mb-6">受檢時請逐一確認</p>
+    
+    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+        
+        <h5 class="font-bold text-orange-800 text-sm mt-2 mb-1 border-b border-orange-100 pb-1">傳染病篩檢</h5>
+        
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-tb" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">胸部 X 光（大片）</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">肺結核 (TB) 檢查（最重要項目）</div>
+        </label>
 
-                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="check-scabies" class="w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                                        <span class="ml-3 text-sm text-stone-800 font-bold">皮膚檢查 (疥瘡)</span>
-                                    </div>
-                                    <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">確認無疥瘡感染，防範接觸性傳染，保護長輩與自己。</div>
-                                </label>
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-scabies" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">皮膚檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">確認有無疥瘡 (Scabies) 感染</div>
+        </label>
 
-                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="check-hepb" class="w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                                        <span class="ml-3 text-sm text-stone-800 font-bold">B 型肝炎檢查</span>
-                                    </div>
-                                    <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">檢測表面抗原與抗體，確認自身免疫力與帶原狀態。</div>
-                                </label>
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-hepb" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">B 型肝炎檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">HBsAg 抗原及 Anti-HBs 抗體</div>
+        </label>
 
-                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="check-stool" class="w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                                        <span class="ml-3 text-sm text-stone-800 font-bold">糞便檢查 (阿米巴/痢疾)</span>
-                                    </div>
-                                    <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">排除腸道傳染病，確保接觸與照護安全。</div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-stool" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">糞便檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">桿菌性痢疾、阿米巴性痢疾及寄生蟲感染檢驗</div>
+        </label>
 
-                    <div class="content-card p-8">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div>
-                                <h4 class="text-xl font-bold border-l-4 border-orange-500 pl-3 text-stone-800">彰化推薦醫院</h4>
-                                <p class="text-sm text-stone-500 mt-1">依據審核速度與費用推薦</p>
-                            </div>
-                            <div class="flex bg-stone-100 p-1 rounded-xl self-start">
-                                <button id="btn-hosp-all" onclick="filterExamHospitals('all')" class="px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-orange-600 transition">全部</button>
-                                <button id="btn-hosp-public" onclick="filterExamHospitals('public')" class="px-4 py-2 text-xs font-bold rounded-lg text-stone-500 transition">公立/衛生所</button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="exam-hospital-list"></div>
-                    </div>
+        <h5 class="font-bold text-orange-800 text-sm mt-5 mb-1 border-b border-orange-100 pb-1">基本理學</h5>
+        
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-general" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">一般檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">身高、體重、血壓、視力、聽力</div>
+        </label>
+
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-doctor" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">醫師問診</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">既往病史、自覺症狀、理學檢查</div>
+        </label>
+
+        <h5 class="font-bold text-orange-800 text-sm mt-5 mb-1 border-b border-orange-100 pb-1">實驗室檢驗</h5>
+
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-urine" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">尿液檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">尿蛋白、尿潛血</div>
+        </label>
+
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-blood" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">血液檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">血色素、白血球數</div>
+        </label>
+
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-biochem" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">生化檢查</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">血糖、總膽固醇、三酸甘油脂、HDL/LDL</div>
+        </label>
+
+        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
+            <div class="flex items-center">
+                <input type="checkbox" id="chk-liverkidney" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
+                <span class="ml-3 text-sm text-stone-800 font-bold">肝腎功能</span>
+            </div>
+            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">GPT (ALT)、肌酸酐 (Creatinine)</div>
+        </label>
+        
+    </div>
+
+    <div class="text-center pt-5 mt-2">
+        <span class="text-[10px] font-bold text-stone-400 tracking-wider">註：打勾狀態僅暫存於本設備瀏覽器中。</span>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const examCheckboxes = document.querySelectorAll('.exam-chk');
+        
+        examCheckboxes.forEach(chk => {
+            if (localStorage.getItem(chk.id) === 'true') chk.checked = true;
+            chk.addEventListener('change', (e) => localStorage.setItem(e.target.id, e.target.checked));
+        });
+    });
+</script>
+
+                   <div class="content-card p-8 col-span-full">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h4 class="text-xl font-bold border-l-4 border-orange-500 pl-3 text-stone-800">彰化推薦醫院</h4>
+            <p class="text-sm text-stone-500 mt-1">依據審核速度與費用推薦</p>
+        </div>
+        <div class="flex bg-stone-100 p-1 rounded-xl self-start">
+            <button id="btn-hosp-all" onclick="filterExamHospitals('all')" class="px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-orange-600 transition">全部</button>
+            <button id="btn-hosp-public" onclick="filterExamHospitals('public')" class="px-4 py-2 text-xs font-bold rounded-lg text-stone-500 transition">公立/衛生所</button>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="exam-hospital-list"></div>
+</div>
                 </section>
 
                 <section id="content-contract" class="content-section hidden-section">

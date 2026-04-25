@@ -121,7 +121,7 @@
         .step-active { border-color: #f97316 !important; background-color: #fff7ed !important; }
         .chart-container-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; height: 300px; }
 
-        /* 列印專用樣式 - 已修復申請書列印裁切問題 */
+        /* 列印專用樣式 */
         @media print {
             @page { size: A4 portrait; margin: 1.5cm; }
             body * { visibility: hidden; }
@@ -306,6 +306,9 @@
                 <nav class="space-y-2 flex-1">
                     <div id="menu-superadmin" class="hidden-section space-y-2 mb-4 pb-4 border-b-2 border-orange-100">
                         <div class="text-[10px] font-black text-orange-500 uppercase px-4 mb-2">Admin</div>
+                        <div onclick="switchTab('document')" id="tab-document" class="nav-item">
+                            <i class="ph-bold ph-file-archive text-xl"></i> 公文登記簿
+                        </div>
                         <div onclick="switchTab('manage')" id="tab-manage" class="nav-item">
                             <i class="ph-bold ph-sliders text-xl"></i> 資料維護中心
                         </div>
@@ -369,8 +372,7 @@
                 </div>
             </div>
         </aside>
-
-        <main class="flex-1 min-w-0">
+<main class="flex-1 min-w-0">
             <div class="bg-white q-card p-8 md:p-12 min-h-full relative overflow-hidden">
                 
                 <section id="content-manage" class="content-section hidden-section">
@@ -434,93 +436,6 @@
                 </section>
 
                 <section id="content-hr" class="content-section hidden-section">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-users text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
-                            <h3 class="text-3xl font-black text-gray-800">人資與薪資系統</h3>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <button onclick="openPayslipPublishModal()" class="admin-edit-btn hidden flex items-center gap-2 bg-white text-orange-500 border-2 border-orange-500 px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-50 transition-colors shadow-sm">
-                                <i class="ph-bold ph-toggle-right text-lg"></i> 發佈開關
-                            </button>
-                            <button onclick="openAddHRModal()" class="admin-edit-btn hidden flex items-center gap-2 bg-stone-800 text-white px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md">
-                                <i class="ph-bold ph-plus"></i> 新增資料
-                            </button>
-                            <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
-                                <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
-                                <input type="text" id="hr-search-filter" oninput="applyHRFilter()" placeholder="搜尋姓名或編號..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
-                            </div>
-                            <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border-2 border-stone-100" id="hr-month-filter-container">
-                                <i class="ph-bold ph-calendar-blank text-stone-400"></i>
-                                <select id="hr-month-filter" onchange="applyHRFilter()" class="bg-transparent text-stone-700 font-bold text-sm outline-none cursor-pointer">
-                                    <option value="all">全部月份</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 mb-8 overflow-x-auto custom-scrollbar pb-2">
-                        <button onclick="switchHRTab('personnel')" id="tab-hr-personnel" class="hr-tab bg-orange-500 text-white shadow-md">人事基本資料</button>
-                        <button onclick="switchHRTab('payroll')" id="tab-hr-payroll" class="hr-tab bg-stone-50 text-stone-500">當月薪資計算表</button>
-                        <button onclick="switchHRTab('aabonus')" id="tab-hr-aabonus" class="hr-tab bg-stone-50 text-stone-500">AA碼獎金總表</button>
-                    </div>
-
-                    <div id="hr-personnel" class="hr-section animate-page overflow-x-auto custom-scrollbar">
-                        <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>員工編號</th><th>姓名</th><th>身分證</th><th>職位</th><th>到職日</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead>
-                            <tbody id="hr-personnel-tbody"></tbody>
-                        </table>
-                    </div>
-
-                    <div id="hr-payroll" class="hr-section hidden-section overflow-x-auto custom-scrollbar">
-                        <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr>
-                                <th>月份</th><th>員工編號</th><th>姓名</th><th>薪資模式</th><th>薪資級距</th><th>時薪</th><th>總時數</th><th>轉場時間</th>
-                                <th>平日薪資(含月薪)</th><th>總薪資</th><th>實發總額(匯款)</th><th>公司總成本</th><th>操作</th>
-                            </tr></thead>
-                            <tbody id="hr-payroll-tbody"></tbody>
-                        </table>
-                        <p class="text-xs text-stone-400 font-bold mt-4">* 點擊右側「編輯」按鈕可檢視/填寫完整的 38 項工時與加班欄位。</p>
-                    </div>
-
-                    <div id="hr-aabonus" class="hr-section hidden-section overflow-x-auto custom-scrollbar">
-                        <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>服務人員身分證</th><th>姓名</th><th>AA04 次數</th><th>AA05 次數</th><th>AA06 次數</th><th>AA07 次數</th><th>金額總計</th><th>操作</th></tr></thead>
-                            <tbody id="hr-aabonus-tbody"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section id="content-apply-list" class="content-section hidden-section">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-bold ph-list-magnifying-glass text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
-                            <h3 class="text-3xl font-black text-gray-800">開發個案審核清冊</h3>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
-                            <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
-                            <input type="text" id="apply-list-search-filter" oninput="applyApplyListFilter()" placeholder="搜尋個案姓名或申請人..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
-                        </div>
-                    </div>
-                    <p class="text-xs text-stone-500 font-bold mb-4">所有居服員或員工透過系統送出的「長照服務申請書」皆會彙整於此，您可點擊預覽並將格式印出轉交照管中心。</p>
-                    
-                    <div class="overflow-x-auto custom-scrollbar bg-white rounded-[30px] border-2 border-stone-100 p-4">
-                        <table class="custom-table w-full whitespace-nowrap">
-                            <thead>
-                                <tr>
-                                    <th>申請提交時間</th>
-                                    <th>個案姓名</th>
-                                    <th>身分證</th>
-                                    <th>申請服務項目</th>
-                                    <th>協助申請員工</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="apply-list-tbody"></tbody>
-                        </table>
-                    </div>
-                </section>
-<section id="content-hr" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
                             <i class="ph-bold ph-users text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
@@ -675,6 +590,42 @@
                     </div>
                 </section>
 
+                <section id="content-document" class="content-section hidden-section">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
+                        <div class="flex items-center gap-3">
+                            <i class="ph-bold ph-file-archive text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
+                            <h3 class="text-3xl font-black text-gray-800">公文登記簿</h3>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="openAddDocumentModal()" class="admin-edit-btn hidden flex items-center gap-2 bg-stone-800 text-white px-4 py-2 rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md">
+                                <i class="ph-bold ph-plus"></i> 新增公文紀錄
+                            </button>
+                            <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border-2 border-stone-200 focus-within:border-orange-500 transition-colors">
+                                <i class="ph-bold ph-magnifying-glass text-stone-400"></i>
+                                <input type="text" id="doc-search-filter" oninput="applyDocumentFilter()" placeholder="搜尋字號或主旨..." class="bg-transparent text-stone-700 font-bold text-sm outline-none w-32 md:w-48">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar bg-white rounded-[30px] border-2 border-stone-100 p-4">
+                        <table class="custom-table w-full whitespace-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>類型</th>
+                                    <th>日期</th>
+                                    <th>字號</th>
+                                    <th>機關</th>
+                                    <th class="w-1/3">主旨</th>
+                                    <th>承辦人</th>
+                                    <th>狀態</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="document-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
@@ -804,130 +755,40 @@
                             </div>
                         </div>
 
-<div class="content-card p-8">
-    <h4 class="text-xl font-bold text-stone-800 mb-1">現場檢查清單</h4>
-    <p class="text-sm text-stone-500 mb-6">受檢時請逐一確認</p>
-    
-    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-        
-        <h5 class="font-bold text-orange-800 text-sm mt-2 mb-1 border-b border-orange-100 pb-1">傳染病篩檢</h5>
-        
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-tb" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">胸部 X 光（大片）</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">肺結核 (TB) 檢查（最重要項目）</div>
-        </label>
+                        <div class="content-card p-8">
+                            <h4 class="text-xl font-bold text-stone-800 mb-1">現場檢查清單</h4>
+                            <p class="text-sm text-stone-500 mb-6">受檢時請逐一確認</p>
+                            <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                <h5 class="font-bold text-orange-800 text-sm mt-2 mb-1 border-b border-orange-100 pb-1">傳染病篩檢</h5>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-tb" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">胸部 X 光（大片）</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">肺結核 (TB) 檢查（最重要項目）</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-scabies" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">皮膚檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">確認有無疥瘡 (Scabies) 感染</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-hepb" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">B 型肝炎檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">HBsAg 抗原及 Anti-HBs 抗體</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-stool" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">糞便檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">桿菌性痢疾、阿米巴性痢疾及寄生蟲感染檢驗</div></label>
+                                <h5 class="font-bold text-orange-800 text-sm mt-5 mb-1 border-b border-orange-100 pb-1">基本理學</h5>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-general" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">一般檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">身高、體重、血壓、視力、聽力</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-doctor" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">醫師問診</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">既往病史、自覺症狀、理學檢查</div></label>
+                                <h5 class="font-bold text-orange-800 text-sm mt-5 mb-1 border-b border-orange-100 pb-1">實驗室檢驗</h5>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-urine" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">尿液檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">尿蛋白、尿潛血</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-blood" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">血液檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">血色素、白血球數</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-biochem" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">生化檢查</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">血糖、總膽固醇、三酸甘油脂、HDL/LDL</div></label>
+                                <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition"><div class="flex items-center"><input type="checkbox" id="chk-liverkidney" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300"><span class="ml-3 text-sm text-stone-800 font-bold">肝腎功能</span></div><div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">GPT (ALT)、肌酸酐 (Creatinine)</div></label>
+                            </div>
+                            <div class="text-center pt-5 mt-2">
+                                <span class="text-[10px] font-bold text-stone-400 tracking-wider">註：打勾狀態僅暫存於本設備瀏覽器中。</span>
+                            </div>
+                        </div>
 
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-scabies" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">皮膚檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">確認有無疥瘡 (Scabies) 感染</div>
-        </label>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-hepb" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">B 型肝炎檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">HBsAg 抗原及 Anti-HBs 抗體</div>
-        </label>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-stool" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">糞便檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">桿菌性痢疾、阿米巴性痢疾及寄生蟲感染檢驗</div>
-        </label>
-
-        <h5 class="font-bold text-orange-800 text-sm mt-5 mb-1 border-b border-orange-100 pb-1">基本理學</h5>
-        
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-general" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">一般檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">身高、體重、血壓、視力、聽力</div>
-        </label>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-doctor" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">醫師問診</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">既往病史、自覺症狀、理學檢查</div>
-        </label>
-
-        <h5 class="font-bold text-orange-800 text-sm mt-5 mb-1 border-b border-orange-100 pb-1">實驗室檢驗</h5>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-urine" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">尿液檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">尿蛋白、尿潛血</div>
-        </label>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-blood" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">血液檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">血色素、白血球數</div>
-        </label>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-biochem" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">生化檢查</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">血糖、總膽固醇、三酸甘油脂、HDL/LDL</div>
-        </label>
-
-        <label class="flex flex-col p-3 bg-stone-50 rounded-xl hover:bg-stone-100 cursor-pointer transition">
-            <div class="flex items-center">
-                <input type="checkbox" id="chk-liverkidney" class="exam-chk w-5 h-5 accent-orange-500 rounded focus:ring-orange-300">
-                <span class="ml-3 text-sm text-stone-800 font-bold">肝腎功能</span>
-            </div>
-            <div class="text-xs text-stone-500 mt-1.5 ml-8 leading-relaxed">GPT (ALT)、肌酸酐 (Creatinine)</div>
-        </label>
-        
-    </div>
-
-    <div class="text-center pt-5 mt-2">
-        <span class="text-[10px] font-bold text-stone-400 tracking-wider">註：打勾狀態僅暫存於本設備瀏覽器中。</span>
-    </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const examCheckboxes = document.querySelectorAll('.exam-chk');
-        
-        examCheckboxes.forEach(chk => {
-            if (localStorage.getItem(chk.id) === 'true') chk.checked = true;
-            chk.addEventListener('change', (e) => localStorage.setItem(e.target.id, e.target.checked));
-        });
-    });
-</script>
-
-                   <div class="content-card p-8 col-span-full">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-            <h4 class="text-xl font-bold border-l-4 border-orange-500 pl-3 text-stone-800">彰化推薦醫院</h4>
-            <p class="text-sm text-stone-500 mt-1">依據審核速度與費用推薦</p>
-        </div>
-        <div class="flex bg-stone-100 p-1 rounded-xl self-start">
-            <button id="btn-hosp-all" onclick="filterExamHospitals('all')" class="px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-orange-600 transition">全部</button>
-            <button id="btn-hosp-public" onclick="filterExamHospitals('public')" class="px-4 py-2 text-xs font-bold rounded-lg text-stone-500 transition">公立/衛生所</button>
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="exam-hospital-list"></div>
-</div>
+                        <div class="content-card p-8 col-span-full">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div><h4 class="text-xl font-bold border-l-4 border-orange-500 pl-3 text-stone-800">彰化推薦醫院</h4><p class="text-sm text-stone-500 mt-1">依據審核速度與費用推薦</p></div>
+                                <div class="flex bg-stone-100 p-1 rounded-xl self-start">
+                                    <button id="btn-hosp-all" onclick="filterExamHospitals('all')" class="px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-orange-600 transition">全部</button>
+                                    <button id="btn-hosp-public" onclick="filterExamHospitals('public')" class="px-4 py-2 text-xs font-bold rounded-lg text-stone-500 transition">公立/衛生所</button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="exam-hospital-list"></div>
+                        </div>
+                    </div>
                 </section>
 
                 <section id="content-contract" class="content-section hidden-section">
@@ -950,7 +811,6 @@
                                 <label class="text-sm font-black text-orange-500">選擇員工(管理預覽)</label>
                                 <select id="admin-preview-emp" onchange="initMyPayslip()" class="p-3 bg-orange-50 border-2 border-orange-200 text-orange-700 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer shadow-sm"></select>
                             </div>
-                            
                             <div class="flex items-center gap-2">
                                 <label class="text-sm font-black text-stone-500">選擇結算月份</label>
                                 <select id="my-payslip-month" onchange="renderMyPayslip()" class="p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm cursor-pointer"></select>
@@ -1082,7 +942,6 @@
     </div>
 <div id="apply-preview-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col relative" id="apply-preview-modal-box">
-            
             <div class="flex justify-between items-center mb-6 no-print border-b-2 border-stone-100 pb-4">
                 <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
                     <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-printer"></i></div> 申請書預覽與列印
@@ -1092,9 +951,56 @@
                     <button onclick="closeApplyPreviewModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
                 </div>
             </div>
+            <div id="apply-print-container" class="apply-form-print bg-white mx-auto w-full max-w-[800px] p-4 text-black"></div>
+        </div>
+    </div>
 
-            <div id="apply-print-container" class="apply-form-print bg-white mx-auto w-full max-w-[800px] p-4 text-black">
+    <div id="add-doc-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-4xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-doc-modal-box">
+            <div class="flex justify-between items-center mb-6 border-b-2 border-stone-100 pb-4">
+                <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-file-archive"></i></div> 公文紀錄單
+                </h3>
+                <button onclick="closeAddDocumentModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            <form id="doc-add-form" class="space-y-5">
+                <input type="hidden" id="doc-row-index" value="">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                    <div>
+                        <label class="block text-xs font-black text-stone-500 mb-1 text-red-500">類型 *</label>
+                        <select id="doc-type" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none">
+                            <option value="發文">📤 發文</option>
+                            <option value="收文">📥 收文</option>
+                            <option value="簽呈">📝 簽呈</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">日期 *</label><input type="date" id="doc-date" required class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                    <div class="col-span-2"><label class="block text-xs font-black text-stone-500 mb-1">字號</label><input type="text" id="doc-number" placeholder="例: 暖暖字第115001號" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
                 </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-500">來文/受文機關</label><input type="text" id="doc-agency" placeholder="例: 彰化縣衛生局" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-blue-500 text-sm"></div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">承辦人</label><input type="text" id="doc-owner" placeholder="例: 曾昱凱" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                </div>
+                
+                <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">主旨 *</label><textarea id="doc-subject" rows="4" placeholder="請簡述公文主旨與說明事項..." required class="w-full p-4 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm custom-scrollbar leading-relaxed"></textarea></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">辦理狀態</label>
+                        <select id="doc-status" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                            <option value="辦理中">⏳ 辦理中</option>
+                            <option value="已發文">✅ 已發文</option>
+                            <option value="已結案歸檔">📁 已結案歸檔</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-black text-stone-500 mb-1">備註 / 附件說明</label><input type="text" id="doc-memo" placeholder="例: 附特約契約書四份" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                </div>
+
+                <div class="flex gap-4 pt-4 mt-6 border-t-2 border-stone-100">
+                    <button type="button" onclick="closeAddDocumentModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
+                    <button type="button" id="btn-submit-doc" onclick="saveDocumentRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認存檔</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1383,7 +1289,7 @@
         var hrDataRaw = { personnel: [], payroll: [], aabonus: [] }; 
         var visitDataRaw = []; 
         var caseListRaw = [];
-        var applyListRaw = []; 
+        var applyListRaw = [], documentDataRaw = []; 
         var allUsersList = [], signedFilesList = [], publishedPayslipMonths = [];
         
         let examChartInitialized = false;
@@ -1543,6 +1449,7 @@
                     users: [{email: currentUserEmail, name: currentUserDisplayName || "管理員", role: "admin"}],
                     personnel: [{ "員工編號": "EMP-001", "姓名": currentUserDisplayName || "測試員", "身分證": "A123456789", "職位": "居服員", "狀態": "在職中" }],
                     payroll: [], aaBonus: [], visit: [], caseList: [], applyList: applyListRaw, 
+                    documentList: [], // 測試模式加入公文空陣列
                     income: [], expense: [], petty: [], driveFiles: {}, signedFiles: [], contents: {}
                 };
                 processSyncData(mockData, false);
@@ -1619,12 +1526,15 @@
             visitDataRaw = Array.isArray(d.visit) ? d.visit.filter(isValidRow) : []; 
             caseListRaw = Array.isArray(d.caseList) ? d.caseList : []; 
             applyListRaw = Array.isArray(d.applyList) ? d.applyList : []; 
+            documentDataRaw = Array.isArray(d.documentList) ? d.documentList.filter(isValidRow) : []; // 解析公文
+            
             signedFilesList = Array.isArray(d.signedFiles) ? d.signedFiles : [];
             allDriveFiles = d.driveFiles || {};
             
             rebuildMonthFilter(); applyFinanceFilter(); 
             rebuildHRMonthFilter(); applyHRFilter(); 
-            renderCaseListTable(); renderVisitTable(); updateCaseDropdown(); renderApplyListTable();
+            renderCaseListTable(); renderVisitTable(); updateCaseDropdown(); 
+            renderApplyListTable(); renderDocumentTable(); // 渲染公文
             renderManageTable(); renderUsersTable(); renderPublicFiles(); 
             
             try {
@@ -1649,7 +1559,7 @@
         // ====== 共用基礎與表格渲染函數 ======
         function switchTab(id) {
             if (currentRole === 'unauthorized') return;
-            const adminOnlyTabs = ['manage', 'hr', 'caselist', 'visit', 'apply-list'];
+            const adminOnlyTabs = ['manage', 'hr', 'caselist', 'visit', 'apply-list', 'document'];
             const shareholderOnlyTabs = ['finance'];
             
             if (currentRole === 'staff' && (adminOnlyTabs.includes(id) || shareholderOnlyTabs.includes(id))) { showToast('權限不足，僅限管理員存取', 'error'); return; }
@@ -1734,6 +1644,7 @@
                 let actionName = ''; let dataType = currentDeleteType;
                 if (currentDeleteType === 'applyList') actionName = 'deleteApplyRecord'; 
                 else if (currentDeleteType === 'visit') actionName = 'deleteVisitRecord';
+                else if (currentDeleteType === 'document') actionName = 'deleteDocumentRecord'; 
                 else {
                     actionName = 'deleteFinanceRecord'; 
                     if (['personnel', 'payroll', 'aabonus'].includes(currentDeleteType)) actionName = 'deleteHRRecord';
@@ -1928,8 +1839,7 @@
                 if(res.status === 'success') { showToast("✅ 權限已移除", "success"); triggerSync(true); } else showToast("移除失敗", "error");
             }).catch(() => showToast("連線異常", "error"));
         }
-
-        // ====== 財務系統 ======
+// ====== 財務系統 ======
         function getMonthStr(row, monthField = '月份歸屬(自動)') {
             if(!row) return '未知';
             let monthVal = row[monthField]; 
@@ -2167,6 +2077,31 @@
             modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); document.getElementById('hr-add-form').reset(); }, 300);
         }
 
+        function switchHRTab(type) {
+            document.querySelectorAll('.hr-tab').forEach(tab => {
+                tab.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+                tab.classList.add('bg-stone-50', 'text-stone-500');
+            });
+            document.getElementById('tab-hr-' + type).classList.remove('bg-stone-50', 'text-stone-500');
+            document.getElementById('tab-hr-' + type).classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            
+            document.querySelectorAll('.hr-section').forEach(sec => sec.classList.add('hidden-section'));
+            document.getElementById('hr-' + type).classList.remove('hidden-section');
+            
+            if(type === 'personnel') document.getElementById('hr-month-filter-container').classList.add('hidden');
+            else document.getElementById('hr-month-filter-container').classList.remove('hidden');
+        }
+
+        function switchHRFormType(type) {
+            document.getElementById('hr-type').value = type;
+            ['personnel', 'payroll', 'aabonus'].forEach(t => {
+                const btn = document.getElementById('btn-hr-type-' + t); const isSelected = (t === type);
+                btn.className = isSelected ? `px-6 py-2 rounded-lg text-sm font-black bg-white shadow-sm text-orange-500 transition-all` : `px-6 py-2 rounded-lg text-sm font-black text-stone-500 hover:bg-stone-200 transition-all`;
+                const group = document.getElementById('hr-group-' + t);
+                if(group) group.style.display = isSelected ? 'block' : 'none';
+            });
+        }
+
         function saveHRRecord() {
             const type = document.getElementById('hr-type').value;
             const rowIndex = document.getElementById('hr-row-index').value;
@@ -2265,6 +2200,18 @@
                 if (type === 'payroll') document.getElementById('hr-pay-empid').value = matched['員工編號'] || '';
                 else if (type === 'aabonus') document.getElementById('hr-aa-id').value = matched['身分證'] || '';
             }
+        }
+
+        function switchFinanceTab(type) {
+            document.querySelectorAll('.finance-tab').forEach(tab => {
+                tab.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+                tab.classList.add('bg-stone-50', 'text-stone-500');
+            });
+            document.getElementById('tab-fin-' + type).classList.remove('bg-stone-50', 'text-stone-500');
+            document.getElementById('tab-fin-' + type).classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            
+            document.querySelectorAll('.fin-section').forEach(sec => sec.classList.add('hidden-section'));
+            document.getElementById('fin-' + type).classList.remove('hidden-section');
         }
 
         // ====== 個人薪資明細 ======
@@ -2849,6 +2796,141 @@
             }).catch(() => showToast("連線異常", "error"))
             .finally(() => { btn.disabled = false; btn.innerHTML = `<i class="ph-bold ph-magic-wand"></i> ✨ 一鍵智能產出`; });
         }
+
+        // ====== 公文登記簿系統 ======
+        function renderDocumentTable() {
+            let filterValue = document.getElementById('doc-search-filter').value.toLowerCase().trim();
+            let filteredData = documentDataRaw;
+            
+            if (filterValue) {
+                filteredData = documentDataRaw.filter(r => 
+                    String(r['字號'] || '').toLowerCase().includes(filterValue) ||
+                    String(r['主旨'] || '').toLowerCase().includes(filterValue) ||
+                    String(r['機關'] || '').toLowerCase().includes(filterValue)
+                );
+            }
+
+            const tbody = document.getElementById('document-tbody');
+            if(!tbody) return; tbody.innerHTML = '';
+            
+            if(filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-stone-300 font-bold">目前無公文登記資料</td></tr>';
+                return;
+            }
+
+            [...filteredData].reverse().forEach((r) => {
+                let type = r['類型'] || '發文';
+                let typeStyle = type.includes('發文') ? 'text-orange-600 bg-orange-50 border-orange-200' : 
+                                (type.includes('收文') ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-stone-600 bg-stone-100 border-stone-200');
+                
+                let status = r['狀態'] || '辦理中';
+                let statusStyle = status.includes('結案') || status.includes('歸檔') ? 'text-green-600 bg-green-50' : 
+                                 (status.includes('發文') ? 'text-blue-600 bg-blue-50' : 'text-orange-600 bg-orange-50');
+
+                let subject = r['主旨'] || '-';
+                if(subject.length > 30) subject = subject.substring(0, 30) + '...';
+
+                let tr = document.createElement('tr');
+                let deleteBtnHtml = currentRole === 'admin' && r._rowIndex ? 
+                    `<button onclick="openDeleteRecord('document', ${r._rowIndex}, '${r['字號'] || '公文'}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-trash"></i></button>` : '';
+
+                let editBtnHtml = currentRole === 'admin' ? 
+                    `<button onclick='openEditDocumentModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-pencil-simple"></i></button>` : '';
+
+                tr.innerHTML = `
+                    <td><span class="px-2 py-1 rounded-md text-[10px] font-black border ${typeStyle}">${type}</span></td>
+                    <td class="font-bold text-stone-500">${r['日期'] || '-'}</td>
+                    <td class="font-black text-gray-800">${r['字號'] || '-'}</td>
+                    <td class="font-bold text-stone-600">${r['機關'] || '-'}</td>
+                    <td title="${r['主旨'] || ''}" class="whitespace-normal text-xs leading-relaxed" style="max-width: 300px;">${subject}</td>
+                    <td><span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-md text-[10px] font-black">${r['承辦人'] || '-'}</span></td>
+                    <td><span class="px-2 py-1 rounded-lg text-[10px] font-black ${statusStyle}">${status}</span></td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            ${editBtnHtml}
+                            ${deleteBtnHtml}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyDocumentFilter() { renderDocumentTable(); }
+
+        function openAddDocumentModal() {
+            document.getElementById('doc-add-form').reset();
+            document.getElementById('doc-row-index').value = '';
+            document.getElementById('doc-date').valueAsDate = new Date();
+            document.getElementById('doc-owner').value = currentUserDisplayName; // 預設帶入本人
+            document.getElementById('btn-submit-doc').innerText = '確認存檔';
+            const modal = document.getElementById('add-doc-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-doc-modal-box').classList.remove('scale-95'); });
+        }
+
+        function openEditDocumentModal(rowIndex, record) {
+            document.getElementById('doc-add-form').reset();
+            document.getElementById('doc-row-index').value = rowIndex;
+            
+            let typeVal = record['類型'] || '發文';
+            let matchType = Array.from(document.getElementById('doc-type').options).find(opt => opt.value.includes(typeVal.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '')));
+            document.getElementById('doc-type').value = matchType ? matchType.value : typeVal;
+
+            let dStr = record['日期'] || '';
+            if(dStr) {
+                let parts = String(dStr).split(/[-/]/);
+                if (parts.length >= 3) document.getElementById('doc-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].substring(0,2).padStart(2, '0')}`;
+            }
+            
+            document.getElementById('doc-number').value = record['字號'] || '';
+            document.getElementById('doc-agency').value = record['機關'] || '';
+            document.getElementById('doc-owner').value = record['承辦人'] || '';
+            document.getElementById('doc-subject').value = record['主旨'] || '';
+            
+            let statusVal = record['狀態'] || '辦理中';
+            let matchStatus = Array.from(document.getElementById('doc-status').options).find(opt => opt.value.includes(statusVal.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '')));
+            document.getElementById('doc-status').value = matchStatus ? matchStatus.value : statusVal;
+
+            document.getElementById('doc-memo').value = record['備註'] || '';
+
+            document.getElementById('btn-submit-doc').innerText = '儲存修改';
+            const modal = document.getElementById('add-doc-modal'); modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-doc-modal-box').classList.remove('scale-95'); });
+        }
+
+        function closeAddDocumentModal() {
+            const modal = document.getElementById('add-doc-modal'); document.getElementById('add-doc-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); document.getElementById('doc-add-form').reset(); }, 300);
+        }
+
+        function saveDocumentRecord() {
+            const rowIndex = document.getElementById('doc-row-index').value;
+            let dateVal = document.getElementById('doc-date').value;
+            if(dateVal) dateVal = dateVal.replace(/-/g, '/'); 
+
+            const newRecord = {
+                '類型': document.getElementById('doc-type').value.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, ''), 
+                '日期': dateVal,
+                '字號': document.getElementById('doc-number').value,
+                '機關': document.getElementById('doc-agency').value,
+                '主旨': document.getElementById('doc-subject').value,
+                '承辦人': document.getElementById('doc-owner').value,
+                '狀態': document.getElementById('doc-status').value.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, ''),
+                '備註': document.getElementById('doc-memo').value
+            };
+
+            if(!newRecord['主旨']) return showToast("主旨為必填項目", "error");
+
+            closeAddDocumentModal(); showToast("正在同步公文紀錄至雲端...", "info");
+            const actionName = rowIndex ? 'editDocumentRecord' : 'addDocumentRecord';
+            const payload = { action: actionName, type: 'document', record: newRecord };
+            if (rowIndex) payload.rowIndex = parseInt(rowIndex);
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+            .then(r => r.json()).then(res => { if(res.status === 'success') { showToast("✅ 儲存成功", "success"); triggerSync(true); } else showToast("後端儲存異常", "error"); })
+            .catch(err => { showToast("無法連線雲端", "error"); });
+        }
+
     </script>
 </body>
 </html>

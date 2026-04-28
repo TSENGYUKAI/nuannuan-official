@@ -1702,13 +1702,33 @@
             uploader.addEventListener('change', e => {
                 const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
                 r.onload = ev => {
-                    showToast("正在上傳至雲端...", "info");
+                    showToast("正在上傳至雲端，請稍候...", "info");
                     fetch(GOOGLE_APPS_SCRIPT_URL, { 
                         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) 
+                        body: JSON.stringify({ 
+                            action: 'upload', 
+                            fileName: f.name, 
+                            fileData: ev.target.result.split(',')[1], 
+                            mimeType: f.type, 
+                            folderType: document.getElementById('uploadFolder').value,
+                            useAutoPublish: true // 🔥 補上這個參數，讓檔案上傳後自動發佈
+                        }) 
                     })
-                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
-                    .catch(() => showToast("上傳連線異常", "error"));
+                    .then(res => res.json())
+                    .then(res => { 
+                        if(res.status === "success") { 
+                            showToast("✅ 上傳成功", "success"); 
+                            setTimeout(() => triggerSync(true), 1500); 
+                        } else { 
+                            // 🔥 這裡會把後端真正的死因印在畫面上！
+                            showToast("上傳失敗：" + (res.message || "未知錯誤"), "error"); 
+                            console.error("後端回傳錯誤：", res.message);
+                        } 
+                    })
+                    .catch(err => { 
+                        showToast("連線異常 (可能是網址沒更新或 CORS 阻擋)", "error"); 
+                        console.error("Fetch 錯誤：", err);
+                    });
                 }; 
                 r.readAsDataURL(f); e.target.value = '';
             });

@@ -121,19 +121,20 @@
         .step-active { border-color: #f97316 !important; background-color: #fff7ed !important; }
         .chart-container-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; height: 300px; }
 
-        /* 列印專用樣式 */
+        /* 列印專用樣式 (包含薪資單、開發個案、人事資料卡) */
         @media print {
             @page { size: A4 portrait; margin: 1.5cm; }
             body * { visibility: hidden; }
+            
+            /* 薪資單列印 */
             #my-digital-payslip, #my-digital-payslip * { visibility: visible; }
             #my-digital-payslip { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; padding: 0 !important; }
             
+            /* 個案申請書列印 */
             body.printing-apply { height: auto; overflow: visible !important; background: white; margin: 0; }
             body.printing-apply * { visibility: hidden; }
-            
             body.printing-apply #apply-preview-modal, 
             body.printing-apply #apply-preview-modal * { visibility: visible; }
-            
             body.printing-apply #apply-preview-modal { 
                 display: block !important; position: absolute !important; left: 0; top: 0; 
                 width: 100%; min-height: 100vh; overflow: visible !important; background: white !important; 
@@ -143,12 +144,27 @@
                 transform: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; 
                 width: 100% !important; max-width: 100% !important; 
             }
-            
             body.printing-apply .no-print { display: none !important; }
             body.printing-apply #apply-print-container { margin: 0; width: 100%; max-width: 100%; }
+
+            /* 人事資料卡列印 */
+            body.printing-emp { height: auto; overflow: visible !important; background: white; margin: 0; }
+            body.printing-emp * { visibility: hidden; }
+            body.printing-emp #emp-profile-modal, 
+            body.printing-emp #emp-profile-modal * { visibility: visible; }
+            body.printing-emp #emp-profile-modal { 
+                display: block !important; position: absolute !important; left: 0; top: 0; 
+                width: 100%; min-height: 100vh; overflow: visible !important; background: white !important; 
+            }
+            body.printing-emp #emp-profile-modal-box { 
+                max-height: none !important; height: auto !important; overflow: visible !important; 
+                transform: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; 
+                width: 100% !important; max-width: 100% !important; border: none !important;
+            }
+            body.printing-emp .no-print { display: none !important; }
         }
 
-        /* --- 開發個案申請書 完美復刻 PDF 樣式 --- */
+        /* 開發個案申請書 完美復刻 PDF 樣式 */
         .apply-form-print {
             font-family: "DFKai-SB", "BiauKai", "MingLiU", "Noto Sans TC", serif;
             color: #000;
@@ -158,60 +174,15 @@
             max-width: 21cm;
             margin: 0 auto;
         }
-        .apply-form-print .header-note {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        .apply-form-print .form-title {
-            font-size: 26px;
-            font-weight: bold;
-            text-align: center;
-            letter-spacing: 4px;
-            margin-bottom: 10px;
-        }
-        .apply-form-print .top-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .apply-form-print .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 5px;
-        }
-        .apply-form-print table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 2px solid #000;
-            margin-bottom: 10px;
-        }
-        .apply-form-print th, .apply-form-print td {
-            border: 1px solid #000;
-            padding: 8px 10px;
-            vertical-align: top;
-        }
-        .apply-form-print .check-box {
-            font-size: 18px;
-            font-family: monospace;
-            line-height: 1;
-            margin-right: 2px;
-        }
-        .apply-form-print .underline {
-            border-bottom: 1px solid #000;
-            display: inline-block;
-            min-width: 40px;
-            text-align: center;
-            padding: 0 4px;
-        }
-        .apply-form-print .note-text {
-            font-size: 12px;
-            color: #333;
-        }
+        .apply-form-print .header-note { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+        .apply-form-print .form-title { font-size: 26px; font-weight: bold; text-align: center; letter-spacing: 4px; margin-bottom: 10px; }
+        .apply-form-print .top-options { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; font-size: 14px; }
+        .apply-form-print .section-title { font-size: 18px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
+        .apply-form-print table { width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 10px; }
+        .apply-form-print th, .apply-form-print td { border: 1px solid #000; padding: 8px 10px; vertical-align: top; }
+        .apply-form-print .check-box { font-size: 18px; font-family: monospace; line-height: 1; margin-right: 2px; }
+        .apply-form-print .underline { border-bottom: 1px solid #000; display: inline-block; min-width: 40px; text-align: center; padding: 0 4px; }
+        .apply-form-print .note-text { font-size: 12px; color: #333; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4 md:p-8 relative text-stone-700">
@@ -469,7 +440,7 @@
 
                     <div id="hr-personnel" class="hr-section animate-page overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>員工編號</th><th>姓名</th><th>身分證</th><th>職位</th><th>到職日</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead>
+                            <thead><tr><th>員工編號</th><th>姓名</th><th>聯絡電話</th><th>職位</th><th>專業證照</th><th>到職日</th><th>狀態</th><th>操作</th></tr></thead>
                             <tbody id="hr-personnel-tbody"></tbody>
                         </table>
                     </div>
@@ -625,8 +596,7 @@
                         </table>
                     </div>
                 </section>
-
-                <section id="content-finance" class="content-section hidden-section">
+<section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
                             <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
@@ -825,8 +795,7 @@
                     <h4 class="text-lg font-black text-gray-800 mt-12 mb-4 no-print border-t-2 border-stone-100 pt-8">📁 雲端夾帶檔案 (如扣繳憑單)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 no-print" id="salary-files-container"></div>
                 </section>
-
-                <section id="content-apply" class="content-section hidden-section">
+<section id="content-apply" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-file-plus text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 開發個案協助申請
                     </h3>
@@ -940,7 +909,30 @@
             </div>
         </main>
     </div>
-<div id="apply-preview-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+
+    <!-- ===== 以下為所有彈出視窗(Modal) 區塊 ===== -->
+    
+    <!-- 人事資料卡列印預覽 Modal -->
+    <div id="emp-profile-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-4xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col relative" id="emp-profile-modal-box">
+            <div class="flex justify-between items-center mb-6 no-print border-b-2 border-stone-100 pb-4">
+                <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
+                    <div class="bg-orange-100 text-orange-500 p-1.5 rounded-lg"><i class="ph-bold ph-user-focus"></i></div> 員工資料卡預覽
+                </h3>
+                <div class="flex gap-3">
+                    <button onclick="printEmpProfile()" class="px-5 py-2.5 bg-stone-800 text-white rounded-xl text-sm font-black hover:bg-orange-500 transition-colors shadow-md flex items-center gap-2"><i class="ph-bold ph-printer text-lg"></i> 列印 / 轉存 PDF</button>
+                    <button onclick="closeEmpProfileModal()" class="text-stone-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+                </div>
+            </div>
+            <!-- 列印內容區塊 -->
+            <div id="emp-profile-print-container" class="bg-white mx-auto w-full text-black font-sans">
+                <!-- 將由 JS 動態生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 開發個案預覽列印 Modal -->
+    <div id="apply-preview-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-5xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col relative" id="apply-preview-modal-box">
             <div class="flex justify-between items-center mb-6 no-print border-b-2 border-stone-100 pb-4">
                 <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
@@ -954,8 +946,7 @@
             <div id="apply-print-container" class="apply-form-print bg-white mx-auto w-full max-w-[800px] p-4 text-black"></div>
         </div>
     </div>
-
-    <div id="add-doc-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+<div id="add-doc-modal" class="fixed inset-0 bg-stone-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[30px] p-6 md:p-8 w-full max-w-4xl shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="add-doc-modal-box">
             <div class="flex justify-between items-center mb-6 border-b-2 border-stone-100 pb-4">
                 <h3 class="text-2xl font-black text-gray-800 flex items-center gap-2">
@@ -1102,17 +1093,83 @@
             <form id="hr-add-form" class="space-y-4">
                 <input type="hidden" id="hr-type" value="personnel">
                 <input type="hidden" id="hr-row-index" value="">
-                <div id="hr-group-personnel" class="space-y-4">
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">員工編號</label><input type="text" id="hr-emp-id" placeholder="EMP-001" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">員工姓名</label><input type="text" id="hr-emp-name" placeholder="輸入姓名" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">身分證</label><input type="text" id="hr-emp-sid" placeholder="輸入身分證字號" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">職位</label><select id="hr-emp-role" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"><option value="居服員">居服員</option><option value="行政人員">行政人員</option><option value="業務負責人">業務負責人</option><option value="護理人員">護理人員</option><option value="其他">其他</option></select></div>
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">到職日</label><input type="date" id="hr-emp-date" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">狀態</label><select id="hr-emp-status" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"><option value="在職中">🟢 在職中</option><option value="留職停薪">🟡 留職停薪</option><option value="公傷病假">🟠 公傷病假</option><option value="育嬰留停">🟣 育嬰留停</option><option value="離職">🔴 離職</option></select></div>
-                        <div class="col-span-2 md:col-span-3"><label class="block text-xs font-black text-stone-500 mb-1">備註 (登打Gmail可綁定帳號)</label><input type="text" id="hr-emp-memo" placeholder="輸入Gmail帳號可綁定系統認證" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
+                
+                <div id="hr-group-personnel" class="space-y-6">
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-orange-600 mb-4 flex items-center gap-2 border-b border-orange-200 pb-2"><i class="ph-fill ph-user"></i> 1. 基本身分</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">員工編號 *</label><input type="text" id="hr-emp-id" placeholder="EMP-001" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">員工姓名 *</label><input type="text" id="hr-emp-name" placeholder="輸入姓名" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">身分證字號 *</label><input type="text" id="hr-emp-sid" placeholder="A123456789" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">性別</label><select id="hr-emp-gender" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"><option value="">請選擇</option><option value="男">男</option><option value="女">女</option></select></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">出生年月日</label><input type="date" id="hr-emp-dob" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">籍貫</label><input type="text" id="hr-emp-birthplace" placeholder="例: 彰化縣" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">學歷</label><input type="text" id="hr-emp-edu" placeholder="最高學歷" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">婚姻狀況</label><select id="hr-emp-marriage" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"><option value="">請選擇</option><option value="已婚">已婚</option><option value="未婚">未婚</option></select></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">役別</label><input type="text" id="hr-emp-military" placeholder="免役/退伍等" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-orange-500 outline-none"></div>
+                            <div class="col-span-2 md:col-span-3">
+                                <label class="block text-xs font-black text-stone-500 mb-1">駕照資格</label>
+                                <div class="flex flex-wrap gap-4 mt-2">
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="hr-emp-license-moto" value="機車駕照" class="w-4 h-4 accent-orange-500"><span class="text-sm font-bold">機車駕照</span></label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="hr-emp-license-car" value="汽車駕照" class="w-4 h-4 accent-orange-500"><span class="text-sm font-bold">汽車駕照</span></label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="hr-emp-license-pro" value="職業駕照" class="w-4 h-4 accent-orange-500"><span class="text-sm font-bold">職業駕照</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-blue-600 mb-4 flex items-center gap-2 border-b border-blue-200 pb-2"><i class="ph-fill ph-phone-call"></i> 2. 聯繫與緊急聯絡資訊</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-blue-600">聯絡電話 (手機)</label><input type="tel" id="hr-emp-phone" placeholder="09XX-XXXXXX" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div class="md:col-span-2"><label class="block text-xs font-black text-stone-500 mb-1">通訊地址</label><input type="text" id="hr-emp-address" placeholder="現居地址" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div class="md:col-span-3"><label class="block text-xs font-black text-stone-500 mb-1">戶籍地址</label><input type="text" id="hr-emp-reg-address" placeholder="身分證背面地址" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">緊急聯絡人姓名 *</label><input type="text" id="hr-emp-emer-name" placeholder="聯絡人姓名" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">與員工關係</label><input type="text" id="hr-emp-emer-rel" placeholder="如：配偶、母子" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">緊急聯絡人電話 *</label><input type="tel" id="hr-emp-emer-phone" placeholder="緊急聯絡電話" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <div class="flex justify-between items-center mb-4 border-b border-indigo-200 pb-2">
+                            <h4 class="text-sm font-black text-indigo-600 flex items-center gap-2"><i class="ph-fill ph-users-three"></i> 3. 家庭狀況</h4>
+                            <button type="button" onclick="addFamilyRow()" class="text-[10px] bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg font-black hover:bg-indigo-200 transition-colors flex items-center gap-1 shadow-sm"><i class="ph-bold ph-plus"></i> 新增成員</button>
+                        </div>
+                        <div id="hr-family-container" class="space-y-3">
+                            <!-- 家庭成員將透過 JS 動態新增 -->
+                        </div>
+                        <input type="hidden" id="hr-emp-family-data" value="[]">
+                    </div>
+
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <div class="flex justify-between items-center mb-4 border-b border-teal-200 pb-2">
+                            <h4 class="text-sm font-black text-teal-600 flex items-center gap-2"><i class="ph-fill ph-briefcase"></i> 4. 過往工作經歷</h4>
+                            <button type="button" onclick="addExpRow()" class="text-[10px] bg-teal-100 text-teal-700 px-3 py-1 rounded-lg font-black hover:bg-teal-200 transition-colors flex items-center gap-1 shadow-sm"><i class="ph-bold ph-plus"></i> 新增經歷</button>
+                        </div>
+                        <div id="hr-exp-container" class="space-y-3">
+                            <!-- 經歷將透過 JS 動態新增 -->
+                        </div>
+                        <input type="hidden" id="hr-emp-exp-data" value="[]">
+                    </div>
+
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-green-600 mb-4 flex items-center gap-2 border-b border-green-200 pb-2"><i class="ph-fill ph-medal"></i> 5. 職務與專業背景</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="block text-xs font-black text-stone-500 mb-1 text-red-500">職位 *</label><select id="hr-emp-role" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"><option value="居服員">居服員</option><option value="社工員">社工員</option><option value="護理人員">護理人員</option><option value="行政人員">行政人員</option><option value="業務負責人">業務負責人</option><option value="其他">其他</option></select></div>
+                            <div class="md:col-span-2"><label class="block text-xs font-black text-stone-500 mb-1 text-green-600">專業證照</label><input type="text" id="hr-emp-license" placeholder="如：單一級證照、社工師證書" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">到職日</label><input type="date" id="hr-emp-date" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"></div>
+                            <div><label class="block text-xs font-black text-stone-500 mb-1">在職狀態</label><select id="hr-emp-status" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-green-500 outline-none"><option value="在職中">🟢 在職中</option><option value="留職停薪">🟡 留職停薪</option><option value="公傷病假">🟠 公傷病假</option><option value="育嬰留停">🟣 育嬰留停</option><option value="離職">🔴 離職</option></select></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+                        <h4 class="text-sm font-black text-purple-600 mb-4 flex items-center gap-2 border-b border-purple-200 pb-2"><i class="ph-fill ph-link"></i> 6. 系統綁定與備註</h4>
+                        <div><label class="block text-xs font-black text-stone-500 mb-1 text-purple-600">系統登入 Gmail (必填，以利觀看薪資單與綁定權限)</label><input type="email" id="hr-emp-memo" placeholder="輸入員工的 Google 帳號" class="w-full p-2.5 bg-white border-2 border-stone-200 rounded-lg text-sm font-bold focus:border-purple-500 outline-none"></div>
                     </div>
                 </div>
+
                 <div id="hr-group-payroll" class="space-y-6 hidden">
                     <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
                         <h4 class="text-sm font-black text-orange-600 mb-4 flex items-center gap-2 border-b border-orange-200 pb-2"><i class="ph-fill ph-identification-card"></i> 基本設定</h4>
@@ -1149,6 +1206,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div id="hr-group-aabonus" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="block text-xs font-black text-stone-500 mb-1">姓名</label><select id="hr-aa-name" onchange="autoFillEmpId('aabonus', this.value)" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700"><option value="">請選擇人員</option></select></div>
@@ -1162,6 +1220,7 @@
                     </div>
                     <div><label class="block text-xs font-black text-stone-500 mb-1 text-green-600">金額總計</label><input type="number" id="hr-aa-total" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-green-500 text-sm"></div>
                 </div>
+                
                 <div class="flex gap-4 pt-4 mt-6 border-t-2 border-stone-100">
                     <button type="button" onclick="closeAddHRModal()" class="flex-1 py-3 rounded-xl font-black text-stone-500 bg-stone-100 hover:bg-stone-200 transition-colors">取消</button>
                     <button type="button" id="btn-submit-hr" onclick="saveHRRecord()" class="flex-1 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all">確認送出</button>
@@ -1278,7 +1337,7 @@
             </div>
         </div>
     </div>
-
+<!-- ===== JavaScript ===== -->
     <script>
         // 🚨 這裡務必填入您最新部署的 Google Apps Script 網址
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzKRNsT2G936jTUg0pmaqll1Wa8ggPNW3p4zxdpqhnPlWXg4qEaITD4BouTiucr872bA/exec";
@@ -1449,7 +1508,7 @@
                     users: [{email: currentUserEmail, name: currentUserDisplayName || "管理員", role: "admin"}],
                     personnel: [{ "員工編號": "EMP-001", "姓名": currentUserDisplayName || "測試員", "身分證": "A123456789", "職位": "居服員", "狀態": "在職中" }],
                     payroll: [], aaBonus: [], visit: [], caseList: [], applyList: applyListRaw, 
-                    documentList: [], // 測試模式加入公文空陣列
+                    documentList: [],
                     income: [], expense: [], petty: [], driveFiles: {}, signedFiles: [], contents: {}
                 };
                 processSyncData(mockData, false);
@@ -1526,7 +1585,7 @@
             visitDataRaw = Array.isArray(d.visit) ? d.visit.filter(isValidRow) : []; 
             caseListRaw = Array.isArray(d.caseList) ? d.caseList : []; 
             applyListRaw = Array.isArray(d.applyList) ? d.applyList : []; 
-            documentDataRaw = Array.isArray(d.documentList) ? d.documentList.filter(isValidRow) : []; // 解析公文
+            documentDataRaw = Array.isArray(d.documentList) ? d.documentList.filter(isValidRow) : [];
             
             signedFilesList = Array.isArray(d.signedFiles) ? d.signedFiles : [];
             allDriveFiles = d.driveFiles || {};
@@ -1534,7 +1593,7 @@
             rebuildMonthFilter(); applyFinanceFilter(); 
             rebuildHRMonthFilter(); applyHRFilter(); 
             renderCaseListTable(); renderVisitTable(); updateCaseDropdown(); 
-            renderApplyListTable(); renderDocumentTable(); // 渲染公文
+            renderApplyListTable(); renderDocumentTable();
             renderManageTable(); renderUsersTable(); renderPublicFiles(); 
             
             try {
@@ -1573,6 +1632,29 @@
             if(a) a.classList.add('active');
 
             if (id === 'health-exam') { setTimeout(initExamChart, 100); showExamStep(1); filterExamHospitals('all'); }
+        }
+
+        function switchFinanceTab(type) {
+            document.querySelectorAll('.finance-tab').forEach(tab => {
+                tab.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
+                tab.classList.add('bg-stone-50', 'text-stone-500');
+            });
+            const activeTab = document.getElementById('tab-fin-' + type);
+            if(activeTab) {
+                activeTab.classList.remove('bg-stone-50', 'text-stone-500');
+                activeTab.classList.add('bg-orange-500', 'text-white', 'shadow-md');
+            }
+            
+            document.querySelectorAll('.fin-section').forEach(sec => {
+                sec.classList.add('hidden-section');
+                sec.classList.remove('grid');
+            });
+            
+            const activeSec = document.getElementById('fin-' + type);
+            if(activeSec) {
+                activeSec.classList.remove('hidden-section');
+                if(type === 'overview') activeSec.classList.add('grid');
+            }
         }
 
         function formatDisplayName(originalName) {
@@ -1616,8 +1698,14 @@
 
                 let tdAction = document.createElement('td');
                 if (currentRole === 'admin') {
+                    let extraBtn = '';
+                    if (typeName === 'hr-personnel') {
+                        extraBtn = `<button onclick='openEmpProfileModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors shadow-sm" title="預覽與列印資料卡"><i class="ph-bold ph-printer"></i></button>`;
+                    }
+
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
+                            ${extraBtn}
                             <button onclick="openEditFormModal('${typeName}', ${r._rowIndex}, ${escapeHtml(r)})" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
                             <button onclick="openDeleteRecord('${typeName}', ${r._rowIndex}, '行號: ${r._rowIndex}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
                         </div>
@@ -1633,6 +1721,105 @@
         function openEditFormModal(type, rowIndex, record) {
             if(type === 'income' || type === 'expense' || type === 'petty') openEditFinanceModal(type, rowIndex, record);
             else if (type === 'hr-personnel' || type === 'hr-payroll' || type === 'hr-aabonus') openEditHRModal(type, rowIndex, record);
+        }
+
+        // ====== 覆寫員工資料卡預覽與列印功能 (加入所有新欄位) ======
+        function openEmpProfileModal(record) {
+            const container = document.getElementById('emp-profile-print-container');
+            if(!container) return;
+            const val = (v) => (v === undefined || v === null || String(v).trim() === '') ? '<span class="text-stone-300">未填寫</span>' : v;
+            
+            let familyHTML = '<div class="col-span-2 text-sm text-stone-500 text-center py-2">無家庭成員紀錄</div>';
+            try {
+                let fam = JSON.parse(record['家庭狀況'] || '[]');
+                if(fam.length > 0) {
+                    familyHTML = `<table class="w-full text-xs mt-2 mb-4 text-left border-collapse">
+                        <tr class="border-b border-stone-800"><th class="pb-1">稱謂</th><th class="pb-1">姓名</th><th class="pb-1">出生日期</th><th class="pb-1">職業</th><th class="pb-1">電話</th><th class="pb-1">通訊地址</th></tr>`;
+                    fam.forEach(f => {
+                        familyHTML += `<tr class="border-b border-stone-200"><td class="py-1">${f.rel||'-'}</td><td>${f.name||'-'}</td><td>${f.dob||'-'}</td><td>${f.job||'-'}</td><td>${f.phone||'-'}</td><td>${f.addr||'-'}</td></tr>`;
+                    });
+                    familyHTML += `</table>`;
+                }
+            } catch(e) {}
+
+            let expHTML = '<div class="col-span-2 text-sm text-stone-500 text-center py-2">無工作經歷紀錄</div>';
+            try {
+                let exps = JSON.parse(record['動態經歷'] || '[]');
+                if(exps.length > 0) {
+                    expHTML = `<table class="w-full text-xs mt-2 mb-4 text-left border-collapse">
+                        <tr class="border-b border-stone-800"><th class="pb-1">公司名稱</th><th class="pb-1">職稱</th><th class="pb-1">年資</th></tr>`;
+                    exps.forEach(e => {
+                        expHTML += `<tr class="border-b border-stone-200"><td class="py-1">${e.comp||'-'}</td><td>${e.title||'-'}</td><td>${e.dur||'-'}</td></tr>`;
+                    });
+                    expHTML += `</table>`;
+                } else if (record['工作經驗']) {
+                    expHTML = `<div class="mt-2 text-sm text-stone-800">${record['工作經驗']}</div>`;
+                }
+            } catch(e) {}
+
+            container.innerHTML = `
+                <div class="border-2 border-stone-800 p-8 rounded-2xl relative shadow-none">
+                    <div class="text-center border-b-2 border-stone-800 pb-4 mb-6">
+                        <h2 class="text-3xl font-black tracking-widest text-stone-900">暖暖居家長照機構</h2>
+                        <h3 class="text-xl font-bold mt-2 text-stone-600">員工基本資料卡</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-y-3 gap-x-8 text-[14px] leading-relaxed text-stone-800">
+                        <div class="col-span-2 bg-stone-100 p-2 font-black border-l-4 border-orange-500">基本資料</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">員工姓名：</span> ${val(record['姓名'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">員工編號：</span> ${val(record['員工編號'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">身分證字號：</span> ${val(record['身分證'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">性別：</span> ${val(record['性別'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">出生年月日：</span> ${val(record['出生年月日'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">籍貫：</span> ${val(record['籍貫'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">學歷：</span> ${val(record['學歷'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">婚姻狀況：</span> ${val(record['婚姻狀況'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">役別：</span> ${val(record['役別'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">駕照：</span> ${val(record['駕照'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">聯絡電話：</span> ${val(record['聯絡電話'])}</div>
+                        <div class="col-span-2"><span class="font-black text-stone-500 inline-block w-24">通訊地址：</span> ${val(record['通訊地址'])}</div>
+                        <div class="col-span-2"><span class="font-black text-stone-500 inline-block w-24">戶籍地址：</span> ${val(record['戶籍地址'])}</div>
+                        
+                        <div class="col-span-2 bg-stone-100 p-2 font-black border-l-4 border-blue-500 mt-2">緊急聯絡人資訊</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">聯絡人姓名：</span> ${val(record['緊急聯絡人'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">關係：</span> ${val(record['緊急聯絡關係'])}</div>
+                        <div class="col-span-2"><span class="font-black text-stone-500 inline-block w-24">聯絡電話：</span> ${val(record['緊急聯絡電話'])}</div>
+
+                        <div class="col-span-2 bg-stone-100 p-2 font-black border-l-4 border-indigo-500 mt-2">家庭狀況</div>
+                        <div class="col-span-2">${familyHTML}</div>
+
+                        <div class="col-span-2 bg-stone-100 p-2 font-black border-l-4 border-teal-500 mt-2">工作經歷</div>
+                        <div class="col-span-2">${expHTML}</div>
+
+                        <div class="col-span-2 bg-stone-100 p-2 font-black border-l-4 border-green-500 mt-2">職務與專業背景</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">到職日期：</span> ${val(record['到職日'])}</div>
+                        <div><span class="font-black text-stone-500 inline-block w-24">擔任職位：</span> ${val(record['職位'])}</div>
+                        <div class="col-span-2"><span class="font-black text-stone-500 inline-block w-24">專業證照：</span> ${val(record['專業證照'])}</div>
+                        
+                        <div class="col-span-2 bg-stone-100 p-2 font-black border-l-4 border-purple-500 mt-2">系統認證</div>
+                        <div class="col-span-2"><span class="font-black text-stone-500 inline-block w-24">綁定帳號：</span> ${val(record['備註'])}</div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-stone-300 flex justify-between px-10 text-sm">
+                        <div class="text-center"><div class="mb-10 text-stone-400">員工確認簽名</div><div class="border-b border-stone-800 w-32 mx-auto"></div></div>
+                        <div class="text-center"><div class="mb-10 text-stone-400">機構負責人核定</div><div class="border-b border-stone-800 w-32 mx-auto"></div></div>
+                    </div>
+                </div>
+            `;
+            const modal = document.getElementById('emp-profile-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('emp-profile-modal-box').classList.remove('scale-95'); });
+        }
+
+        function closeEmpProfileModal() {
+            const modal = document.getElementById('emp-profile-modal'); document.getElementById('emp-profile-modal-box').classList.add('scale-95');
+            modal.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function printEmpProfile() {
+            document.body.classList.add('printing-emp');
+            window.print();
+            document.body.classList.remove('printing-emp');
         }
 
         // ====== 共用刪除機制 (檔案、表單紀錄) ======
@@ -1702,33 +1889,13 @@
             uploader.addEventListener('change', e => {
                 const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
                 r.onload = ev => {
-                    showToast("正在上傳至雲端，請稍候...", "info");
+                    showToast("正在上傳至雲端...", "info");
                     fetch(GOOGLE_APPS_SCRIPT_URL, { 
                         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ 
-                            action: 'upload', 
-                            fileName: f.name, 
-                            fileData: ev.target.result.split(',')[1], 
-                            mimeType: f.type, 
-                            folderType: document.getElementById('uploadFolder').value,
-                            useAutoPublish: true // 🔥 補上這個參數，讓檔案上傳後自動發佈
-                        }) 
+                        body: JSON.stringify({ action: 'upload', fileName: f.name, fileData: ev.target.result.split(',')[1], mimeType: f.type, folderType: document.getElementById('uploadFolder').value }) 
                     })
-                    .then(res => res.json())
-                    .then(res => { 
-                        if(res.status === "success") { 
-                            showToast("✅ 上傳成功", "success"); 
-                            setTimeout(() => triggerSync(true), 1500); 
-                        } else { 
-                            // 🔥 這裡會把後端真正的死因印在畫面上！
-                            showToast("上傳失敗：" + (res.message || "未知錯誤"), "error"); 
-                            console.error("後端回傳錯誤：", res.message);
-                        } 
-                    })
-                    .catch(err => { 
-                        showToast("連線異常 (可能是網址沒更新或 CORS 阻擋)", "error"); 
-                        console.error("Fetch 錯誤：", err);
-                    });
+                    .then(res => res.json()).then(res => { if(res.status === "success") { showToast("✅ 上傳成功", "success"); setTimeout(() => triggerSync(true), 1500); } else showToast("上傳失敗", "error"); })
+                    .catch(() => showToast("上傳連線異常", "error"));
                 }; 
                 r.readAsDataURL(f); e.target.value = '';
             });
@@ -1859,7 +2026,8 @@
                 if(res.status === 'success') { showToast("✅ 權限已移除", "success"); triggerSync(true); } else showToast("移除失敗", "error");
             }).catch(() => showToast("連線異常", "error"));
         }
-// ====== 財務系統 ======
+
+        // ====== 財務系統 ======
         function getMonthStr(row, monthField = '月份歸屬(自動)') {
             if(!row) return '未知';
             let monthVal = row[monthField]; 
@@ -2003,6 +2171,91 @@
         }
 
         // ====== 人資與薪資系統 ======
+        
+        // --- 動態家庭成員 ---
+        function addFamilyRow(data = {}) {
+            const c = document.getElementById('hr-family-container');
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-2 md:grid-cols-6 gap-2 bg-white p-3 rounded-lg border border-indigo-100 relative';
+            row.innerHTML = `
+                <div><input type="text" placeholder="稱謂" class="w-full p-2 text-xs border rounded focus:border-indigo-500 fam-rel" value="${data.rel||''}"></div>
+                <div><input type="text" placeholder="姓名" class="w-full p-2 text-xs border rounded focus:border-indigo-500 fam-name" value="${data.name||''}"></div>
+                <div><input type="date" title="出生日期" class="w-full p-2 text-xs border rounded focus:border-indigo-500 fam-dob" value="${data.dob||''}"></div>
+                <div><input type="text" placeholder="職業" class="w-full p-2 text-xs border rounded focus:border-indigo-500 fam-job" value="${data.job||''}"></div>
+                <div><input type="text" placeholder="電話" class="w-full p-2 text-xs border rounded focus:border-indigo-500 fam-phone" value="${data.phone||''}"></div>
+                <div class="flex gap-1 items-center">
+                    <input type="text" placeholder="通訊地址" class="w-full p-2 text-xs border rounded focus:border-indigo-500 fam-addr" value="${data.addr||''}">
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="ph-bold ph-x"></i></button>
+                </div>
+            `;
+            c.appendChild(row);
+        }
+
+        function getFamilyData() {
+            const rows = document.querySelectorAll('#hr-family-container > div');
+            let data = [];
+            rows.forEach(r => {
+                data.push({
+                    rel: r.querySelector('.fam-rel').value,
+                    name: r.querySelector('.fam-name').value,
+                    dob: r.querySelector('.fam-dob').value,
+                    job: r.querySelector('.fam-job').value,
+                    phone: r.querySelector('.fam-phone').value,
+                    addr: r.querySelector('.fam-addr').value
+                });
+            });
+            return JSON.stringify(data);
+        }
+
+        function renderFamilyData(jsonStr) {
+            document.getElementById('hr-family-container').innerHTML = '';
+            try {
+                let data = JSON.parse(jsonStr || '[]');
+                if(!Array.isArray(data)) data = [];
+                if(data.length === 0) addFamilyRow(); 
+                else data.forEach(d => addFamilyRow(d));
+            } catch(e) { addFamilyRow(); }
+        }
+
+        // --- 動態經歷 ---
+        function addExpRow(data = {}) {
+            const c = document.getElementById('hr-exp-container');
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-1 md:grid-cols-4 gap-2 bg-white p-3 rounded-lg border border-teal-100 relative';
+            row.innerHTML = `
+                <div class="md:col-span-2"><input type="text" placeholder="公司名稱" class="w-full p-2 text-xs border rounded focus:border-teal-500 exp-comp" value="${data.comp||''}"></div>
+                <div><input type="text" placeholder="職稱" class="w-full p-2 text-xs border rounded focus:border-teal-500 exp-title" value="${data.title||''}"></div>
+                <div class="flex gap-1 items-center">
+                    <input type="text" placeholder="年資 (例: 2年)" class="w-full p-2 text-xs border rounded focus:border-teal-500 exp-dur" value="${data.dur||''}">
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="ph-bold ph-x"></i></button>
+                </div>
+            `;
+            c.appendChild(row);
+        }
+
+        function getExpData() {
+            const rows = document.querySelectorAll('#hr-exp-container > div');
+            let data = [];
+            rows.forEach(r => {
+                data.push({
+                    comp: r.querySelector('.exp-comp').value,
+                    title: r.querySelector('.exp-title').value,
+                    dur: r.querySelector('.exp-dur').value
+                });
+            });
+            return JSON.stringify(data);
+        }
+
+        function renderExpData(jsonStr) {
+            document.getElementById('hr-exp-container').innerHTML = '';
+            try {
+                let data = JSON.parse(jsonStr || '[]');
+                if(!Array.isArray(data)) data = [];
+                if(data.length === 0) addExpRow();
+                else data.forEach(d => addExpRow(d));
+            } catch(e) { addExpRow(); }
+        }
+
         function rebuildHRMonthFilter() {
             let months = new Set();
             if(Array.isArray(hrDataRaw.payroll)) { hrDataRaw.payroll.forEach(row => { if(!row) return; let m = row['月份']; if (m && String(m).trim() !== '') months.add(String(m).trim()); }); }
@@ -2028,7 +2281,7 @@
                 hPer = hPer.filter(matchKeyword); hPay = hPay.filter(matchKeyword); hAA = hAA.filter(matchKeyword);
             }
 
-            renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '身分證', '職位', '到職日', '狀態', '備註'], 'hr-personnel');
+            renderTable('hr-personnel-tbody', hPer, ['員工編號', '姓名', '聯絡電話', '職位', '專業證照', '到職日', '狀態'], 'hr-personnel');
             renderTable('hr-payroll-tbody', hPay, ['月份', '員工編號', '姓名', '薪資模式', '薪資級距', '時薪', '總時數', '轉場時間', '平日薪資(含月薪)', '總薪資', '實發總額(匯款)', '公司總成本'], 'hr-payroll');
             renderTable('hr-aabonus-tbody', hAA, ['服務人員身分證', '姓名', 'AA04 次數', 'AA05 次數', 'AA06 次數', 'AA07 次數', '金額總計'], 'hr-aabonus');
         }
@@ -2037,6 +2290,11 @@
             document.getElementById('hr-add-form').reset();
             document.getElementById('hr-row-index').value = '';
             document.getElementById('btn-submit-hr').innerText = '確認新增';
+            
+            // 預設給一個空欄位
+            renderFamilyData('[]');
+            renderExpData('[]');
+
             switchHRFormType('personnel'); populateNameDropdowns('', '');
             const modal = document.getElementById('add-hr-modal'); modal.classList.remove('hidden');
             requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('add-hr-modal-box').classList.remove('scale-95'); });
@@ -2051,10 +2309,36 @@
                 document.getElementById('hr-emp-id').value = record['員工編號'] || '';
                 document.getElementById('hr-emp-name').value = record['姓名'] || '';
                 document.getElementById('hr-emp-sid').value = record['身分證'] || '';
+                document.getElementById('hr-emp-gender').value = record['性別'] || '';
+                if(record['出生年月日']) {
+                    let dobParts = String(record['出生年月日']).split(/[-/]/);
+                    if (dobParts.length >= 3) document.getElementById('hr-emp-dob').value = `${dobParts[0]}-${dobParts[1].padStart(2, '0')}-${dobParts[2].substring(0,2).padStart(2, '0')}`;
+                }
+                
+                document.getElementById('hr-emp-birthplace').value = record['籍貫'] || '';
+                document.getElementById('hr-emp-edu').value = record['學歷'] || '';
+                document.getElementById('hr-emp-marriage').value = record['婚姻狀況'] || '';
+                document.getElementById('hr-emp-military').value = record['役別'] || '';
+                
+                const licenses = record['駕照'] || '';
+                document.getElementById('hr-emp-license-moto').checked = licenses.includes('機車');
+                document.getElementById('hr-emp-license-car').checked = licenses.includes('汽車');
+                document.getElementById('hr-emp-license-pro').checked = licenses.includes('職業');
+
+                renderFamilyData(record['家庭狀況']);
+                renderExpData(record['動態經歷']);
+                
+                document.getElementById('hr-emp-phone').value = record['聯絡電話'] || '';
+                document.getElementById('hr-emp-address').value = record['通訊地址'] || '';
+                document.getElementById('hr-emp-reg-address').value = record['戶籍地址'] || '';
+                document.getElementById('hr-emp-emer-name').value = record['緊急聯絡人'] || '';
+                document.getElementById('hr-emp-emer-rel').value = record['緊急聯絡關係'] || '';
+                document.getElementById('hr-emp-emer-phone').value = record['緊急聯絡電話'] || '';
                 document.getElementById('hr-emp-role').value = record['職位'] || '居服員';
+                document.getElementById('hr-emp-license').value = record['專業證照'] || '';
                 if(record['到職日']) {
                     let parts = String(record['到職日']).split(/[-/]/);
-                    if (parts.length >= 3) document.getElementById('hr-emp-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                    if (parts.length >= 3) document.getElementById('hr-emp-date').value = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].substring(0,2).padStart(2, '0')}`;
                 }
                 document.getElementById('hr-emp-status').value = record['狀態'] || '在職中';
                 document.getElementById('hr-emp-memo').value = record['備註'] || '';
@@ -2129,11 +2413,33 @@
             
             if (type === 'personnel') {
                 if(!document.getElementById('hr-emp-name').value) return showToast("請輸入員工姓名", "error");
+                
+                let licenseArr = [];
+                if(document.getElementById('hr-emp-license-moto').checked) licenseArr.push('機車駕照');
+                if(document.getElementById('hr-emp-license-car').checked) licenseArr.push('汽車駕照');
+                if(document.getElementById('hr-emp-license-pro').checked) licenseArr.push('職業駕照');
+
                 newRecord = {
                     '員工編號': document.getElementById('hr-emp-id').value,
                     '姓名': document.getElementById('hr-emp-name').value,
                     '身分證': document.getElementById('hr-emp-sid').value,
+                    '性別': document.getElementById('hr-emp-gender').value,
+                    '出生年月日': document.getElementById('hr-emp-dob').value,
+                    '籍貫': document.getElementById('hr-emp-birthplace').value,
+                    '學歷': document.getElementById('hr-emp-edu').value,
+                    '婚姻狀況': document.getElementById('hr-emp-marriage').value,
+                    '役別': document.getElementById('hr-emp-military').value,
+                    '駕照': licenseArr.join(','),
+                    '聯絡電話': document.getElementById('hr-emp-phone').value,
+                    '通訊地址': document.getElementById('hr-emp-address').value,
+                    '戶籍地址': document.getElementById('hr-emp-reg-address').value,
+                    '緊急聯絡人': document.getElementById('hr-emp-emer-name').value,
+                    '緊急聯絡關係': document.getElementById('hr-emp-emer-rel').value,
+                    '緊急聯絡電話': document.getElementById('hr-emp-emer-phone').value,
+                    '家庭狀況': getFamilyData(),
+                    '動態經歷': getExpData(),
                     '職位': document.getElementById('hr-emp-role').value,
+                    '專業證照': document.getElementById('hr-emp-license').value,
                     '到職日': document.getElementById('hr-emp-date').value,
                     '狀態': document.getElementById('hr-emp-status').value,
                     '備註': document.getElementById('hr-emp-memo').value
@@ -2220,18 +2526,6 @@
                 if (type === 'payroll') document.getElementById('hr-pay-empid').value = matched['員工編號'] || '';
                 else if (type === 'aabonus') document.getElementById('hr-aa-id').value = matched['身分證'] || '';
             }
-        }
-
-        function switchFinanceTab(type) {
-            document.querySelectorAll('.finance-tab').forEach(tab => {
-                tab.classList.remove('bg-orange-500', 'text-white', 'shadow-md');
-                tab.classList.add('bg-stone-50', 'text-stone-500');
-            });
-            document.getElementById('tab-fin-' + type).classList.remove('bg-stone-50', 'text-stone-500');
-            document.getElementById('tab-fin-' + type).classList.add('bg-orange-500', 'text-white', 'shadow-md');
-            
-            document.querySelectorAll('.fin-section').forEach(sec => sec.classList.add('hidden-section'));
-            document.getElementById('fin-' + type).classList.remove('hidden-section');
         }
 
         // ====== 個人薪資明細 ======

@@ -1706,8 +1706,8 @@
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
                             ${extraBtn}
-                            <button onclick="openEditFormModal('${typeName}', ${r._rowIndex}, ${escapeHtml(r)})" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick="openDeleteRecord('${typeName}', ${r._rowIndex}, '行號: ${r._rowIndex}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                            <button onclick="openEditFormModal('${typeName}', ${r._rowIndex || 'null'}, ${escapeHtml(r)})" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="openDeleteRecord('${typeName}', ${r._rowIndex || 'null'}, '行號: ${r._rowIndex || '未知'}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     `;
                 } else {
@@ -1824,33 +1824,76 @@
 
         // ====== 共用刪除機制 (檔案、表單紀錄) ======
         function openDeleteRecord(type, rowIndex, name) {
-            currentDeleteType = type; currentDeleteIndex = rowIndex;
+            if (!rowIndex) {
+                showToast("無法取得資料行號，請重新整理頁面", "error");
+                return;
+            }
+
+            currentDeleteType = type; 
+            currentDeleteIndex = rowIndex;
             document.getElementById('delete-modal-filename').innerText = `刪除對象：${name}`;
             
             currentDeleteFunction = () => {
-                let actionName = ''; let dataType = currentDeleteType;
-                if (currentDeleteType === 'applyList') actionName = 'deleteApplyRecord'; 
-                else if (currentDeleteType === 'visit') actionName = 'deleteVisitRecord';
-                else if (currentDeleteType === 'document') actionName = 'deleteDocumentRecord'; 
-                else {
-                    actionName = 'deleteFinanceRecord'; 
-                    if (['personnel', 'payroll', 'aabonus'].includes(currentDeleteType)) actionName = 'deleteHRRecord';
+                // 建立絕對精準的對照表，徹底根除找不到分類的問題
+                const actionMap = {
+                    'apply-list': { action: 'deleteApplyRecord', type: 'applyList' },
+                    'visit': { action: 'deleteVisitRecord', type: 'visit' },
+                    'document': { action: 'deleteDocumentRecord', type: 'document' },
+                    'income': { action: 'deleteFinanceRecord', type: 'income' },
+                    'expense': { action: 'deleteFinanceRecord', type: 'expense' },
+                    'petty': { action: 'deleteFinanceRecord', type: 'petty' },
+                    'hr-personnel': { action: 'deleteHRRecord', type: 'personnel' },
+                    'hr-payroll': { action: 'deleteHRRecord', type: 'payroll' },
+                    'hr-aabonus': { action: 'deleteHRRecord', type: 'aabonus' }
+                };
+
+                const mapped = actionMap[currentDeleteType];
+                if (!mapped) {
+                    showToast("未知的刪除類型：" + currentDeleteType, "error");
+                    return;
                 }
+
                 showToast("正在刪除紀錄並同步雲端...", "info");
+                
+                // 傳送精準的 action 與 type 給後端
                 fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: actionName, type: dataType, rowIndex: currentDeleteIndex })
-                }).then(r => r.json()).then(res => {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ 
+                        action: mapped.action, 
+                        type: mapped.type, 
+                        rowIndex: parseInt(currentDeleteIndex) 
+                    })
+                })
+                .then(async r => {
+                    const text = await r.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {
+                        throw new Error("後端回傳異常 (可能發生崩潰): " + text.substring(0, 50));
+                    }
+                })
+                .then(res => {
                     if(res.status === 'success') {
                         showToast("✅ 紀錄已成功刪除", "success");
-                        closeDeleteModal(); triggerSync(true); 
-                    } else showToast("刪除失敗", "error");
-                }).catch(() => showToast("連線異常", "error"));
+                        closeDeleteModal(); 
+                        triggerSync(true); 
+                    } else {
+                        showToast("刪除失敗：" + (res.message || "請檢查後端日誌"), "error");
+                    }
+                })
+                .catch(err => {
+                    console.error("Delete Error:", err);
+                    showToast("連線異常：" + err.message, "error");
+                });
             };
 
             const modal = document.getElementById('delete-modal'); 
             modal.classList.remove('hidden');
-            requestAnimationFrame(() => { modal.classList.remove('opacity-0'); document.getElementById('delete-modal-box').classList.remove('scale-95'); });
+            requestAnimationFrame(() => { 
+                modal.classList.remove('opacity-0'); 
+                document.getElementById('delete-modal-box').classList.remove('scale-95'); 
+            });
         }
 
         function openDeleteModal(fileId, fileName) { 

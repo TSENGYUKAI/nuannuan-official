@@ -651,7 +651,7 @@
 
                     <div id="fin-expense" class="fin-section hidden-section overflow-x-auto custom-scrollbar">
                         <table class="custom-table w-full whitespace-nowrap">
-                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>摘要/用品</th><th>發票號碼/統編</th><th>支付方式(轉帳/現金)</th><th>金額</th><th>操作</th></tr></thead>
+                            <thead><tr><th>日期</th><th>傳票/憑證編號</th><th>會計科目</th><th>摘要/用品</th><th>發票號碼/統編</th><th>支付方式</th><th>金額</th><th>操作</th></tr></thead>
                             <tbody id="expense-tbody"></tbody>
                         </table>
                     </div>
@@ -1282,10 +1282,20 @@
                     </div>
                     <div><label class="block text-xs font-black text-stone-500 mb-1">摘要/用品</label><input type="text" id="fi-ex-summary" placeholder="簡述購買項目" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">支付方式</label><select id="fi-ex-method" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700"><option value="轉帳">轉帳</option><option value="現金">現金</option></select></div>
-                        <div><label class="block text-xs font-black text-stone-500 mb-1">金額</label><input type="number" id="fi-ex-amount" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
-                    </div>
-                </div>
+    <div>
+        <label class="block text-xs font-black text-stone-500 mb-1">支付方式</label>
+        <select id="fi-ex-method" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+            <option value="轉帳">轉帳</option>
+            <option value="現金">現金</option>
+            <!-- 👇 新增信用卡選項 -->
+            <option value="信用卡">信用卡</option>
+        </select>
+    </div>
+    <div>
+        <label class="block text-xs font-black text-stone-500 mb-1">金額</label>
+        <input type="number" id="fi-ex-amount" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+    </div>
+</div>
                 <div id="fi-group-petty" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="block text-xs font-black text-stone-500 mb-1">會計科目</label><select id="fi-pt-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700"><option value="開辦費">開辦費</option><option value="房租">房租</option><option value="水電費">水電費</option><option value="網路電信">網路電信</option><option value="系統費">系統費</option><option value="文具雜支">文具雜支</option><option value="機構意外險">機構意外險</option><option value="雇主責任險">雇主責任險</option><option value="行銷/開案獎金">行銷/開案獎金</option><option value="其他支出">其他支出</option></select></div>

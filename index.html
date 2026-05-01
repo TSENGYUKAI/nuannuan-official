@@ -2134,7 +2134,7 @@
             const netEl = document.getElementById('display-net'); if(netEl) netEl.innerText = '$' + (totalR - totalE).toLocaleString();
 
             renderTable('income-tbody', fI, ['日期', '傳票/憑證編號', '會計科目', '服務項目(A/B/G/自費)', '摘要/對象', '收款方式', '金額'], 'income');
-            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式(轉帳/現金)', '金額'], 'expense');
+            renderTable('expense-tbody', fE, ['日期', '傳票/憑證編號', '會計科目', '摘要/用品', '發票號碼/統編', '支付方式', '金額'], 'expense');
             renderTable('petty-tbody', fP, ['日期', '憑證編號', '摘要/用途', '會計科目', '撥入(補充零用金)', '支出(報帳扣除)', '目前結餘', '申請人/經手人'], 'petty');
         }
 
@@ -2209,7 +2209,7 @@
             if (type === 'income') {
                 newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-in-account').value, '服務項目(A/B/G/自費)': document.getElementById('fi-in-service').value, '摘要/對象': document.getElementById('fi-in-summary').value, '收款方式': document.getElementById('fi-in-method').value, '金額': document.getElementById('fi-in-amount').value || 0 };
             } else if (type === 'expense') {
-                newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-ex-account').value, '摘要/用品': document.getElementById('fi-ex-summary').value, '發票號碼/統編': document.getElementById('fi-ex-invoice').value, '支付方式(轉帳/現金)': document.getElementById('fi-ex-method').value, '金額': document.getElementById('fi-ex-amount').value || 0 };
+                newRecord = { '日期': dateVal, '傳票/憑證編號': document.getElementById('fi-voucher').value, '會計科目': document.getElementById('fi-ex-account').value, '摘要/用品': document.getElementById('fi-ex-summary').value, '發票號碼/統編': document.getElementById('fi-ex-invoice').value, '支付方式': document.getElementById('fi-ex-method').value, '金額': document.getElementById('fi-ex-amount').value || 0 };
             } else if (type === 'petty') {
                 newRecord = { '日期': dateVal, '憑證編號': document.getElementById('fi-voucher').value, '摘要/用途': document.getElementById('fi-pt-summary').value, '會計科目': document.getElementById('fi-pt-account').value, '撥入(補充零用金)': document.getElementById('fi-pt-inflow').value || "", '支出(報帳扣除)': document.getElementById('fi-pt-outflow').value || "", '目前結餘': document.getElementById('fi-pt-balance').value || "", '申請人/經手人': document.getElementById('fi-pt-handler').value };
             }

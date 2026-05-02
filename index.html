@@ -121,7 +121,7 @@
         .step-active { border-color: #f97316 !important; background-color: #fff7ed !important; }
         .chart-container-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; height: 300px; }
 
-        /* 列印專用樣式 (包含薪資單、開發個案、人事資料卡) */
+        /* 列印專用樣式 */
         @media print {
             @page { size: A4 portrait; margin: 1.5cm; }
             body * { visibility: hidden; }
@@ -524,8 +524,7 @@
                         </table>
                     </div>
                 </section>
-
-                <section id="content-visit" class="content-section hidden-section">
+<section id="content-visit" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
                             <i class="ph-bold ph-clipboard-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
@@ -596,7 +595,8 @@
                         </table>
                     </div>
                 </section>
-<section id="content-finance" class="content-section hidden-section">
+
+                <section id="content-finance" class="content-section hidden-section">
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b-2 border-orange-50 pb-4 gap-4">
                         <div class="flex items-center gap-3">
                             <i class="ph-bold ph-calculator text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i>
@@ -760,8 +760,7 @@
                         </div>
                     </div>
                 </section>
-
-                <section id="content-contract" class="content-section hidden-section">
+<section id="content-contract" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-8 flex items-center justify-between border-b-2 border-orange-50 pb-4">
                         <div class="flex items-center gap-3"><i class="ph-bold ph-file-text text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 勞動契約</div>
                         <button id="btn-edit-contract" onclick="toggleEdit('contract')" class="admin-edit-btn hidden text-sm text-stone-400 hover:text-orange-500 flex items-center gap-1 font-bold bg-stone-50 px-3 py-1.5 rounded-xl transition-colors"><i class="ph-bold ph-pencil-simple text-lg"></i> 編輯內文</button>
@@ -795,7 +794,8 @@
                     <h4 class="text-lg font-black text-gray-800 mt-12 mb-4 no-print border-t-2 border-stone-100 pt-8">📁 雲端夾帶檔案 (如扣繳憑單)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 no-print" id="salary-files-container"></div>
                 </section>
-<section id="content-apply" class="content-section hidden-section">
+
+                <section id="content-apply" class="content-section hidden-section">
                     <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center gap-3 border-b-2 border-orange-50 pb-4">
                         <i class="ph-bold ph-file-plus text-2xl text-orange-500 bg-orange-50 rounded-full p-2"></i> 開發個案協助申請
                     </h3>
@@ -1137,6 +1137,10 @@
                             <h4 class="text-sm font-black text-indigo-600 flex items-center gap-2"><i class="ph-fill ph-users-three"></i> 3. 家庭狀況</h4>
                             <button type="button" onclick="addFamilyRow()" class="text-[10px] bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg font-black hover:bg-indigo-200 transition-colors flex items-center gap-1 shadow-sm"><i class="ph-bold ph-plus"></i> 新增成員</button>
                         </div>
+                        <!-- 家庭成員表頭 -->
+                        <div class="hidden md:grid grid-cols-6 gap-2 px-3 pb-2 text-[10px] font-black tracking-widest text-stone-500 uppercase">
+                            <div>稱謂</div><div>姓名</div><div>出生日期</div><div>職業</div><div>電話</div><div>通訊地址</div>
+                        </div>
                         <div id="hr-family-container" class="space-y-3">
                             <!-- 家庭成員將透過 JS 動態新增 -->
                         </div>
@@ -1147,6 +1151,10 @@
                         <div class="flex justify-between items-center mb-4 border-b border-teal-200 pb-2">
                             <h4 class="text-sm font-black text-teal-600 flex items-center gap-2"><i class="ph-fill ph-briefcase"></i> 4. 過往工作經歷</h4>
                             <button type="button" onclick="addExpRow()" class="text-[10px] bg-teal-100 text-teal-700 px-3 py-1 rounded-lg font-black hover:bg-teal-200 transition-colors flex items-center gap-1 shadow-sm"><i class="ph-bold ph-plus"></i> 新增經歷</button>
+                        </div>
+                        <!-- 經歷表頭 -->
+                        <div class="hidden md:grid grid-cols-4 gap-2 px-3 pb-2 text-[10px] font-black tracking-widest text-stone-500 uppercase">
+                            <div class="col-span-2">公司名稱</div><div>職稱</div><div>年資</div>
                         </div>
                         <div id="hr-exp-container" class="space-y-3">
                             <!-- 經歷將透過 JS 動態新增 -->
@@ -1282,20 +1290,20 @@
                     </div>
                     <div><label class="block text-xs font-black text-stone-500 mb-1">摘要/用品</label><input type="text" id="fi-ex-summary" placeholder="簡述購買項目" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm"></div>
                     <div class="grid grid-cols-2 gap-4">
-    <div>
-        <label class="block text-xs font-black text-stone-500 mb-1">支付方式</label>
-        <select id="fi-ex-method" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
-            <option value="轉帳">轉帳</option>
-            <option value="現金">現金</option>
-            <!-- 👇 新增信用卡選項 -->
-            <option value="信用卡">信用卡</option>
-        </select>
-    </div>
-    <div>
-        <label class="block text-xs font-black text-stone-500 mb-1">金額</label>
-        <input type="number" id="fi-ex-amount" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
-    </div>
-</div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">支付方式</label>
+                            <select id="fi-ex-method" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700">
+                                <option value="轉帳">轉帳</option>
+                                <option value="現金">現金</option>
+                                <option value="信用卡">信用卡</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-stone-500 mb-1">金額</label>
+                            <input type="number" id="fi-ex-amount" placeholder="0" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm">
+                        </div>
+                    </div>
+                </div>
                 <div id="fi-group-petty" class="space-y-4 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="block text-xs font-black text-stone-500 mb-1">會計科目</label><select id="fi-pt-account" class="w-full p-3 bg-stone-50 border-2 border-stone-200 rounded-xl font-bold outline-none focus:border-orange-500 text-sm text-stone-700"><option value="開辦費">開辦費</option><option value="房租">房租</option><option value="水電費">水電費</option><option value="網路電信">網路電信</option><option value="系統費">系統費</option><option value="文具雜支">文具雜支</option><option value="機構意外險">機構意外險</option><option value="雇主責任險">雇主責任險</option><option value="行銷/開案獎金">行銷/開案獎金</option><option value="其他支出">其他支出</option></select></div>
@@ -1713,11 +1721,16 @@
                         extraBtn = `<button onclick='openEmpProfileModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors shadow-sm" title="預覽與列印資料卡"><i class="ph-bold ph-printer"></i></button>`;
                     }
 
+                    // 👉 防護跳脫引號
+                    let safeName = String(r['姓名'] || '未知').replace(/'/g, "\\'");
+                    let safeDocNum = String(r['字號'] || '未知名稱').replace(/'/g, "\\'");
+                    let delName = typeName === 'document' ? safeDocNum : safeName;
+
                     tdAction.innerHTML = `
                         <div class="flex gap-2">
                             ${extraBtn}
-                            <button onclick="openEditFormModal('${typeName}', ${r._rowIndex || 'null'}, ${escapeHtml(r)})" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick="openDeleteRecord('${typeName}', ${r._rowIndex || 'null'}, '行號: ${r._rowIndex || '未知'}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
+                            <button onclick="openEditFormModal('${typeName}', ${r._rowIndex !== undefined ? r._rowIndex : "'null'"}, ${escapeHtml(r)})" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="openDeleteRecord('${typeName}', ${r._rowIndex !== undefined ? r._rowIndex : "'null'"}, '${delName}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     `;
                 } else {
@@ -1834,8 +1847,9 @@
 
         // ====== 共用刪除機制 (檔案、表單紀錄) ======
         function openDeleteRecord(type, rowIndex, name) {
-            if (!rowIndex) {
-                showToast("無法取得資料行號，請重新整理頁面", "error");
+            // 👉 修正：更精準的防錯判定，阻擋字串 'null' 與 undefined
+            if (rowIndex === undefined || rowIndex === null || rowIndex === 'null' || Number.isNaN(parseInt(rowIndex))) {
+                showToast("無法取得資料行號，請重新整理頁面或稍後再試", "error");
                 return;
             }
 
@@ -1844,9 +1858,10 @@
             document.getElementById('delete-modal-filename').innerText = `刪除對象：${name}`;
             
             currentDeleteFunction = () => {
-                // 建立絕對精準的對照表，徹底根除找不到分類的問題
+                // 👉 修正：建立絕對精準的對照表，完全涵蓋大小寫差異，徹底根除找不到分類的問題
                 const actionMap = {
                     'apply-list': { action: 'deleteApplyRecord', type: 'applyList' },
+                    'applyList':  { action: 'deleteApplyRecord', type: 'applyList' }, 
                     'visit': { action: 'deleteVisitRecord', type: 'visit' },
                     'document': { action: 'deleteDocumentRecord', type: 'document' },
                     'income': { action: 'deleteFinanceRecord', type: 'income' },
@@ -1865,7 +1880,6 @@
 
                 showToast("正在刪除紀錄並同步雲端...", "info");
                 
-                // 傳送精準的 action 與 type 給後端
                 fetch(GOOGLE_APPS_SCRIPT_URL, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1880,7 +1894,7 @@
                     try {
                         return JSON.parse(text);
                     } catch(e) {
-                        throw new Error("後端回傳異常 (可能發生崩潰): " + text.substring(0, 50));
+                        throw new Error("後端回傳異常: " + text.substring(0, 50));
                     }
                 })
                 .then(res => {
@@ -1969,7 +1983,10 @@
                         if (curT === 'none' && f.isPublished) curT = cat.includes("股東") ? 'shareholder' : 'policies';
                         let style = curT !== 'none' ? 'text-green-600 bg-green-50 border-green-200' : 'text-stone-400 bg-stone-50 border-stone-200';
                         let tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td><td>${f.date}</td><td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td><td><div class="flex gap-2"><button onclick="openPublishModal('${f.id}', '${f.name}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button><button onclick="openDeleteModal('${f.id}', '${f.name}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-50 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button></div></td>`;
+                        
+                        let safeFileName = String(f.name).replace(/'/g, "\\'");
+
+                        tr.innerHTML = `<td class="pl-8 max-w-[200px] truncate font-bold" title="${f.name}">${f.name}</td><td>${f.date}</td><td><span class="px-2 py-1 border rounded-md text-xs font-black ${style}">${targetNames[curT] || '🚫 不公開'}</span></td><td><div class="flex gap-2"><button onclick="openPublishModal('${f.id}', '${safeFileName}', '${curT}')" class="px-4 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-black hover:bg-orange-500 transition-colors">設定</button><button onclick="openDeleteModal('${f.id}', '${safeFileName}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-50 hover:text-white transition-colors" title="移至垃圾桶"><i class="ph-bold ph-trash"></i></button></div></td>`;
                         b.appendChild(tr);
                     });
                 }
@@ -2168,7 +2185,7 @@
                 document.getElementById('fi-ex-account').value = record['會計科目'] || '';
                 document.getElementById('fi-ex-invoice').value = record['發票號碼/統編'] || '';
                 document.getElementById('fi-ex-summary').value = record['摘要/用品'] || '';
-                document.getElementById('fi-ex-method').value = record['支付方式(轉帳/現金)'] || '轉帳';
+                document.getElementById('fi-ex-method').value = record['支付方式(轉帳/現金/信用卡)'] || record['支付方式'] || '轉帳';
                 document.getElementById('fi-ex-amount').value = String(record['金額']).replace(/,/g, '') || '';
             } else if(type === 'petty') {
                 document.getElementById('fi-voucher').value = record['憑證編號'] || '';
@@ -2784,8 +2801,12 @@
                 if(services.length > 20) services = services.substring(0, 20) + '...';
 
                 let tr = document.createElement('tr');
-                let deleteBtnHtml = currentRole === 'admin' && r._rowIndex ? 
-                    `<button onclick="openDeleteRecord('applyList', ${r._rowIndex}, '${r['姓名'] || '未知個案'}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors shadow-sm flex items-center gap-1"><i class="ph-bold ph-trash"></i></button>` : '';
+                
+                // 👉 防護跳脫引號
+                let safeName = String(r['姓名'] || '未知個案').replace(/'/g, "\\'");
+                
+                let deleteBtnHtml = currentRole === 'admin' && r._rowIndex !== undefined ? 
+                    `<button onclick="openDeleteRecord('applyList', ${r._rowIndex !== undefined ? r._rowIndex : "'null'"}, '${safeName}')" class="px-3 py-1.5 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-500 hover:text-white transition-colors shadow-sm flex items-center gap-1"><i class="ph-bold ph-trash"></i></button>` : '';
 
                 tr.innerHTML = `
                     <td class="text-stone-500">${dateStr}</td>
@@ -3060,7 +3081,11 @@
                 if(dateStr.includes('T')) dateStr = dateStr.split('T')[0];
 
                 let tr = document.createElement('tr');
-                tr.innerHTML = `<td>${statusBadge}</td><td class="font-black text-gray-800">${r['個案姓名'] || '-'}</td><td>${dateStr || '-'}</td><td>${r['訪視\n時間'] || r['訪視時間'] || '-'}</td><td>${r['訪視目的'] || '-'}</td><td>${r['訪視方式'] || '-'}</td><td class="text-stone-500 whitespace-normal text-xs" style="max-width: 250px;" title="${String(r['訪視概況'] || '').replace(/"/g, '&quot;')}">${summaryPreview}</td><td><div class="flex gap-2"><button onclick='openViewVisitModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors" title="檢視詳細內容"><i class="ph-bold ph-eye"></i></button><button onclick='openEditVisitModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button><button onclick='openDeleteRecord("visit", ${r._rowIndex}, "訪視紀錄")' class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button></div></td>`;
+                
+                // 👉 防護跳脫引號
+                let safeName = String(r['個案姓名'] || '未知').replace(/'/g, "\\'");
+
+                tr.innerHTML = `<td>${statusBadge}</td><td class="font-black text-gray-800">${r['個案姓名'] || '-'}</td><td>${dateStr || '-'}</td><td>${r['訪視\n時間'] || r['訪視時間'] || '-'}</td><td>${r['訪視目的'] || '-'}</td><td>${r['訪視方式'] || '-'}</td><td class="text-stone-500 whitespace-normal text-xs" style="max-width: 250px;" title="${String(r['訪視概況'] || '').replace(/"/g, '&quot;')}">${summaryPreview}</td><td><div class="flex gap-2"><button onclick='openViewVisitModal(${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors" title="檢視詳細內容"><i class="ph-bold ph-eye"></i></button><button onclick='openEditVisitModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors" title="編輯紀錄"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="openDeleteRecord('visit', ${r._rowIndex !== undefined ? r._rowIndex : "'null'"}, '${safeName}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-50 hover:text-white transition-colors" title="刪除紀錄"><i class="ph-bold ph-trash"></i></button></div></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -3198,11 +3223,15 @@
                 if(subject.length > 30) subject = subject.substring(0, 30) + '...';
 
                 let tr = document.createElement('tr');
-                let deleteBtnHtml = currentRole === 'admin' && r._rowIndex ? 
-                    `<button onclick="openDeleteRecord('document', ${r._rowIndex}, '${r['字號'] || '公文'}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-trash"></i></button>` : '';
+
+                // 👉 防護跳脫引號
+                let safeDocNum = String(r['字號'] || '公文').replace(/'/g, "\\'");
+                
+                let deleteBtnHtml = currentRole === 'admin' && r._rowIndex !== undefined ? 
+                    `<button onclick="openDeleteRecord('document', ${r._rowIndex !== undefined ? r._rowIndex : "'null'"}, '${safeDocNum}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-trash"></i></button>` : '';
 
                 let editBtnHtml = currentRole === 'admin' ? 
-                    `<button onclick='openEditDocumentModal(${r._rowIndex}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-pencil-simple"></i></button>` : '';
+                    `<button onclick='openEditDocumentModal(${r._rowIndex !== undefined ? r._rowIndex : "'null'"}, ${JSON.stringify(r).replace(/"/g, '&quot;')})' class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-orange-500 hover:text-white transition-colors shadow-sm"><i class="ph-bold ph-pencil-simple"></i></button>` : '';
 
                 tr.innerHTML = `
                     <td><span class="px-2 py-1 rounded-md text-[10px] font-black border ${typeStyle}">${type}</span></td>
